@@ -1,7 +1,15 @@
-#include <cstdio>
+#include "Engine.h"
 
-int main(int argc, char* argv[])
+//#pragma comment(linker, "/ENTRY:mainCRTStartup")
+
+int main()
 {
-	puts("Hello, world!");
-	return 0;
+	MAD::UGameEngine gameEngine;
+	if (!gameEngine.Init("A MAD Game", 1600, 900))
+	{
+		// something
+		return 1;
+	}
+
+	return gameEngine.Run();
 }

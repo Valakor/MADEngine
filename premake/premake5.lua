@@ -27,6 +27,7 @@ project "engine"
 	location "../projects/engine"
 	kind "StaticLib"
 	files "../projects/engine/src/**"
+	includedirs { "../projects/engine/src/include", "../projects/engine/src/private" }
 	commonSetup()
 
 function useEngine()
@@ -40,3 +41,4 @@ project "game"
 	files "../projects/game/src/**"
 	commonSetup()
 	useEngine()
+	entrypoint "mainCRTStartup"
