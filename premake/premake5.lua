@@ -17,10 +17,17 @@ workspace "MAD"
 	targetdir ("../projects/%{prj.name}/build/bin/%{cfg.longname}")
 	objdir ("../projects/%{prj.name}/build/obj/%{cfg.longname}")
 
+function commonSetup()
+	rtti "Off"
+	warnings "Extra"
+	flags { "FatalWarnings" }
+end
+
 project "engine"
 	location "../projects/engine"
 	kind "StaticLib"
 	files "../projects/engine/src/**"
+	commonSetup()
 
 function useEngine()
 	includedirs "../projects/engine/src/include"
@@ -31,4 +38,5 @@ project "game"
 	location "../projects/game"
 	kind "WindowedApp"
 	files "../projects/game/src/**"
+	commonSetup()
 	useEngine()
