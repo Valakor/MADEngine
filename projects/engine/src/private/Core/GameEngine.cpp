@@ -117,7 +117,7 @@ namespace MAD
 		return true;
 	}
 
-	int UGameEngine::Run()
+	void UGameEngine::Run()
 	{
 		while (bContinue)
 		{
@@ -125,8 +125,6 @@ namespace MAD
 		}
 
 		mGameWindow->CaptureCursor(false);
-
-		return 0;
 	}
 
 	void UGameEngine::Stop()

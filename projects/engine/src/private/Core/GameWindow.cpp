@@ -88,10 +88,10 @@ namespace MAD
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = inHInstance;
-		wcex.hIcon = LoadIconW(inHInstance, MAKEINTRESOURCEW(107));
-		wcex.hIconSm = LoadIconW(inHInstance, MAKEINTRESOURCEW(107));
+		wcex.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+		wcex.hIconSm = LoadIconW(nullptr, IDI_APPLICATION);
 		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-		wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+		wcex.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
 		wcex.lpszClassName = inWindowClassName;
 		wcex.lpszMenuName = nullptr;
 
@@ -100,8 +100,8 @@ namespace MAD
 
 	HWND UGameWindow::CreateNativeWindow(HINSTANCE inHInstance, const wchar_t* inWindowTitle, int inWidth, int inHeight)
 	{
-		DWORD windowStyle = WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME;
-		DWORD windowStyleEx = WS_EX_APPWINDOW;
+		const DWORD windowStyle = WS_OVERLAPPEDWINDOW;
+		const DWORD windowStyleEx = WS_EX_APPWINDOW;
 
 		// Because these are the dimensions we want for rendering, we must determine the actual
 		// window size using AdjustWindowRectEx to be passed to CreateWindowEx.
@@ -175,15 +175,6 @@ namespace MAD
 	{
 		switch (message)
 		{
-		case WM_PAINT:
-		{
-			// TODO: Is this really needed?
-			PAINTSTRUCT ps;
-			BeginPaint(hWnd, &ps);
-			EndPaint(hWnd, &ps);
-			break;
-		}
-
 		case WM_DESTROY:
 		{
 			PostQuitMessage(0);

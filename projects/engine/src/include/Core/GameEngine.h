@@ -35,7 +35,7 @@ namespace MAD
 		~UGameEngine();
 
 		bool Init(const string& inGameName, int inWindowWidth, int inWindowHeight);
-		int Run();
+		void Run();
 		void Stop();
 
 		float GetDeltaTime() const { return mDeltaTime; }
