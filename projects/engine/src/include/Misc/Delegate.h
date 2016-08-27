@@ -285,7 +285,7 @@ namespace MAD
 		}
 
 	protected:
-		unordered_map<SDelegateHandle::HandleType, DelegateType> mUserFuncs;
+		hash_map<SDelegateHandle::HandleType, DelegateType> mUserFuncs;
 
 	protected:
 		bool IsDuplicate(const DelegateType& inDelegate)

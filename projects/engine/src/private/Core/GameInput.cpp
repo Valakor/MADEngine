@@ -23,7 +23,7 @@ namespace MAD
 	{
 		if (StringToKeyBindings.count(inAxisName) == 0)
 		{
-			auto newBinding = std::make_shared<SAxisBinding>(inAxisName, inPosKey, inNegKey);
+			auto newBinding = eastl::make_shared<SAxisBinding>(inAxisName, inPosKey, inNegKey);
 			KeyToAxisBindings[inPosKey].push_back(newBinding);
 			KeyToAxisBindings[inNegKey].push_back(newBinding);
 			StringToKeyBindings[inAxisName] = inPosKey;
@@ -41,7 +41,7 @@ namespace MAD
 		if (StringToKeyBindings.count(inAxisName) == 0)
 		{
 			key_t key = static_cast<key_t>(inAxisType);
-			auto newBinding = std::make_shared<SAxisBinding>(inAxisName, inAxisType);
+			auto newBinding = eastl::make_shared<SAxisBinding>(inAxisName, inAxisType);
 			KeyToAxisBindings[key].push_back(newBinding);
 			StringToKeyBindings[inAxisName] = key;
 		}

@@ -19,24 +19,26 @@
 //#define PACKAGE_SCOPE protected
 //#endif
 
-#include <string>
-#include <memory>
-#include <array>
-#include <list>
-#include <deque>
-#include <stack>
-#include <unordered_map>
+// Common library includes
+#include <EASTL/string.h>
+#include <EASTL/vector.h>
+#include <EASTL/shared_ptr.h>
+#include <EASTL/array.h>
+#include <EASTL/list.h>
+#include <EASTL/deque.h>
+#include <EASTL/stack.h>
+#include <EASTL/hash_map.h>
 
-using std::string;
-using std::shared_ptr;
-using std::weak_ptr;
-using std::unique_ptr;
-using std::array;
-using std::list;
-using std::deque;
-using std::stack;
-using std::unordered_map;
-using std::unordered_multimap;
+using eastl::string;
+using eastl::vector;
+using eastl::shared_ptr;
+using eastl::weak_ptr;
+using eastl::unique_ptr;
+using eastl::array;
+using eastl::list;
+using eastl::deque;
+using eastl::stack;
+using eastl::hash_map;
 
 // Includes!
 #include "Core/GameEngine.h"
@@ -44,13 +46,3 @@ using std::unordered_multimap;
 #include "Core/GameWindow.h"
 #include "Misc/Delegate.h"
 #include "Misc/Logging.h"
-
-#define IMPL_GAME_MODULE(Title) \
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance, \
-					  _In_opt_ HINSTANCE hPrevInstance, \
-					  _In_ LPWSTR    lpCmdLine, \
-					  _In_ int       nCmdShow) \
-{ \
-	UNREFERENCED_PARAMETER(hPrevInstance); \
-	return MAD::UGameWindow::CreateGameWindow(hInstance, lpCmdLine, nCmdShow, TEXT(Title)); \
-}

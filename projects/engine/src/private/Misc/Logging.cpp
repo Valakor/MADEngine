@@ -39,7 +39,7 @@ namespace MAD
 		string logFilename = LOG_FILENAME;
 		SParse::Get(SCmdLine::Get(), "-LogFile=", logFilename);
 
-		mLogFile = std::ofstream(utf8util::UTF16FromUTF8(logFilename), std::ios_base::trunc);
+		mLogFile = std::ofstream(utf8util::UTF16FromUTF8(logFilename).c_str(), std::ios_base::trunc);
 		bHasLogFile = mLogFile.is_open() && mLogFile.good();
 #endif
 
@@ -110,7 +110,7 @@ namespace MAD
 
 		if (bDebuggerPresent || bHasConsole)
 		{
-			std::wstring outWide = utf8util::UTF16FromUTF8(outBuf);
+			auto outWide = utf8util::UTF16FromUTF8(outBuf);
 
 			if (bDebuggerPresent)
 			{

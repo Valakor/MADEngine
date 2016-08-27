@@ -109,10 +109,10 @@ namespace MAD
 		string mName;
 		bool bActive;
 
-		unordered_map<key_t, list<SActionBinding>> KeyToActionBindings;
-		unordered_map<key_t, list<shared_ptr<SAxisBinding>>> KeyToAxisBindings;
+		hash_map<key_t, list<SActionBinding>> KeyToActionBindings;
+		hash_map<key_t, list<shared_ptr<SAxisBinding>>> KeyToAxisBindings;
 
-		unordered_map<string, key_t> StringToKeyBindings;
+		hash_map<string, key_t> StringToKeyBindings;
 
 		bool OnKeyDown(key_t inKey, bool bInRepeat);
 		bool OnKeyUp(key_t inKey);

@@ -6,8 +6,8 @@
 // strings between Unicode UTF-8 and UTF-16.
 // (The implementation file is "utf8conv_inl.h").
 //
-// UTF-8 text is stored in std::string; 
-// UTF-16 text is stored in std::wstring.
+// UTF-8 text is stored in eastl::string; 
+// UTF-16 text is stored in eastl::wstring.
 //
 // This code just uses Win32 Platform SDK and C++ standard library; 
 // so it can be used also with the Express editions of Visual Studio.
@@ -31,6 +31,7 @@
 //
 //
 // by Giovanni Dicanio <gdicanio@mvps.org>
+// edits by Matthew Pohlmann
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,10 +43,8 @@
 //                              INCLUDES
 //------------------------------------------------------------------------
 
-#include <stdexcept>    // std::runtime_error
-#include <string>       // STL string classes
-
-
+#include <stdexcept>		// std::runtime_error
+#include <EASTL/string.h>	// EASTL string classes
 
 namespace utf8util {
 
@@ -91,9 +90,9 @@ public:
 
 
     // Constructs an UTF-8 conversion error exception 
-    // with a std::string message, conversion type and error code.
+    // with a eastl::string message, conversion type and error code.
     utf8_conversion_error(
-        const std::string & message, 
+        const eastl::string & message, 
         conversion_type conversion, 
         error_code_type error_code
     );
@@ -125,7 +124,7 @@ private:
 // Converts a string from UTF-8 to UTF-16.
 // On error, can throw an utf8_conversion_error exception.
 //------------------------------------------------------------------------
-std::wstring UTF16FromUTF8(const std::string & utf8);
+eastl::wstring UTF16FromUTF8(const eastl::string & utf8);
 
 
 //------------------------------------------------------------------------
@@ -133,14 +132,14 @@ std::wstring UTF16FromUTF8(const std::string & utf8);
 // On error, can throw an utf8_conversion_error exception.
 // If the input pointer is NULL, an empty string is returned.
 //------------------------------------------------------------------------
-std::wstring UTF16FromUTF8(const char * utf8);
+eastl::wstring UTF16FromUTF8(const char * utf8);
 
 
 //------------------------------------------------------------------------
 // Converts a string from UTF-16 to UTF-8.
 // On error, can throw an utf8_conversion_error exception.
 //------------------------------------------------------------------------
-std::string UTF8FromUTF16(const std::wstring & utf16);
+eastl::string UTF8FromUTF16(const eastl::wstring & utf16);
 
 
 //------------------------------------------------------------------------
@@ -148,7 +147,7 @@ std::string UTF8FromUTF16(const std::wstring & utf16);
 // On error, can throw an utf8_conversion_error exception.
 // If the input pointer is NULL, an empty string is returned.
 //------------------------------------------------------------------------
-std::string UTF8FromUTF16(const wchar_t * utf16);
+eastl::string UTF8FromUTF16(const wchar_t * utf16);
 
 
 } // namespace utf8util

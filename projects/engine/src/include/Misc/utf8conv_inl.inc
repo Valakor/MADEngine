@@ -3,6 +3,7 @@
 // FILE: utf8conv_inl.h
 //
 // by Giovanni Dicanio <gdicanio@mvps.org>
+// edits by Matthew Pohlmann
 //
 // Private header file containing implementations of inline functions.
 // The public header file for this module is "utf8conv.h"; 
@@ -35,11 +36,11 @@ inline utf8_conversion_error::utf8_conversion_error(
 
 
 inline utf8_conversion_error::utf8_conversion_error(
-    const std::string & message, 
+    const eastl::string & message, 
     conversion_type conversion, 
     error_code_type error_code
     ) : 
-        std::runtime_error(message),
+        std::runtime_error(message.c_str()),
         m_conversion(conversion),
         m_error_code(error_code)
 {
@@ -64,13 +65,13 @@ inline utf8_conversion_error::error_code_type utf8_conversion_error::error_code(
 //------------------------------------------------------------------------
 
 
-inline std::wstring UTF16FromUTF8(const std::string & utf8)
+inline eastl::wstring UTF16FromUTF8(const eastl::string & utf8)
 {
     //
     // Special case of empty input string
     //
     if (utf8.empty())
-        return std::wstring();
+        return eastl::wstring();
 
 
     // Fail if an invalid input character is encountered
@@ -105,7 +106,7 @@ inline std::wstring UTF16FromUTF8(const std::string & utf8)
     //
     // Allocate destination buffer for UTF-16 string
     //
-    std::wstring utf16;
+    eastl::wstring utf16;
     utf16.resize(utf16Length);
 
 
@@ -139,13 +140,13 @@ inline std::wstring UTF16FromUTF8(const std::string & utf8)
 
 
 
-inline std::wstring UTF16FromUTF8(const char * utf8)
+inline eastl::wstring UTF16FromUTF8(const char * utf8)
 {
     //
     // Special case of empty input string
     //
     if (utf8 == NULL || *utf8 == '\0')
-        return std::wstring();
+        return eastl::wstring();
 
 
     // Prefetch the length of the input UTF-8 string
@@ -181,7 +182,7 @@ inline std::wstring UTF16FromUTF8(const char * utf8)
     //
     // Allocate destination buffer for UTF-16 string
     //
-    std::wstring utf16;
+    eastl::wstring utf16;
     utf16.resize(utf16Length);
 
 
@@ -215,13 +216,13 @@ inline std::wstring UTF16FromUTF8(const char * utf8)
 
 
 
-inline std::string UTF8FromUTF16(const std::wstring & utf16)
+inline eastl::string UTF8FromUTF16(const eastl::wstring & utf16)
 {
     //
     // Special case of empty input string
     //
     if (utf16.empty())
-        return std::string();
+        return eastl::string();
 
 
     //
@@ -250,7 +251,7 @@ inline std::string UTF8FromUTF16(const std::wstring & utf16)
     //
     // Allocate destination buffer for UTF-8 string
     //
-    std::string utf8;
+    eastl::string utf8;
     utf8.resize(utf8Length);
 
 
@@ -284,13 +285,13 @@ inline std::string UTF8FromUTF16(const std::wstring & utf16)
 
 
 
-inline std::string UTF8FromUTF16(const wchar_t * utf16)
+inline eastl::string UTF8FromUTF16(const wchar_t * utf16)
 {
     //
     // Special case of empty input string
     //
     if (utf16 == NULL || *utf16 == L'\0')
-        return std::string();
+        return eastl::string();
 
 
     // Prefetch the length of the input UTF-16 string
@@ -323,7 +324,7 @@ inline std::string UTF8FromUTF16(const wchar_t * utf16)
     //
     // Allocate destination buffer for UTF-8 string
     //
-    std::string utf8;
+    eastl::string utf8;
     utf8.resize(utf8Length);
 
 

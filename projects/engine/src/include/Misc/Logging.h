@@ -1,9 +1,9 @@
 #pragma once
 
 #include <fstream>
-#include <string>
+#include <EASTL/string.h>
 
-using std::string;
+using eastl::string;
 
 namespace MAD
 {

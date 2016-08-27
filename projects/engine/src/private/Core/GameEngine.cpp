@@ -88,21 +88,21 @@ namespace MAD
 		gEngine = this;
 
 		// Create a window
-		mGameWindow = std::make_shared<UGameWindow>();
+		mGameWindow = eastl::make_shared<UGameWindow>();
 		if (!UGameWindow::CreateGameWindow(inGameName, inWindowWidth, inWindowHeight, *mGameWindow))
 		{
 			return false;
 		}
 
 		// Init renderer
-		mRenderer = std::make_shared<URenderer>();
+		mRenderer = eastl::make_shared<URenderer>();
 		if (!mRenderer->Init())
 		{
 			return false;
 		}
 
 		// Start the FrameTimer
-		mFrameTimer = std::make_shared<UFrameTimer>();
+		mFrameTimer = eastl::make_shared<UFrameTimer>();
 		mFrameTimer->Start();
 
 		// Set FPS cap to 120 for now. Will make this configurable later
@@ -110,7 +110,7 @@ namespace MAD
 		SetFPSCap(120.f);
 
 		// Create the GameInstance
-		mGameInstance = std::make_shared<UGameInstance>();
+		mGameInstance = eastl::make_shared<UGameInstance>();
 		mGameInstance->OnStartup();
 
 		LOG(LogGameEngine, Log, "Engine initialization successful\n");
