@@ -2,6 +2,7 @@
 
 #include "Core/FrameTimer.h"
 #include "Core/GameInstance.h"
+#include "Core/GameWorld.h"
 #include "Misc/ErrorHandling.h"
 #include "Rendering/Renderer.h"
 #include "Misc/utf8conv.h"
@@ -158,10 +159,10 @@ namespace MAD
 		UGameInput::Get().Tick();
 
 		// Tick each world
-		//for (auto& world : m_worlds)
-		//{
-		//	world->Update(mDeltaTime);
-		//}
+		for (auto& world : m_worlds)
+		{
+			world->Update(mDeltaTime);
+		}
 
 		// Tick renderer
 		mRenderer->Frame();

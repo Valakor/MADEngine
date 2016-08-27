@@ -56,6 +56,7 @@ namespace MAD
 		float mDeltaTime;
 		float mFrameStep;
 
+		vector<shared_ptr<class UGameWorld>> m_worlds;
 		shared_ptr<class UFrameTimer> mFrameTimer;
 		shared_ptr<class UGameInstance> mGameInstance;
 		shared_ptr<class UGameWindow> mGameWindow;
