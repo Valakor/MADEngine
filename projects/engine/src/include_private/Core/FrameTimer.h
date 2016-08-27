@@ -1,8 +1,6 @@
 #pragma once
 
-#include <SDKDDKVer.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <cstdint>
 
 namespace MAD
 {
@@ -15,8 +13,8 @@ namespace MAD
 		float GetFrameTime(float inFrameStep = -1.0f);
 
 	private:
-		LARGE_INTEGER mFreq;
-		LARGE_INTEGER mStart;
+		uint64_t mFreq;
+		uint64_t mStart;
 
 		float GetElapsed() const;
 	};

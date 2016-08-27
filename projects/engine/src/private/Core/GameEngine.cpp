@@ -78,7 +78,7 @@ namespace MAD
 	{
 		UGameWindow::SetWorkingDirectory();
 
-		SCmdLine::SetCmdLine(utf8util::UTF8FromUTF16(GetCommandLineW()));
+		SCmdLine::SetCmdLine(UGameWindow::GetNativeCommandline());
 		ULog::Get().Init();
 
 		LOG(LogGameEngine, Log, "Engine initialization begin...\n");

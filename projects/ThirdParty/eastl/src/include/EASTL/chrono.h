@@ -15,14 +15,17 @@
 #ifndef EASTL_CHRONO_H
 #define EASTL_CHRONO_H
 
-#if defined(EA_PRAGMA_ONCE_SUPPORTED)
-	#pragma once 
-#endif
 
 #include <EASTL/internal/config.h>
 #include <EASTL/type_traits.h>
 #include <EASTL/numeric_limits.h>
 #include <EASTL/ratio.h>
+
+
+#if defined(EA_PRAGMA_ONCE_SUPPORTED)
+	#pragma once
+#endif
+
 
 
 // TODO:  move to platform specific cpp or header file

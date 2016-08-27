@@ -12,6 +12,7 @@ namespace MAD
 	{
 	public:
 		static bool CreateGameWindow(eastl::string inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow);
+		static eastl::string GetNativeCommandline();
 
 		static void PumpMessageQueue();
 

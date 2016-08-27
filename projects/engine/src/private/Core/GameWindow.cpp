@@ -30,9 +30,23 @@ namespace MAD
 		return true;
 	}
 
+	eastl::string UGameWindow::GetNativeCommandline()
+	{
+		auto wCommandLine = GetCommandLineW();
+		auto exeNameEnd = wcschr(wCommandLine, ' ');
+		if (exeNameEnd)
+		{
+			return utf8util::UTF8FromUTF16(exeNameEnd + 1);
+		}
+		else
+		{
+			return eastl::string();
+		}
+	}
+
 	void UGameWindow::PumpMessageQueue()
 	{
-		MSG msg = { };
+		MSG msg = { 0 };
 
 		// Gather any messages (probably input) since last frame
 		while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE))

@@ -1,16 +1,20 @@
 #include "Core/FrameTimer.h"
 
+#include <SDKDDKVer.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 namespace MAD
 {
 	UFrameTimer::UFrameTimer()
 	{
-		QueryPerformanceFrequency(&mFreq);
+		QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&mFreq));
 	}
 
 	void UFrameTimer::Start()
 	{
-		QueryPerformanceFrequency(&mFreq);
-		QueryPerformanceCounter(&mStart);
+		QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&mFreq));
+		QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&mStart));
 	}
 
 	float UFrameTimer::GetFrameTime(float inFrameStep)
@@ -35,6 +39,6 @@ namespace MAD
 	{
 		LARGE_INTEGER end;
 		QueryPerformanceCounter(&end);
-		return static_cast<float>(end.QuadPart - mStart.QuadPart) / mFreq.QuadPart;
+		return static_cast<float>(end.QuadPart - mStart) / mFreq;
 	}
 }
