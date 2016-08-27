@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 namespace MAD
 {
 	class UFrameTimer
@@ -10,12 +8,13 @@ namespace MAD
 		UFrameTimer();
 
 		void Start();
-		float GetFrameTime(float inFrameStep = -1.0f);
+		void Checkpoint();
+
+		double TimeSinceCheckpoint() const;
+		double TimeSinceStart() const;
 
 	private:
-		uint64_t mFreq;
-		uint64_t mStart;
-
-		float GetElapsed() const;
+		double mTimerStart;
+		double mLastCheckpoint;
 	};
 }

@@ -38,23 +38,24 @@ namespace MAD
 		void Run();
 		void Stop();
 
-		float GetDeltaTime() const { return mDeltaTime; }
-
-		// Set the FPS cap. Positive values limit max FPS, negative values remove any cap.
-		void SetFPSCap(float FPS = -1.0f) { mFrameStep = 1.0f / FPS; }
-		float GetFPSCap() const { return 1.0f / mFrameStep; }
-		float GetFrameStep() const { return mFrameStep; }
+		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
+		float GetFrameTime() const { return static_cast<float>(mFrameTime); }
+		float GetGameTime() const { return static_cast<float>(mGameTime); }
 
 		shared_ptr<class URenderer> GetRenderer() const { return mRenderer; }
 		shared_ptr<class UGameWindow> GetWindow() const { return mGameWindow; }
 
 	private:
+		const int MAX_SIMULATION_STEPS = 10;
+		const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
+
 		void Tick();
 
 		bool bContinue;
 
-		float mDeltaTime;
-		float mFrameStep;
+		double mGameTime;
+		double mFrameTime;
+		double mFrameAccumulator;
 
 		vector<shared_ptr<class UGameWorld>> m_worlds;
 		shared_ptr<class UFrameTimer> mFrameTimer;

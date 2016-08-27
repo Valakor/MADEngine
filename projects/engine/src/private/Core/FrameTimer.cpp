@@ -6,39 +6,38 @@
 
 namespace MAD
 {
-	UFrameTimer::UFrameTimer()
+	double Now()
 	{
-		QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&mFreq));
+		LARGE_INTEGER freq;
+		QueryPerformanceFrequency(&freq);
+
+		LARGE_INTEGER now;
+		QueryPerformanceCounter(&now);
+
+		return static_cast<double>(now.QuadPart) / freq.QuadPart;
 	}
+
+	UFrameTimer::UFrameTimer(): mTimerStart(0.0)
+	                          , mLastCheckpoint(0.0)
+	{ }
 
 	void UFrameTimer::Start()
 	{
-		QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&mFreq));
-		QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&mStart));
+		mTimerStart = mLastCheckpoint = Now();
 	}
 
-	float UFrameTimer::GetFrameTime(float inFrameStep)
+	void UFrameTimer::Checkpoint()
 	{
-		float frameTime = GetElapsed();
-		
-		if (inFrameStep > 0.0f)
-		{
-			while (frameTime < inFrameStep)
-			{
-				frameTime = GetElapsed();
-			}
-			frameTime = inFrameStep;
-		}
-
-		Start();
-
-		return frameTime;
+		mLastCheckpoint = Now();
 	}
 
-	float UFrameTimer::GetElapsed() const
+	double UFrameTimer::TimeSinceCheckpoint() const
 	{
-		LARGE_INTEGER end;
-		QueryPerformanceCounter(&end);
-		return static_cast<float>(end.QuadPart - mStart) / mFreq;
+		return Now() - mLastCheckpoint;
+	}
+
+	double UFrameTimer::TimeSinceStart() const
+	{
+		return Now() - mTimerStart;
 	}
 }

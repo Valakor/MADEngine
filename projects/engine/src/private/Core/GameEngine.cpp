@@ -1,5 +1,7 @@
 #include "Core/GameEngine.h"
 
+#include <cmath>
+
 #include "Core/FrameTimer.h"
 #include "Core/GameInstance.h"
 #include "Core/GameWorld.h"
@@ -71,8 +73,9 @@ namespace MAD
 	UGameEngine* gEngine = nullptr;
 
 	UGameEngine::UGameEngine(): bContinue(true)
-	                          , mDeltaTime(0)
-	                          , mFrameStep(0) { }
+	                          , mGameTime(0.0)
+	                          , mFrameTime(0.0)
+	                          , mFrameAccumulator(0.0) { }
 
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
@@ -104,10 +107,6 @@ namespace MAD
 		// Start the FrameTimer
 		mFrameTimer = eastl::make_shared<UFrameTimer>();
 		mFrameTimer->Start();
-
-		// Set FPS cap to 120 for now. Will make this configurable later
-		// Servers will probably be set to 60 FPS cap
-		SetFPSCap(120.f);
 
 		// Create the GameInstance
 		mGameInstance = eastl::make_shared<UGameInstance>();
@@ -149,22 +148,36 @@ namespace MAD
 
 	void UGameEngine::Tick()
 	{
-		mDeltaTime = mFrameTimer->GetFrameTime(mFrameStep);
-		mDeltaTime = min(mDeltaTime, 0.25f); // Min FPS is 4
+		auto now = mFrameTimer->TimeSinceStart();
+		auto frameTime = now - mGameTime;
+		mGameTime = now;
 
-		// Tick native message queue
-		UGameWindow::PumpMessageQueue();
+		mFrameAccumulator += frameTime;
 
-		// Tick input
-		UGameInput::Get().Tick();
+		int steps = min(static_cast<int>(floor(mFrameAccumulator / TARGET_DELTA_TIME)), MAX_SIMULATION_STEPS);
+		mFrameAccumulator -= steps * TARGET_DELTA_TIME;
 
-		// Tick each world
-		for (auto& world : m_worlds)
+		while (steps > 0)
 		{
-			world->Update(mDeltaTime);
+			// Tick native message queue
+			UGameWindow::PumpMessageQueue();
+
+			// Tick input
+			UGameInput::Get().Tick();
+
+			// Tick each world
+			for (auto& world : m_worlds)
+			{
+				world->Update(static_cast<float>(TARGET_DELTA_TIME));
+			}
+
+			steps--;
 		}
 
+		// How far we are along in this frame
+		float framePercent = static_cast<float>(mFrameAccumulator / TARGET_DELTA_TIME);
+
 		// Tick renderer
-		mRenderer->Frame();
+		mRenderer->Frame(framePercent);
 	}
 }

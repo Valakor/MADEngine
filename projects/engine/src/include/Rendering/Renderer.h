@@ -12,7 +12,7 @@ namespace MAD
 		bool Init();
 		void Shutdown();
 
-		void Frame();
+		void Frame(float framePercent);
 
 		void OnScreenSizeChanged();
 

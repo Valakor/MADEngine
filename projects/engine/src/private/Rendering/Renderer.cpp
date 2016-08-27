@@ -25,8 +25,10 @@ namespace MAD
 
 	}
 
-	void URenderer::Frame()
+	void URenderer::Frame(float framePercent)
 	{
+		(void)framePercent;
+
 		BeginFrame();
 		Draw();
 		EndFrame();
