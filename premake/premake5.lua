@@ -23,15 +23,15 @@ workspace "MAD"
 group "ThirdParty"
 
 	project "EASTL"
-		location "../projects/eastl"
+		location "../projects/ThirdParty/eastl"
 		kind "StaticLib"
-		files "../projects/eastl/src/**"
-		includedirs "../projects/eastl/src/include"
+		files "../projects/ThirdParty/eastl/src/**"
+		includedirs "../projects/ThirdParty/eastl/src/include"
 		rtti "Off"
 		defines { "_CHAR16T", "_CRT_SECURE_NO_WARNINGS", "_SCL_SECURE_NO_WARNINGS", "EASTL_OPENSOURCE=1" }
 
 	function useEastl()
-		includedirs "../projects/eastl/src/include"
+		includedirs "../projects/ThirdParty/eastl/src/include"
 		links "EASTL"
 	end
 
@@ -47,7 +47,7 @@ project "engine"
 	location "../projects/engine"
 	kind "StaticLib"
 	files "../projects/engine/src/**"
-	includedirs { "../projects/engine/src/include", "../projects/engine/src/private" }
+	includedirs { "../projects/engine/src/include", "../projects/engine/src/include_private" }
 	commonSetup()
 	useEastl()
 

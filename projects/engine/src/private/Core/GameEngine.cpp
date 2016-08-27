@@ -2,7 +2,6 @@
 
 #include "Core/FrameTimer.h"
 #include "Core/GameInstance.h"
-#include "Misc/Assert.h"
 #include "Misc/ErrorHandling.h"
 #include "Rendering/Renderer.h"
 #include "Misc/utf8conv.h"
