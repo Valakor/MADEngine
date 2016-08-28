@@ -28,7 +28,7 @@ group "ThirdParty"
 		files "../projects/ThirdParty/eastl/src/**"
 		includedirs "../projects/ThirdParty/eastl/src/include"
 		rtti "Off"
-		defines { "_CHAR16T", "_CRT_SECURE_NO_WARNINGS", "_SCL_SECURE_NO_WARNINGS", "EASTL_OPENSOURCE=1" }
+		defines { "_CHAR16T", "_CRT_SECURE_NO_WARNINGS", "_SCL_SECURE_NO_WARNINGS", "EASTL_OPENSOURCE=1", "EA_COMPILER_NO_RTTI", "EA_COMPILER_NO_EXCEPTIONS" }
 
 	function useEastl()
 		includedirs "../projects/ThirdParty/eastl/src/include"
