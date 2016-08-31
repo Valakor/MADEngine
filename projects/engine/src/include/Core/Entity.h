@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Core\Object.h"
-#include "Core\Component.h"
+#include <EASTL/shared_ptr.h>
+#include <EASTL/vector.h>
 
-#include <unordered_set>
-#include <memory>
-#include <cstdint>
+#include "Core/Component.h"
+#include "Core/Object.h"
 
 namespace MAD
 {
@@ -14,32 +13,34 @@ namespace MAD
 	class AEntity : public UObject
 	{
 		MAD_DECLARE_ACTOR(AEntity)
-	public:
-		explicit AEntity(UGameWorld* owningWorld);
 
-		inline void AttachComponent(std::shared_ptr<UComponent> inNewComponent) { m_actorComponents.emplace(inNewComponent); }
+	public:
+		explicit AEntity(UGameWorld& owningWorld);
+
+		inline void AttachComponent(eastl::shared_ptr<UComponent> inNewComponent) { m_actorComponents.push_back(inNewComponent); }
 
 		inline size_t GetComponentCount() const { return m_actorComponents.size(); }
-		inline UGameWorld* GetOwningWorld() { return m_owningWorld; }
+		inline UGameWorld* GetOwningWorld() const { return m_owningWorld; }
 
 		template <typename ComponentType>
-		std::weak_ptr<const ComponentType> GetFirstComponentByType() const;
+		eastl::weak_ptr<const ComponentType> GetFirstComponentByType() const;
 
 		template <typename ComponentType>
-		std::weak_ptr<ComponentType> GetFirstComponentByType();
+		eastl::weak_ptr<ComponentType> GetFirstComponentByType();
+
 	private:
 		UGameWorld* m_owningWorld;
-		std::unordered_set<std::shared_ptr<UComponent>> m_actorComponents; // Maintain weak references to the actor's components (ComponentManager is the actual manager of all components)
+		eastl::vector<eastl::shared_ptr<UComponent>> m_actorComponents; // Maintain weak references to the actor's components (ComponentManager is the actual manager of all components)
 	};
 
 	template <typename ComponentType>
-	std::weak_ptr<const ComponentType> AEntity::GetFirstComponentByType() const
+	eastl::weak_ptr<const ComponentType> AEntity::GetFirstComponentByType() const
 	{
 		for (const auto& currentComponent : m_actorComponents)
 		{
 			if (IsA<ComponentType>(currentComponent))
 			{
-				return std::weak_ptr<const ComponentType>(currentComponent);
+				return eastl::weak_ptr<const ComponentType>(currentComponent);
 			}
 		}
 
@@ -47,13 +48,13 @@ namespace MAD
 	}
 
 	template <typename ComponentType>
-	std::weak_ptr<ComponentType> AEntity::GetFirstComponentByType()
+	eastl::weak_ptr<ComponentType> AEntity::GetFirstComponentByType()
 	{
 		for (const auto& currentComponent : m_actorComponents)
 		{
 			if (IsA<ComponentType>(currentComponent))
 			{
-				return std::weak_ptr<ComponentType>(currentComponent);
+				return eastl::weak_ptr<ComponentType>(currentComponent);
 			}
 		}
 

@@ -1,29 +1,31 @@
 #pragma once
 
-#include "Engine.h"
+#include <EASTL/shared_ptr.h>
+#include <EASTL/string.h>
+#include <EASTL/vector.h>
 
 namespace MAD
 {
 	struct SCmdLine
 	{
-		static const string& Get() { return mCmdLine; }
+		static const eastl::string& Get() { return mCmdLine; }
 
-		static void SetCmdLine(const string& inCmdLine) { mCmdLine = std::move(inCmdLine); }
+		static void SetCmdLine(const eastl::string& inCmdLine) { mCmdLine = eastl::move(inCmdLine); }
 
 	private:
-		static string mCmdLine;
+		static eastl::string mCmdLine;
 	};
 
 	struct SParse
 	{
-		static bool Get(const string& inStr, const string& inMatch, int& outVal);
-		static bool Get(const string& inStr, const string& inMatch, float& outVal);
-		static bool Get(const string& inStr, const string& inMatch, string& outVal);
+		static bool Get(const eastl::string& inStr, const eastl::string& inMatch, int& outVal);
+		static bool Get(const eastl::string& inStr, const eastl::string& inMatch, float& outVal);
+		static bool Get(const eastl::string& inStr, const eastl::string& inMatch, eastl::string& outVal);
 
-		static bool Find(const string& inStr, const string& inMatch);
+		static bool Find(const eastl::string& inStr, const eastl::string& inMatch);
 
 	private:
-		static bool FindMatch(const string& inStr, const string& inMatch, size_t& outPos);
+		static bool FindMatch(const eastl::string& inStr, const eastl::string& inMatch, size_t& outPos);
 	};
 
 	extern class UGameEngine* gEngine;
@@ -34,7 +36,7 @@ namespace MAD
 		UGameEngine();
 		~UGameEngine();
 
-		bool Init(const string& inGameName, int inWindowWidth, int inWindowHeight);
+		bool Init(const eastl::string& inGameName, int inWindowWidth, int inWindowHeight);
 		void Run();
 		void Stop();
 
@@ -42,8 +44,8 @@ namespace MAD
 		float GetFrameTime() const { return static_cast<float>(mFrameTime); }
 		float GetGameTime() const { return static_cast<float>(mGameTime); }
 
-		shared_ptr<class URenderer> GetRenderer() const { return mRenderer; }
-		shared_ptr<class UGameWindow> GetWindow() const { return mGameWindow; }
+		eastl::shared_ptr<class URenderer> GetRenderer() const { return mRenderer; }
+		eastl::shared_ptr<class UGameWindow> GetWindow() const { return mGameWindow; }
 
 	private:
 		const int MAX_SIMULATION_STEPS = 10;
@@ -57,10 +59,10 @@ namespace MAD
 		double mFrameTime;
 		double mFrameAccumulator;
 
-		vector<shared_ptr<class UGameWorld>> m_worlds;
-		shared_ptr<class UFrameTimer> mFrameTimer;
-		shared_ptr<class UGameInstance> mGameInstance;
-		shared_ptr<class UGameWindow> mGameWindow;
-		shared_ptr<class URenderer> mRenderer;
+		eastl::vector<eastl::shared_ptr<class UGameWorld>> m_worlds;
+		eastl::shared_ptr<class UFrameTimer> mFrameTimer;
+		eastl::shared_ptr<class UGameInstance> mGameInstance;
+		eastl::shared_ptr<class UGameWindow> mGameWindow;
+		eastl::shared_ptr<class URenderer> mRenderer;
 	};
 }

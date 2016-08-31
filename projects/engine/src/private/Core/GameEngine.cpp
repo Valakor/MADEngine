@@ -1,13 +1,18 @@
 #include "Core/GameEngine.h"
 
-#include <cmath>
 
 #include "Core/FrameTimer.h"
 #include "Core/GameInstance.h"
+#include "Core/GameInput.h"
+#include "Core/GameWindow.h"
 #include "Core/GameWorld.h"
 #include "Misc/ErrorHandling.h"
-#include "Rendering/Renderer.h"
 #include "Misc/utf8conv.h"
+#include "Rendering/Renderer.h"
+
+#include <EASTL/algorithm.h>
+
+using eastl::string;
 
 namespace MAD
 {
@@ -154,7 +159,7 @@ namespace MAD
 
 		mFrameAccumulator += frameTime;
 
-		int steps = min(static_cast<int>(floor(mFrameAccumulator / TARGET_DELTA_TIME)), MAX_SIMULATION_STEPS);
+		int steps = eastl::min(static_cast<int>(floor(mFrameAccumulator / TARGET_DELTA_TIME)), MAX_SIMULATION_STEPS);
 		mFrameAccumulator -= steps * TARGET_DELTA_TIME;
 
 		while (steps > 0)

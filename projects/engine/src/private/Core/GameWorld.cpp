@@ -1,6 +1,7 @@
-#include "Core\GameEngine.h"
-#include "Core\GameWorld.h"
-#include "Core\Entity.h"
+#include "Core/GameWorld.h"
+
+#include "Core/GameEngine.h"
+#include "Core/Entity.h"
 
 namespace MAD
 {

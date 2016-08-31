@@ -45,6 +45,5 @@ namespace MAD
 
 		static ATOM RegisterWindowClass(HINSTANCE inHInstance, const wchar_t* inWindowClassName);
 		static HWND CreateNativeWindow(HINSTANCE inHInstance, const wchar_t* inWindowTitle, int inWidth, int inHeight);
-
 	};
 }

@@ -23,7 +23,7 @@
 // - Added conversion function overloads taking raw C strings as input.
 //   (This is more efficient when there are raw C strings already
 //   available, because it avoids the creation of temporary
-//   new std::[w]string's.)
+//   new eastl::[w]string's.)
 //
 // - UTF-8 conversion functions now detect invalid UTF-8 sequences
 //   thanks to MB_ERR_INVALID_CHARS flag, and throw an exception

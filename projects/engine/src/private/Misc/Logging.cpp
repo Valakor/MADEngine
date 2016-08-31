@@ -3,10 +3,12 @@
 #include <SDKDDKVer.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <cstdarg>
 
-#include "Engine.h"
+#include "Core/GameEngine.h"
+#include "Misc/Assert.h"
 #include "Misc/utf8conv.h"
+
+using eastl::string;
 
 #define LOG_FILENAME "log.txt"
 
@@ -72,12 +74,12 @@ namespace MAD
 		}
 
 		int startPos = sprintf_s(outBuf, "[%s:%4i] ", inFilename, inLine);
-		assert(startPos > 0 && "Failed to write filename + line number to buffer.");
-		assert(startPos < _countof(outBuf) && "Filename + line number too long for buffer.");
+		MAD_ASSERT_DESC(startPos > 0, "Failed to write filename + line number to buffer.");
+		MAD_ASSERT_DESC(startPos < _countof(outBuf), "Filename + line number too long for buffer.");
 
 		startPos += sprintf_s(outBuf + startPos, _countof(outBuf) - startPos, "[%s] ", inCategory.mCategoryName.c_str());
-		assert(startPos > 0 && "Failed to write category name to buffer.");
-		assert(startPos < _countof(outBuf) && "Filename + line number + category name too long for buffer.");
+		MAD_ASSERT_DESC(startPos > 0, "Failed to write category name to buffer.");
+		MAD_ASSERT_DESC(startPos < _countof(outBuf), "Filename + line number + category name too long for buffer.");
 
 		switch (inVerbosity)
 		{
@@ -97,11 +99,11 @@ namespace MAD
 			handle = mConsoleErr;
 			break;
 		default:
-			assert(false && "Non-supported ELogVerbosity.");
+			MAD_ASSERT_DESC(false, "Non-supported ELogVerbosity.");
 			break;
 		}
-		assert(startPos > 0 && "Failed to write log verbosity to buffer.");
-		assert(startPos < 2048 && "Filename + line number + category name + verbosity too long for buffer.");
+		MAD_ASSERT_DESC(startPos > 0, "Failed to write log verbosity to buffer.");
+		MAD_ASSERT_DESC(startPos < 2048, "Filename + line number + category name + verbosity too long for buffer.");
 
 		va_list args;
 		va_start(args, inFormat);

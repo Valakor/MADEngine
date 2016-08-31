@@ -33,6 +33,7 @@ group "ThirdParty"
 	function useEastl()
 		includedirs "../projects/ThirdParty/eastl/src/include"
 		links "EASTL"
+		defines { "NOMINMAX" }
 	end
 
 group ""

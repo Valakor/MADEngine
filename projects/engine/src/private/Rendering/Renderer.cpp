@@ -1,5 +1,7 @@
 #include "Rendering/Renderer.h"
 
+#include "Misc/Logging.h"
+
 namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogRenderer);

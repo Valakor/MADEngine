@@ -1,4 +1,10 @@
-#include "Engine.h"
+#include "Core/GameInput.h"
+
+#include "Core/GameEngine.h"
+#include "Core/GameWindow.h"
+#include "Misc/Logging.h"
+
+using eastl::string;
 
 namespace MAD
 {
@@ -285,13 +291,12 @@ namespace MAD
 
 		static const float MouseAxisMultiplier = 0.07f;
 
-		POINT mousePos = gEngine->GetWindow()->GetCursorPos();
-		POINT center = gEngine->GetWindow()->GetWindowCenter();
+		auto mousePos = gEngine->GetWindow()->GetCursorPos();
+		auto center = gEngine->GetWindow()->GetWindowCenter();
 		mMousePosX = mousePos.x;
 		mMousePosY = mousePos.y;
 
-		int32_t dX = 0;
-		int32_t dY = 0;
+		int32_t dX, dY;
 
 		if (mMouseMode == EMouseMode::MM_Game)
 		{

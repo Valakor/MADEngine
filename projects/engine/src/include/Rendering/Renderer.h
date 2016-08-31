@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Engine.h"
-
 namespace MAD
 {
 	class URenderer
@@ -22,4 +20,3 @@ namespace MAD
 		void EndFrame();
 	};
 }
-

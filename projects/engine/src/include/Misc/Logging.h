@@ -1,9 +1,7 @@
 #pragma once
 
-#include <fstream>
 #include <EASTL/string.h>
-
-using eastl::string;
+#include <fstream>
 
 namespace MAD
 {
@@ -16,12 +14,12 @@ namespace MAD
 
 	struct SLogCategory
 	{
-		SLogCategory(string inName);
+		SLogCategory(eastl::string inName);
 
 	private:
 		friend class ULog;
 
-		string mCategoryName;
+		eastl::string mCategoryName;
 	};
 
 	class ULog

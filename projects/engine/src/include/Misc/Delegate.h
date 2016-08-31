@@ -30,6 +30,8 @@
  *
  */
 
+#include <EASTL/hash_map.h>
+
 #include "Assert.h"
 
 namespace MAD
@@ -63,7 +65,7 @@ namespace MAD
 		SDelegate() : mObj(nullptr), mFuncStub(nullptr) { }
 		SDelegate(SDelegate const&) = default;
 		SDelegate(SDelegate&&) = default;
-		SDelegate(::std::nullptr_t const) noexcept : SDelegate() { }
+		SDelegate(nullptr_t const) noexcept : SDelegate() { }
 
 		SDelegate& operator=(SDelegate const&) = default;
 		SDelegate& operator=(SDelegate&&) = default;
@@ -78,12 +80,12 @@ namespace MAD
 			return !operator==(rhs);
 		}
 
-		inline bool operator==(::std::nullptr_t const) const noexcept
+		inline bool operator==(nullptr_t const) const noexcept
 		{
 			return !IsBound();
 		}
 
-		inline bool operator!=(::std::nullptr_t const) const noexcept
+		inline bool operator!=(nullptr_t const) const noexcept
 		{
 			return IsBound();
 		}
@@ -285,7 +287,7 @@ namespace MAD
 		}
 
 	protected:
-		hash_map<SDelegateHandle::HandleType, DelegateType> mUserFuncs;
+		eastl::hash_map<SDelegateHandle::HandleType, DelegateType> mUserFuncs;
 
 	protected:
 		bool IsDuplicate(const DelegateType& inDelegate)

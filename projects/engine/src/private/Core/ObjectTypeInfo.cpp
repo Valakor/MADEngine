@@ -1,4 +1,4 @@
-#include "Core\ObjectTypeInfo.h"
+#include "Core/ObjectTypeInfo.h"
 
 namespace MAD
 {

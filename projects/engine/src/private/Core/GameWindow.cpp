@@ -1,8 +1,11 @@
 #include "Core/GameWindow.h"
 
-#include "Engine.h"
+#include "Core/GameEngine.h"
+#include "Core/GameInput.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/Renderer.h"
+
+using eastl::string;
 
 namespace MAD
 {
@@ -30,7 +33,7 @@ namespace MAD
 		return true;
 	}
 
-	eastl::string UGameWindow::GetNativeCommandline()
+	string UGameWindow::GetNativeCommandline()
 	{
 		auto wCommandLine = GetCommandLineW();
 		auto exeNameEnd = wcschr(wCommandLine, ' ');
@@ -38,10 +41,8 @@ namespace MAD
 		{
 			return utf8util::UTF8FromUTF16(exeNameEnd + 1);
 		}
-		else
-		{
-			return eastl::string();
-		}
+		
+		return string();
 	}
 
 	void UGameWindow::PumpMessageQueue()
@@ -240,6 +241,7 @@ namespace MAD
 			const auto numClicks = wheelRotation / WHEEL_DELTA;
 
 			// Send numClicks to input mouse system
+			(void)numClicks;
 			// TODO
 			break;
 		}

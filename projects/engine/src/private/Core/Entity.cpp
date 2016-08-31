@@ -1,10 +1,8 @@
-#include "Core\Entity.h"
-
-#include <iostream>
+#include "Core/Entity.h"
 
 namespace MAD
 {
 	MAD_IMPLEMENT_ACTOR(AEntity, UObject)
 
-	AEntity::AEntity(UGameWorld* owningWorld) : m_owningWorld(owningWorld) {}
+	AEntity::AEntity(UGameWorld& owningWorld) : m_owningWorld(&owningWorld) {}
 }

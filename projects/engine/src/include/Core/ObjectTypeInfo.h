@@ -2,8 +2,6 @@
 
 #include "Misc\ErrorHandling.h"
 
-#include <memory>
-
 namespace MAD
 {
 	class TTypeInfo
@@ -12,6 +10,7 @@ namespace MAD
 		explicit TTypeInfo(const TTypeInfo* inParent = nullptr);
 
 		inline const TTypeInfo* GetParent() const { return m_parent; }
+
 	private:
 		const TTypeInfo* m_parent;
 	};

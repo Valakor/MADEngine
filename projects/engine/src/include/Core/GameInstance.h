@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine.h"
+#include "EASTL/shared_ptr.h"
 
 namespace MAD
 {
@@ -12,5 +12,5 @@ namespace MAD
 		virtual void OnShutdown();
 	};
 
-	typedef shared_ptr<class UGameInstance> UGameInstancePtr;
+	typedef eastl::shared_ptr<class UGameInstance> UGameInstancePtr;
 }
