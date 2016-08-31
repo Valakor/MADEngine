@@ -11,15 +11,20 @@ namespace MAD
 	class UGameWindow
 	{
 	public:
-		static bool CreateGameWindow(eastl::string inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow);
+		static bool CreateGameWindow(const eastl::string& inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow);
 		static eastl::string GetNativeCommandline();
 
 		static void PumpMessageQueue();
-
 		static void ShowCursor(bool bVisible);
-
 		static bool SetWorkingDirectory();
 
+	private:
+		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+		static ATOM RegisterWindowClass(HINSTANCE inHInstance, const wchar_t* inWindowClassName);
+		static HWND CreateNativeWindow(HINSTANCE inHInstance, const wchar_t* inWindowTitle, int inWidth, int inHeight);
+
+	public:
 		UGameWindow() : hWnd(nullptr) { }
 
 		HWND GetHWnd() const { return hWnd; }
@@ -40,10 +45,5 @@ namespace MAD
 
 	private:
 		HWND hWnd;
-
-		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-		static ATOM RegisterWindowClass(HINSTANCE inHInstance, const wchar_t* inWindowClassName);
-		static HWND CreateNativeWindow(HINSTANCE inHInstance, const wchar_t* inWindowTitle, int inWidth, int inHeight);
 	};
 }

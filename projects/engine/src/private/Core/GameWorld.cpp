@@ -5,8 +5,6 @@
 
 namespace MAD
 {
-	MAD_IMPLEMENT_CLASS(UGameWorld, UObject)
-
 	void UGameWorld::Update(float inDeltaTime)
 	{
 		m_componentUpdater.UpdateTickGroup<TickType::TT_PrePhysicsTick>(inDeltaTime);

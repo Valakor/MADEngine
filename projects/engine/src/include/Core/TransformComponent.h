@@ -6,7 +6,7 @@ namespace MAD
 {
 	class UTransformComponent : public UComponent
 	{
-		MAD_DECLARE_COMPONENT(UTransformComponent)
+		MAD_DECLARE_COMPONENT(UTransformComponent, UComponent)
 
 	public:
 		UTransformComponent(AEntity& inCompOwner, TickType inCompTickType);

@@ -5,7 +5,6 @@
 
 namespace MAD
 {
-	MAD_IMPLEMENT_COMPONENT(UTransformComponent, UComponent)
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
 	UTransformComponent::UTransformComponent(AEntity& inCompOwner, TickType inCompTickType) : Super(inCompOwner, inCompTickType) {}

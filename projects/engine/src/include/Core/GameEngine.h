@@ -16,18 +16,6 @@ namespace MAD
 		static eastl::string mCmdLine;
 	};
 
-	struct SParse
-	{
-		static bool Get(const eastl::string& inStr, const eastl::string& inMatch, int& outVal);
-		static bool Get(const eastl::string& inStr, const eastl::string& inMatch, float& outVal);
-		static bool Get(const eastl::string& inStr, const eastl::string& inMatch, eastl::string& outVal);
-
-		static bool Find(const eastl::string& inStr, const eastl::string& inMatch);
-
-	private:
-		static bool FindMatch(const eastl::string& inStr, const eastl::string& inMatch, size_t& outPos);
-	};
-
 	extern class UGameEngine* gEngine;
 
 	class UGameEngine
@@ -44,8 +32,8 @@ namespace MAD
 		float GetFrameTime() const { return static_cast<float>(mFrameTime); }
 		float GetGameTime() const { return static_cast<float>(mGameTime); }
 
-		eastl::shared_ptr<class URenderer> GetRenderer() const { return mRenderer; }
-		eastl::shared_ptr<class UGameWindow> GetWindow() const { return mGameWindow; }
+		class URenderer& GetRenderer() const { return *mRenderer; }
+		class UGameWindow& GetWindow() const { return *mGameWindow; }
 
 	private:
 		const int MAX_SIMULATION_STEPS = 10;

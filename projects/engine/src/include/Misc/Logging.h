@@ -1,6 +1,5 @@
 #pragma once
 
-#include <EASTL/string.h>
 #include <fstream>
 
 namespace MAD
@@ -14,12 +13,12 @@ namespace MAD
 
 	struct SLogCategory
 	{
-		SLogCategory(eastl::string inName);
+		SLogCategory(const char* inName);
 
 	private:
 		friend class ULog;
 
-		eastl::string mCategoryName;
+		const char* mCategoryName;
 	};
 
 	class ULog
@@ -57,16 +56,17 @@ namespace MAD
 	__pragma(warning(push)) \
 	__pragma(warning(disable:4127)) \
 	if (ELogVerbosity::Verbosity == ELogVerbosity::Error) __debugbreak(); \
-	__pragma(warning(pop))
+	__pragma(warning(pop)) \
+	(void)0
 #else
-#define LOG(...)
+#define LOG(...) (void)0
 #endif
 
 #define DECLARE_LOG_CATEGORY(LogCategoryName) \
 	static struct SLogCategory##LogCategoryName : public MAD::SLogCategory \
 	{ \
 		SLogCategory##LogCategoryName() : SLogCategory(#LogCategoryName) { } \
-	} LogCategoryName;
+	} LogCategoryName
 
 	DECLARE_LOG_CATEGORY(LogDefault);
 }

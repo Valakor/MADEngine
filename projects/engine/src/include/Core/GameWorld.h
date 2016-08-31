@@ -1,6 +1,7 @@
 #pragma once
 
 #include <EASTL/shared_ptr.h>
+#include <EASTL/type_traits.h>
 #include <EASTL/vector.h>
 
 #include "Core/Object.h"
@@ -12,11 +13,11 @@ namespace MAD
 
 	class UGameWorld : public UObject
 	{
-		MAD_DECLARE_CLASS(UGameWorld)
+		MAD_DECLARE_CLASS(UGameWorld, UObject)
 
 	public:
-		virtual void Update(float inDeltaTime);
 		virtual ~UGameWorld() { }
+		virtual void Update(float inDeltaTime);
 
 		template <typename ActorType>
 		eastl::weak_ptr<ActorType> SpawnActor();

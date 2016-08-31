@@ -62,7 +62,7 @@ namespace MAD
 	SControlScheme& SControlScheme::Finalize(bool bMakeActive) const
 	{
 		auto retScheme = UGameInput::Get().AddControlScheme(*this, bMakeActive);
-		assert(retScheme && "Failed to finalize control scheme, probably because it was added twice.");
+		MAD_ASSERT_DESC(retScheme != nullptr, "Failed to finalize control scheme, probably because it was added twice.");
 		return *retScheme;
 	}
 
@@ -291,8 +291,8 @@ namespace MAD
 
 		static const float MouseAxisMultiplier = 0.07f;
 
-		auto mousePos = gEngine->GetWindow()->GetCursorPos();
-		auto center = gEngine->GetWindow()->GetWindowCenter();
+		auto mousePos = gEngine->GetWindow().GetCursorPos();
+		auto center = gEngine->GetWindow().GetWindowCenter();
 		mMousePosX = mousePos.x;
 		mMousePosY = mousePos.y;
 
@@ -302,7 +302,7 @@ namespace MAD
 		{
 			dX = mMouseDeltaX = mMousePosX - center.x;
 			dY = mMouseDeltaY = mMousePosY - center.y;
-			gEngine->GetWindow()->CenterCursor();
+			gEngine->GetWindow().CenterCursor();
 		}
 		else if (mMouseMode == EMouseMode::MM_UI)
 		{
@@ -314,7 +314,7 @@ namespace MAD
 		}
 		else
 		{
-			assert(false && "Unrecognized EInputMode");
+			MAD_ASSERT_DESC(false, "Unrecognized EInputMode");
 			return;
 		}
 
@@ -424,16 +424,16 @@ namespace MAD
 		switch (mMouseMode)
 		{
 		case EMouseMode::MM_UI:
-			gEngine->GetWindow()->CaptureCursor(false);
+			gEngine->GetWindow().CaptureCursor(false);
 			UGameWindow::ShowCursor(true);
 			break;
 		case EMouseMode::MM_Game:
-			gEngine->GetWindow()->CaptureCursor(true);
-			gEngine->GetWindow()->CenterCursor();
+			gEngine->GetWindow().CaptureCursor(true);
+			gEngine->GetWindow().CenterCursor();
 			UGameWindow::ShowCursor(false);
 			break;
 		default:
-			assert(false && "Unrecognized EInputMode");
+			MAD_ASSERT_DESC(false, "Unrecognized EInputMode");
 			return;
 		}
 
@@ -453,7 +453,7 @@ namespace MAD
 
 	void UGameInput::ResetMouseInfo()
 	{
-		POINT mousePos = gEngine->GetWindow()->GetCursorPos();
+		POINT mousePos = gEngine->GetWindow().GetCursorPos();
 		mMousePosX = mousePos.x;
 		mMousePosY = mousePos.y;
 

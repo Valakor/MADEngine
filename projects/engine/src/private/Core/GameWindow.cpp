@@ -11,7 +11,7 @@ namespace MAD
 {
 	wchar_t s_windowClassName[] = TEXT("MADEngine");
 
-	bool UGameWindow::CreateGameWindow(string inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow)
+	bool UGameWindow::CreateGameWindow(const string& inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow)
 	{
 		auto hInst = GetModuleHandleW(nullptr);
 
@@ -281,7 +281,7 @@ namespace MAD
 			//NOTE: You NEVER want to put a breakpoint here or you'll have to restart your computer.
 			if (gEngine)
 			{
-				gEngine->GetRenderer()->OnScreenSizeChanged();
+				gEngine->GetRenderer().OnScreenSizeChanged();
 			}
 			break;
 		}

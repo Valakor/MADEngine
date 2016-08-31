@@ -48,7 +48,7 @@ project "engine"
 	location "../projects/engine"
 	kind "StaticLib"
 	files "../projects/engine/src/**"
-	includedirs { "../projects/engine/src/include", "../projects/engine/src/include_private" }
+	includedirs { "../projects/engine/src/include" }
 	commonSetup()
 	useEastl()
 

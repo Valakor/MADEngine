@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Misc\ErrorHandling.h"
+#include <stdint.h>
 
 namespace MAD
 {
 	class TTypeInfo
 	{
 	public:
-		explicit TTypeInfo(const TTypeInfo* inParent = nullptr);
+		explicit TTypeInfo(const TTypeInfo* inParent);
 
 		inline const TTypeInfo* GetParent() const { return m_parent; }
 
@@ -16,64 +16,44 @@ namespace MAD
 	};
 
 #pragma region Macro Definitions
-	// Base object class macro definition
-#define MAD_DECLARE_CLASS(ClassName)										\
+// Base object class macro definition
+#define MAD_DECLARE_BASE_CLASS(BaseClass)									\
 	public:																	\
-		static const TTypeInfo* StaticClass() { return &s_classTypeInfo; }	\
-	private:																\
-		static const TTypeInfo s_classTypeInfo;								\
+		static const TTypeInfo* StaticClass()								\
+		{																	\
+			static TTypeInfo s_classTypeInfo(nullptr);						\
+			return &s_classTypeInfo;											\
+		}																	\
 	private:																\
 
-#define MAD_IMPLEMENT_CLASS(ChildClass, ParentClass)							\
-	using Super = ParentClass;													\
-	const TTypeInfo ChildClass::s_classTypeInfo(ParentClass::StaticClass());	\
-
-#define MAD_IMPLEMENT_BASE_CLASS(BaseClass)										\
-	const TTypeInfo BaseClass::s_classTypeInfo(nullptr);						\
+// Actor specific macro definition
+#define MAD_DECLARE_CLASS(ClassName, ParentClass)							\
+	public:																	\
+		static const TTypeInfo* StaticClass()								\
+		{																	\
+			static TTypeInfo s_classTypeInfo(ParentClass::StaticClass());	\
+			return &s_classTypeInfo;											\
+		}																	\
+	private:																\
+		using Super = ParentClass;											\
 
 // Actor specific macro definitions on top of base MAD class macro definitions
-#define MAD_DECLARE_ACTOR(ClassName)	\
-	MAD_DECLARE_CLASS(ClassName)		\
-
-#define MAD_IMPLEMENT_ACTOR(ChildActorClass, ParentActorClass)	\
-	MAD_IMPLEMENT_CLASS(ChildActorClass, ParentActorClass)		\
+#define MAD_DECLARE_ACTOR(ClassName, ParentClass)							\
+	MAD_DECLARE_CLASS(ClassName, ParentClass)								\
 
 // Actor component specific macro definitions
-#define MAD_DECLARE_COMPONENT(ComponentClass)					\
-	MAD_DECLARE_CLASS(ComponentClass)							\
+#define MAD_DECLARE_COMPONENT(ComponentClass, ParentClass)					\
+	MAD_DECLARE_CLASS(ComponentClass, ParentClass)							\
 	
-#define MAD_IMPLEMENT_COMPONENT(ChildComponentClass, ParentComponentClass)	\
-	MAD_IMPLEMENT_CLASS(ChildComponentClass, ParentComponentClass)			\
-
 #pragma endregion
 
 #pragma region RTTI Queries
-	// Reference Specialization
-	template <typename IsAToClass, typename IsAFromClass>
-	bool IsA(const IsAFromClass& inObject)
-	{
-		// Iterate up the TTypeInfo tree of the IsAFromClass until you find IsAToClass's TTypeInfo or we reach null
-		const TTypeInfo* const targetTypeInfo = IsAToClass::StaticClass();
-		const TTypeInfo* currentTypeInfo = IsAFromClass::StaticClass();
-		
-		while (currentTypeInfo)
-		{
-			if (currentTypeInfo == targetTypeInfo)
-			{
-				return true;
-			}
-
-			currentTypeInfo = currentTypeInfo->GetParent();
-		}
-
-		return false;
-	}
-
-	// Raw Ptr Specialization (has same implementation as reference specialization, clean up!)
 	template <typename IsAToClass, typename IsAFromClass>
 	bool IsA(const IsAFromClass* inObjectPtr)
 	{
-		// Similar to reference version
+		(void)inObjectPtr;
+
+		// Iterate up the TTypeInfo tree of the IsAFromClass until you find IsAToClass's TTypeInfo or we reach null
 		const TTypeInfo* const targetTypeInfo = IsAToClass::StaticClass();
 		const TTypeInfo* currentTypeInfo = IsAFromClass::StaticClass();
 

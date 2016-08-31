@@ -8,7 +8,7 @@ namespace MAD
 
 	class UObject
 	{
-		MAD_DECLARE_CLASS(UObject)
+		MAD_DECLARE_BASE_CLASS(UObject)
 
 	public:
 		UObject();

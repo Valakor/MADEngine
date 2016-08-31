@@ -4,8 +4,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <EASTL/string.h>
+
 #include "Core/GameEngine.h"
 #include "Misc/Assert.h"
+#include "Misc/Parse.h"
 #include "Misc/utf8conv.h"
 
 using eastl::string;
@@ -14,7 +17,7 @@ using eastl::string;
 
 namespace MAD
 {
-	SLogCategory::SLogCategory(string inName) :
+	SLogCategory::SLogCategory(const char* inName) :
 		mCategoryName(inName)
 	{ }
 
@@ -50,7 +53,7 @@ namespace MAD
 
 	void ULog::Shutdown()
 	{
-		assert(bWasInitialized && "Should not call Shutdown() if Init() has not been called.");
+		MAD_ASSERT_DESC(bWasInitialized, "Should not call Shutdown() if Init() has not been called.");
 
 		FreeConsole();
 		bHasConsole = false;
@@ -77,7 +80,7 @@ namespace MAD
 		MAD_ASSERT_DESC(startPos > 0, "Failed to write filename + line number to buffer.");
 		MAD_ASSERT_DESC(startPos < _countof(outBuf), "Filename + line number too long for buffer.");
 
-		startPos += sprintf_s(outBuf + startPos, _countof(outBuf) - startPos, "[%s] ", inCategory.mCategoryName.c_str());
+		startPos += sprintf_s(outBuf + startPos, _countof(outBuf) - startPos, "[%s] ", inCategory.mCategoryName);
 		MAD_ASSERT_DESC(startPos > 0, "Failed to write category name to buffer.");
 		MAD_ASSERT_DESC(startPos < _countof(outBuf), "Filename + line number + category name too long for buffer.");
 

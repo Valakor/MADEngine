@@ -15,7 +15,7 @@ namespace MAD
 
 	class UComponent : public UObject
 	{
-		MAD_DECLARE_CLASS(UComponent)
+		MAD_DECLARE_CLASS(UComponent, UObject)
 
 	public:
 		UComponent() = delete;

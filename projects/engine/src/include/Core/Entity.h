@@ -12,7 +12,7 @@ namespace MAD
 
 	class AEntity : public UObject
 	{
-		MAD_DECLARE_ACTOR(AEntity)
+		MAD_DECLARE_ACTOR(AEntity, UObject)
 
 	public:
 		explicit AEntity(UGameWorld& owningWorld);
