@@ -17,12 +17,12 @@ workspace "MAD"
 	
 	filter { }
 	
-	targetdir ("../projects/%{prj.name}/build/bin/%{cfg.longname}")
-	objdir ("../projects/%{prj.name}/build/obj/%{cfg.longname}")
+	targetdir ("%{prj.location}/build/bin/%{cfg.longname}")
+	objdir ("%{prj.location}/build/obj/%{cfg.longname}")
 
 group "ThirdParty"
 
-	project "EASTL"
+	project "eastl"
 		location "../projects/ThirdParty/eastl"
 		kind "StaticLib"
 		files "../projects/ThirdParty/eastl/src/**"
@@ -32,16 +32,46 @@ group "ThirdParty"
 
 	function useEastl()
 		includedirs "../projects/ThirdParty/eastl/src/include"
-		links "EASTL"
+		links "eastl"
 		defines { "NOMINMAX" }
 	end
 
 group ""
 
+function useAssimp()
+	libdirs { "../ThirdParty/assimp/lib" }
+	includedirs { "../ThirdParty/assimp/include" }
+
+	filter { "configurations:Debug" }
+		links { "zlibstaticD", "assimp-vc140-mtD" }
+
+	filter { "configurations:Release" }
+		links { "zlibstatic", "assimp-vc140-mt" }
+
+	filter { }
+end
+
+function useDirectXTK()
+	libdirs { "../ThirdParty/DirectXTK/lib" }
+	includedirs { "../ThirdParty/DirectXTK/include" }
+
+	filter { "configurations:Debug" }
+		links { "DirectXTKD" }
+
+	filter { "configurations:Release" }
+		links { "DirectXTK" }
+
+	filter { }
+end
+
 function commonSetup()
 	rtti "Off"
 	warnings "Extra"
 	flags { "FatalWarnings" }
+
+	useEastl()
+	useAssimp()
+	useDirectXTK()
 end
 
 project "engine"
@@ -50,7 +80,6 @@ project "engine"
 	files "../projects/engine/src/**"
 	includedirs { "../projects/engine/src/include" }
 	commonSetup()
-	useEastl()
 
 function useEngine()
 	includedirs "../projects/engine/src/include"
@@ -63,5 +92,4 @@ project "game"
 	files "../projects/game/src/**"
 	commonSetup()
 	useEngine()
-	useEastl()
 	entrypoint "mainCRTStartup"
