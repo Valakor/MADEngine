@@ -10,6 +10,5 @@
 // Common MAD Engine includes
 #include "Core/GameEngine.h"
 #include "Core/GameInput.h"
-#include "Core/GameWindow.h"
 #include "Misc/Delegate.h"
 #include "Misc/Logging.h"

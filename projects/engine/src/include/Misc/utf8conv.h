@@ -154,7 +154,7 @@ eastl::string UTF8FromUTF16(const wchar_t * utf16);
 
 
 
-#include "utf8conv_inl.inc"     // inline implementations
+#include "utf8conv_inl.inl"     // inline implementations
 
 
 //////////////////////////////////////////////////////////////////////////
