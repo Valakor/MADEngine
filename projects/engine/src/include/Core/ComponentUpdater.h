@@ -3,13 +3,15 @@
 #include <EASTL/array.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/vector.h>
+#include <EASTL/set.h>
+#include <EASTL/weak_ptr.h>
 
 #include "Core/Component.h"
 #include "Misc/Assert.h"
 
 namespace MAD
 {
-	class AEntity;
+	/*class AEntity;
 
 	// ComponentUpdater will maintain weak references to all of the components in a single World instance. Ticks the components based on their tick type
 	// Each World will contain only one ComponentUpdater. Allows easy management of per-World component updates
@@ -51,5 +53,34 @@ namespace MAD
 		{
 			currentComponent.lock()->UpdateComponent(inDeltaTime);
 		}
+	}*/
+	using PriorityLevel = uint32_t;
+
+	struct ComponentPriorityBlock
+	{
+		explicit ComponentPriorityBlock(TypeID inComponentTypeID) : m_blockComponentTypeID(inComponentTypeID) {}
+
+		TypeID m_blockComponentTypeID;
+		eastl::vector<eastl::weak_ptr<UComponent>> m_blockComponents;
+	};
+
+	class ComponentUpdater
+	{
+	public:
+		using ComponentContainer = eastl::multiset<uint32_t, ComponentPriorityBlock>;
+
+		template <typename ComponentType>
+		void AddComponent(eastl::weak_ptr<ComponentType> inCompWeakPtr);
+
+		void UpdatePrePhysicsComponents(float inDeltaTime);
+		void UpdatePostPhysicsComponents(float inDeltaTime);
+	private:
+		ComponentContainer m_componentContainers;
+	};
+
+	template <typename ComponentType>
+	void ComponentUpdater::AddComponent(eastl::weak_ptr<ComponentType> inCompWeakPtr)
+	{
+		
 	}
 }

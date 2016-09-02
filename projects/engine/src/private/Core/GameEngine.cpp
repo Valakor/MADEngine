@@ -6,6 +6,7 @@
 #include "Core/GameInput.h"
 #include "Core/GameWindow.h"
 #include "Core/GameWorld.h"
+#include "Core/PhysicsWorld.h"
 #include "Misc/ErrorHandling.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/Renderer.h"
@@ -50,6 +51,14 @@ namespace MAD
 		// Init renderer
 		mRenderer = eastl::make_shared<URenderer>();
 		if (!mRenderer->Init())
+		{
+			return false;
+		}
+
+		// Init the physics world
+		m_physicsWorld = eastl::make_shared<UPhysicsWorld>();
+
+		if (!m_physicsWorld)
 		{
 			return false;
 		}
@@ -115,10 +124,21 @@ namespace MAD
 			// Tick input
 			UGameInput::Get().Tick();
 
-			// Tick each world
+			// Tick the pre-physics components of all Worlds
 			for (auto& world : m_worlds)
 			{
-				world->Update(static_cast<float>(TARGET_DELTA_TIME));
+				// For each world, we want to tick
+				world->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
+
+			// Update the physics world
+			m_physicsWorld->SimulatePhysics();
+
+
+			// Tick the post-physics components of all Worlds
+			for (auto& world : m_worlds)
+			{
+				world->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
 			}
 
 			steps--;

@@ -5,17 +5,14 @@
 
 namespace MAD
 {
-	void UGameWorld::Update(float inDeltaTime)
+	void UGameWorld::UpdatePrePhysics(float inDeltaTime)
 	{
-		m_componentUpdater.UpdateTickGroup<TickType::TT_PrePhysicsTick>(inDeltaTime);
+		m_componentUpdater.UpdatePrePhysicsComponents(inDeltaTime);
+	}
 
-		// Update physics begin -------------------
-
-		// ...Stuff
-
-		// Update physics end ---------------------
-
-		m_componentUpdater.UpdateTickGroup<TickType::TT_PostPhysicsTick>(inDeltaTime);
+	void UGameWorld::UpdatePostPhysics(float inDeltaTime)
+	{
+		m_componentUpdater.UpdatePostPhysicsComponents(inDeltaTime);
 	}
 
 }

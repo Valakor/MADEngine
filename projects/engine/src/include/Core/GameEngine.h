@@ -34,6 +34,7 @@ namespace MAD
 
 		class URenderer& GetRenderer() const { return *mRenderer; }
 		class UGameWindow& GetWindow() const { return *mGameWindow; }
+		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
 
 	private:
 		const int MAX_SIMULATION_STEPS = 10;
@@ -51,6 +52,7 @@ namespace MAD
 		eastl::shared_ptr<class UFrameTimer> mFrameTimer;
 		eastl::shared_ptr<class UGameInstance> mGameInstance;
 		eastl::shared_ptr<class UGameWindow> mGameWindow;
+		eastl::shared_ptr<class UPhysicsWorld> m_physicsWorld;
 		eastl::shared_ptr<class URenderer> mRenderer;
 	};
 }

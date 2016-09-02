@@ -4,14 +4,20 @@
 
 namespace MAD
 {
+	using TypeID = uint32_t;
+
 	class TTypeInfo
 	{
 	public:
+		static TypeID s_currentTypeID;
+	public:
 		explicit TTypeInfo(const TTypeInfo* inParent);
 
+		inline TypeID GetTypeID() const { return m_typeID; }
 		inline const TTypeInfo* GetParent() const { return m_parent; }
 
 	private:
+		const TypeID m_typeID;
 		const TTypeInfo* m_parent;
 	};
 

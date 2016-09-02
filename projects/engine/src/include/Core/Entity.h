@@ -17,8 +17,12 @@ namespace MAD
 	public:
 		explicit AEntity(UGameWorld& owningWorld);
 
-		inline void AttachComponent(eastl::shared_ptr<UComponent> inNewComponent) { m_actorComponents.push_back(inNewComponent); }
+		// [TODO] Probably shouldn't have the user pass in a shared_ptr to attach to the Entity
+		// Variadic template for AttachComponent that takes the arguments for the UComponent constructor
+		// and creates the shared_ptr WITHIN AttachComponent
 
+		inline void AttachComponent(eastl::shared_ptr<UComponent> inNewComponent) { m_actorComponents.push_back(inNewComponent); }
+		
 		inline size_t GetComponentCount() const { return m_actorComponents.size(); }
 		inline UGameWorld* GetOwningWorld() const { return m_owningWorld; }
 

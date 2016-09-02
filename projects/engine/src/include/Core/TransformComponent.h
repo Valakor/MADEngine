@@ -9,7 +9,7 @@ namespace MAD
 		MAD_DECLARE_COMPONENT(UTransformComponent, UComponent)
 
 	public:
-		UTransformComponent(AEntity& inCompOwner, TickType inCompTickType);
+		UTransformComponent(AEntity& inCompOwner);
 
 		virtual void UpdateComponent(float inDeltaTime) override;
 	};

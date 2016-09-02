@@ -17,13 +17,14 @@ namespace MAD
 
 	public:
 		virtual ~UGameWorld() { }
-		virtual void Update(float inDeltaTime);
 
 		template <typename ActorType>
 		eastl::weak_ptr<ActorType> SpawnActor();
 
 		inline ComponentUpdater& GetComponentUpdater() { return m_componentUpdater; }
-
+		
+		void UpdatePrePhysics(float inDeltaTime);
+		void UpdatePostPhysics(float inDeltaTime);
 	private:
 		eastl::vector<eastl::shared_ptr<AEntity>> m_ownedActors;
 		ComponentUpdater m_componentUpdater;
