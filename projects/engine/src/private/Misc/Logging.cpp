@@ -44,7 +44,7 @@ namespace MAD
 		string logFilename = LOG_FILENAME;
 		SParse::Get(SCmdLine::Get(), "-LogFile=", logFilename);
 
-		mLogFile = std::ofstream(utf8util::UTF16FromUTF8(logFilename).c_str(), std::ios_base::trunc);
+		mLogFile = std::wofstream(utf8util::UTF16FromUTF8(logFilename).c_str(), std::ios_base::trunc);
 		bHasLogFile = mLogFile.is_open() && mLogFile.good();
 #endif
 
@@ -113,25 +113,22 @@ namespace MAD
 		vsprintf_s(outBuf + startPos, _countof(outBuf) - startPos, inFormat, args);
 		va_end(args);
 
-		if (bDebuggerPresent || bHasConsole)
+		auto outWide = utf8util::UTF16FromUTF8(outBuf);
+
+		if (bDebuggerPresent)
 		{
-			auto outWide = utf8util::UTF16FromUTF8(outBuf);
+			OutputDebugStringW(outWide.c_str());
+		}
 
-			if (bDebuggerPresent)
-			{
-				OutputDebugStringW(outWide.c_str());
-			}
-
-			if (bHasConsole)
-			{
-				DWORD numWritten;
-				WriteConsoleW(handle, outWide.c_str(), static_cast<DWORD>(outWide.size()), &numWritten, nullptr);
-			}
+		if (bHasConsole)
+		{
+			DWORD numWritten;
+			WriteConsoleW(handle, outWide.c_str(), static_cast<DWORD>(outWide.size()), &numWritten, nullptr);
 		}
 
 		if (bHasLogFile)
 		{
-			mLogFile << outBuf;
+			mLogFile << outWide.c_str();
 			mLogFile.flush();
 		}
 	}

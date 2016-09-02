@@ -45,14 +45,14 @@ namespace MAD
 		void* mConsoleErr;
 
 		bool bHasLogFile;
-		std::ofstream mLogFile;
+		std::wofstream mLogFile;
 	};
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
 #ifdef _DEBUG
-#define LOG(Category, Verbosity, ...) \
-	ULog::Get().LogF(Category, ELogVerbosity::Verbosity, __FILENAME__, __LINE__, __VA_ARGS__); \
+#define LOG(Category, Verbosity, Format, ...) \
+	ULog::Get().LogF(Category, ELogVerbosity::Verbosity, __FILENAME__, __LINE__, Format, __VA_ARGS__); \
 	__pragma(warning(push)) \
 	__pragma(warning(disable:4127)) \
 	if (ELogVerbosity::Verbosity == ELogVerbosity::Error) __debugbreak(); \
