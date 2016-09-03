@@ -3,84 +3,98 @@
 #include <EASTL/array.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/vector.h>
-#include <EASTL/set.h>
+#include <EASTL/map.h>
 #include <EASTL/weak_ptr.h>
 
 #include "Core/Component.h"
+#include "Core/ComponentPriorityInfo.h"
 #include "Misc/Assert.h"
 
 namespace MAD
 {
-	/*class AEntity;
-
-	// ComponentUpdater will maintain weak references to all of the components in a single World instance. Ticks the components based on their tick type
-	// Each World will contain only one ComponentUpdater. Allows easy management of per-World component updates
-	class ComponentUpdater
-	{
-	public:
-		using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
-
-		template <typename ComponentType, TickType ComponentTickType>
-		void AddComponentToTickGroup(eastl::weak_ptr<ComponentType> inCompWeakPtr);
-
-		template <TickType ComponentTickType>
-		void UpdateTickGroup(float inDeltaTime);
-
-	private:
-		eastl::array<ComponentContainer, static_cast<size_t>(TickType::TT_TickTypeCount)> m_componentTickBuckets; // Number of tick group buckets is known at compile time based on TickType enumeration
-	};
-
-	template <typename ComponentType, TickType ComponentTickType>
-	void ComponentUpdater::AddComponentToTickGroup(eastl::weak_ptr<ComponentType> inCompWeakPtr)
-	{
-		MAD_ASSERT_DESC(!inCompWeakPtr.expired(), "Warning: Trying to add an expired weak_ptr to the tick group. Will automatically be taken out upon update!");
-
-		m_componentTickBuckets[static_cast<uint8_t>(ComponentTickType)].emplace_back(inCompWeakPtr);
-	}
-
-	template <TickType ComponentTickType>
-	void ComponentUpdater::UpdateTickGroup(float inDeltaTime)
-	{
-		ComponentContainer& tickGroupContainerRef = m_componentTickBuckets[static_cast<uint8_t>(ComponentTickType)];
-
-		// Remove all expired component ptrs first
-		tickGroupContainerRef.erase(eastl::remove_if(tickGroupContainerRef.begin(), tickGroupContainerRef.end(), [](eastl::weak_ptr<UComponent> currentCompWeakPtr)
-		{
-			return currentCompWeakPtr.expired();
-		}), tickGroupContainerRef.end());
-
-		for (auto& currentComponent : tickGroupContainerRef)
-		{
-			currentComponent.lock()->UpdateComponent(inDeltaTime);
-		}
-	}*/
-	using PriorityLevel = uint32_t;
+	// A ComponentPriorityBlock represents a set of components of the same type and same priority. Having one block for each component type allows us
+	// to guarantee update order across component types (i.e if I give TransformComponent a higher priority than CameraComponent, it's guaranteed
+	// that all TransformComponents will update before all CameraComponents
 
 	struct ComponentPriorityBlock
 	{
-		explicit ComponentPriorityBlock(TypeID inComponentTypeID) : m_blockComponentTypeID(inComponentTypeID) {}
+		using ComponentContainer = eastl::vector<eastl::shared_ptr<UComponent>>;
+
+		explicit ComponentPriorityBlock(TypeID inComponentTypeID = eastl::numeric_limits<TypeID>::max()) : m_blockComponentTypeID(inComponentTypeID) {}
 
 		TypeID m_blockComponentTypeID;
-		eastl::vector<eastl::weak_ptr<UComponent>> m_blockComponents;
+		ComponentContainer m_blockComponents;
 	};
 
 	class ComponentUpdater
 	{
 	public:
-		using ComponentContainer = eastl::multiset<uint32_t, ComponentPriorityBlock>;
-
-		template <typename ComponentType>
-		void AddComponent(eastl::weak_ptr<ComponentType> inCompWeakPtr);
+		static const PriorityLevel s_staticPhysicsPriorityLevel;
+		
+		using ComponentContainer = eastl::multimap<PriorityLevel, ComponentPriorityBlock>;
+	public:
+		ComponentUpdater();
+		
+		template <typename ComponentType, typename ...Args>
+		eastl::weak_ptr<ComponentType> AddComponent(Args&&... inConstructorArgs);
+		
+		inline void SetUpdatingFlag(bool inUpdateFlag) { m_isUpdating = inUpdateFlag; }
+		inline bool IsUpdating() const { return m_isUpdating; }
 
 		void UpdatePrePhysicsComponents(float inDeltaTime);
 		void UpdatePostPhysicsComponents(float inDeltaTime);
 	private:
-		ComponentContainer m_componentContainers;
+		bool m_isUpdating;
+		PriorityLevel m_nextAssignedPriorityLevel;
+		
+		// Separation between pre and post physics priority blocks to simplify component update and performance
+		ComponentContainer m_prePhysicsPriorityBlocks;
+		ComponentContainer m_postPhysicsPriorityBlocks;
 	};
 
-	template <typename ComponentType>
-	void ComponentUpdater::AddComponent(eastl::weak_ptr<ComponentType> inCompWeakPtr)
+	template <typename ComponentType, typename ...Args>
+	eastl::weak_ptr<ComponentType> ComponentUpdater::AddComponent(Args&&... inConstructorArgs)
 	{
-		
+		// Need to determine if component type's priority level has been specified as pre or post physics
+		TComponentPriorityInfo* componentPriorityInfo = ComponentType::PriorityInfo();
+		PriorityLevel componentPriorityLevel = componentPriorityInfo->GetPriorityLevel();
+		const TypeID componentTypeID = ComponentType::StaticClass()->GetTypeID();
+
+		// If the component type specified is an un-prioritized component type (using default priority level), we need to change
+		// it's priority level to an automatic assigned priority level
+		if (componentPriorityLevel == TComponentPriorityInfo::s_defaultPriorityLevel)
+		{
+			componentPriorityLevel = m_nextAssignedPriorityLevel++;
+
+			componentPriorityInfo->UpdatePriorityLevel(componentPriorityLevel);
+		}
+
+		eastl::shared_ptr<ComponentType> newComponentPtr = eastl::make_shared<ComponentType>(eastl::forward<Args>(inConstructorArgs)...);
+
+		ComponentUpdater::ComponentContainer& targetComponentContainer = (componentPriorityLevel < ComponentUpdater::s_staticPhysicsPriorityLevel) ? m_prePhysicsPriorityBlocks : m_postPhysicsPriorityBlocks;
+
+		auto priorityBlockFindIter = targetComponentContainer.equal_range(componentPriorityLevel);
+
+		// Since there can be multiple priority blocks with the same priority, we need to find the one that has the component ID that
+		// corresponds with the component type we're trying to add
+
+		while (priorityBlockFindIter.first != priorityBlockFindIter.second)
+		{
+			if (priorityBlockFindIter.first->second.m_blockComponentTypeID == componentTypeID)
+			{
+				priorityBlockFindIter.first->second.m_blockComponents.emplace_back(newComponentPtr);
+				return newComponentPtr;
+			}
+
+			++priorityBlockFindIter.first;
+		}
+
+		// If we get here, that means this is the first time we're trying to add a component of this priority level
+		auto priorityBlockInsertIter = targetComponentContainer.emplace(componentPriorityLevel);
+
+		priorityBlockInsertIter->second.m_blockComponentTypeID = componentTypeID;
+		priorityBlockInsertIter->second.m_blockComponents.emplace_back(newComponentPtr);
+
+		return newComponentPtr;
 	}
 }

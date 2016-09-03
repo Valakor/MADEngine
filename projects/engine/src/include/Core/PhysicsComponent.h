@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Component.h"
+#include "Core/Entity.h"
 
 namespace MAD
 {

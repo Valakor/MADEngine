@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "Core/ComponentPriorityInfo.h"
+
 namespace MAD
 {
 	using TypeID = uint32_t;
@@ -22,7 +24,7 @@ namespace MAD
 	};
 
 #pragma region Macro Definitions
-// Base object class macro definition
+	// Base object class macro definition
 #define MAD_DECLARE_BASE_CLASS(BaseClass)									\
 	public:																	\
 		static const TTypeInfo* StaticClass()								\
@@ -48,9 +50,32 @@ namespace MAD
 	MAD_DECLARE_CLASS(ClassName, ParentClass)								\
 
 // Actor component specific macro definitions
-#define MAD_DECLARE_COMPONENT(ComponentClass, ParentClass)					\
-	MAD_DECLARE_CLASS(ComponentClass, ParentClass)							\
-	
+#define MAD_DECLARE_COMPONENT_COMMON(ComponentClass, ParentClass, ComponentPriorityLevel)								\
+	MAD_DECLARE_CLASS(ComponentClass, ParentClass)																		\
+	public:																												\
+		static eastl::weak_ptr<ComponentClass> CreateInstance(class AEntity& inComponentOwner);							\
+																														\
+		static TComponentPriorityInfo* PriorityInfo()																	\
+		{																												\
+			static TComponentPriorityInfo s_componentPriorityInfo(ComponentPriorityLevel);								\
+			return &s_componentPriorityInfo;																			\
+		}																												\
+	private:																											\
+
+#define MAD_DECLARE_COMPONENT(ComponentClass, ParentClass)																	\
+	MAD_DECLARE_COMPONENT_COMMON(ComponentClass, ParentClass, TComponentPriorityInfo::s_defaultPriorityLevel)				\
+
+#define MAD_DECLARE_PRIORITIZED_COMPONENT(ComponentClass, ParentClass, ComponentPriorityLevel)			\
+	MAD_DECLARE_COMPONENT_COMMON(ComponentClass, ParentClass, (ComponentPriorityLevel) + 1)				\
+
+#define MAD_IMPLEMENT_COMPONENT(ComponentClass)																\
+	eastl::weak_ptr<ComponentClass> CreateInstance(AEntity& inComponentOwner)								\
+	{																										\
+		UGameWorld& owningGameWorld = inComponentOwner.GetOwningWorldLayer().GetOwningWorld();				\
+																											\
+		return owningGameWorld.GetComponentUpdater().AddComponent<ComponentClass>(inComponentOwner);		\
+	}																										\
+
 #pragma endregion
 
 #pragma region RTTI Queries

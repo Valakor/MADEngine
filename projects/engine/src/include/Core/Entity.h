@@ -8,23 +8,24 @@
 
 namespace MAD
 {
-	class UGameWorld;
+	class UGameWorldLayer;
 
 	class AEntity : public UObject
 	{
 		MAD_DECLARE_ACTOR(AEntity, UObject)
 
 	public:
-		explicit AEntity(UGameWorld& owningWorld);
+		explicit AEntity(UGameWorldLayer& inOwningWorldLayer);
 
-		// [TODO] Probably shouldn't have the user pass in a shared_ptr to attach to the Entity
-		// Variadic template for AttachComponent that takes the arguments for the UComponent constructor
-		// and creates the shared_ptr WITHIN AttachComponent
+		inline void AttachComponent(eastl::weak_ptr<UComponent> inNewComponent) { m_actorComponents.push_back(inNewComponent); }
 
-		inline void AttachComponent(eastl::shared_ptr<UComponent> inNewComponent) { m_actorComponents.push_back(inNewComponent); }
-		
+		void Destroy();
+
+		inline bool IsPendingForKill() const { return m_isPendingForKill; }
 		inline size_t GetComponentCount() const { return m_actorComponents.size(); }
-		inline UGameWorld* GetOwningWorld() const { return m_owningWorld; }
+
+		inline UGameWorldLayer& GetOwningWorldLayer() { return m_owningWorldLayer; }
+		inline const UGameWorldLayer& GetOwningWorldLayer() const { return m_owningWorldLayer; }
 
 		template <typename ComponentType>
 		eastl::weak_ptr<const ComponentType> GetFirstComponentByType() const;
@@ -33,8 +34,9 @@ namespace MAD
 		eastl::weak_ptr<ComponentType> GetFirstComponentByType();
 
 	private:
-		UGameWorld* m_owningWorld;
-		eastl::vector<eastl::shared_ptr<UComponent>> m_actorComponents; // Maintain weak references to the actor's components (ComponentManager is the actual manager of all components)
+		bool m_isPendingForKill;
+		UGameWorldLayer& m_owningWorldLayer;
+		eastl::vector<eastl::weak_ptr<UComponent>> m_actorComponents; // Maintain weak references to the actor's components (ComponentManager is the actual manager of all components)
 	};
 
 	template <typename ComponentType>

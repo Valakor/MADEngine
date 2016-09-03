@@ -124,21 +124,39 @@ namespace MAD
 			// Tick input
 			UGameInput::Get().Tick();
 
+
+			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->CleanupEntities();
+			}
+
+			// Set updating flag so we know when the components are updating or not
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->GetComponentUpdater().SetUpdatingFlag(true);
+			}
+
 			// Tick the pre-physics components of all Worlds
-			for (auto& world : m_worlds)
+			for (auto& currentWorld : m_worlds)
 			{
 				// For each world, we want to tick
-				world->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
 			}
 
 			// Update the physics world
-			m_physicsWorld->SimulatePhysics();
+			m_physicsWorld->UpdatePhysics();
 
 
 			// Tick the post-physics components of all Worlds
-			for (auto& world : m_worlds)
+			for (auto& currentWorld : m_worlds)
 			{
-				world->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
+
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->GetComponentUpdater().SetUpdatingFlag(false);
 			}
 
 			steps--;

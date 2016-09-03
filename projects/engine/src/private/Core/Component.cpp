@@ -2,5 +2,5 @@
 
 namespace MAD
 {
-	UComponent::UComponent(AEntity& inCompOwner) : m_owner(inCompOwner) { }
+	UComponent::UComponent(AEntity& inCompOwner) : m_ownerWeakPtr(inCompOwner) { }
 }

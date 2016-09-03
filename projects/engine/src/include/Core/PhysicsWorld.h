@@ -9,6 +9,7 @@ namespace MAD
 {
 	class UPhysicsComponent;
 
+	// The PhysicsWorld is responsible for performing collision detection and collision resolution (where the PhysicsComponent is responsible for simulating the rigid bodies)
 	class UPhysicsWorld : public UObject
 	{
 		MAD_DECLARE_CLASS(UPhysicsWorld, UObject)
@@ -18,8 +19,9 @@ namespace MAD
 		using PhysicsComponentContainer = eastl::vector<PhysicsBodyWeakPtr>;
 	public:
 		void RegisterPhysicsBody(eastl::weak_ptr<PhysicsBody> inPhysicsBody);
+		void UnregisterPhysicsBody(ObjectID inPhysicsBodyID);
 
-		virtual void SimulatePhysics();
+		virtual void UpdatePhysics();
 	private:
 		PhysicsComponentContainer m_physicsComponents;
 	};
