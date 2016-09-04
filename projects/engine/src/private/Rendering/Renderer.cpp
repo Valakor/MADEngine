@@ -19,6 +19,12 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogRenderer);
 	DECLARE_LOG_CATEGORY(LogTextureImport);
 
+#ifdef _DEBUG
+#define HR_ASSERT_SUCCESS(hr, desc) MAD_ASSERT_DESC(SUCCEEDED(hr), desc)
+#else
+#define HR_ASSERT_SUCCESS(hr, desc) (void)(hr)
+#endif
+
 	namespace
 	{
 		ComPtr<ID3D11Device2>			g_d3dDevice;
@@ -46,15 +52,15 @@ namespace MAD
 
 			HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
 									D3D11_SDK_VERSION, d3dDevice0.ReleaseAndGetAddressOf(), &supportedFeatureLevel, d3dDeviceContext0.ReleaseAndGetAddressOf());
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to create D3D device with feature level 11_1");
+			HR_ASSERT_SUCCESS(hr, "Failed to create D3D device with feature level 11_1");
 
 			g_d3dDevice.Reset();
 			hr = d3dDevice0.As(&g_d3dDevice);
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to get device as D3d 11_2");
+			HR_ASSERT_SUCCESS(hr, "Failed to get device as D3d 11_2");
 
 			g_d3dDeviceContext.Reset();
 			hr = d3dDeviceContext0.As(&g_d3dDeviceContext);
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to get device context as D3d 11_2");
+			HR_ASSERT_SUCCESS(hr, "Failed to get device context as D3d 11_2");
 		}
 
 		HRESULT CreateSwapChain(HWND inWindow, bool fullScreen)
@@ -65,15 +71,15 @@ namespace MAD
 
 			ComPtr<IDXGIDevice3> dxgiDevice;
 			hr = g_d3dDevice.As(&dxgiDevice);
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to get DXGI device from D3D device");
+			HR_ASSERT_SUCCESS(hr, "Failed to get DXGI device from D3D device");
 
 			ComPtr<IDXGIAdapter2> dxgiAdapter;
 			hr = dxgiDevice->GetParent(__uuidof(IDXGIAdapter2), &dxgiAdapter);
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to get DXGI adapter from DXGI device");
+			HR_ASSERT_SUCCESS(hr, "Failed to get DXGI adapter from DXGI device");
 
 			ComPtr<IDXGIFactory3> dxgiFactory;
 			hr = dxgiAdapter->GetParent(_uuidof(IDXGIFactory3), &dxgiFactory);
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to get DXGI factory from DXGI adapter");
+			HR_ASSERT_SUCCESS(hr, "Failed to get DXGI factory from DXGI adapter");
 
 			DXGI_SWAP_CHAIN_DESC1 scd = { 0 };
 			scd.Width = 0;
@@ -97,11 +103,11 @@ namespace MAD
 
 			ComPtr<IDXGISwapChain1> swapChain;
 			hr = dxgiFactory->CreateSwapChainForHwnd(g_d3dDevice.Get(), inWindow, &scd, &scfd, nullptr, swapChain.ReleaseAndGetAddressOf());
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to create swap chain");
+			HR_ASSERT_SUCCESS(hr, "Failed to create swap chain");
 
 			g_dxgiSwapChain.Reset();
 			hr = swapChain.As(&g_dxgiSwapChain);
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to get SwapChain1 as SwapChain2");
+			HR_ASSERT_SUCCESS(hr, "Failed to get SwapChain1 as SwapChain2");
 
 			return hr;
 		}
@@ -110,10 +116,10 @@ namespace MAD
 		{
 			ComPtr<ID3D11Texture2D> backBuffer;
 			HRESULT hr = g_dxgiSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()));
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to get back buffer from swap chain");
+			HR_ASSERT_SUCCESS(hr, "Failed to get back buffer from swap chain");
 
 			hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, g_d3dBackBuffer.ReleaseAndGetAddressOf());
-			MAD_ASSERT_DESC(SUCCEEDED(hr), "Failed to create render target view from back buffer");
+			HR_ASSERT_SUCCESS(hr, "Failed to create render target view from back buffer");
 		}
 	}
 
@@ -230,5 +236,67 @@ namespace MAD
 		outHeight = textureDesc.Height;
 
 		return srv;
+	}
+
+	ComPtr<ID3D11Buffer> URenderer::CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const
+	{
+		ComPtr<ID3D11Buffer> buffer;
+
+		D3D11_BUFFER_DESC bufferDesc;
+		bufferDesc.Usage = inUsage;
+		bufferDesc.ByteWidth = inDataSize;
+		bufferDesc.BindFlags = inBindFlags;
+		bufferDesc.CPUAccessFlags = inCpuAccessFlags;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA initialData;
+		initialData.pSysMem = inData;
+		initialData.SysMemPitch = 0;
+		initialData.SysMemSlicePitch = 0;
+
+		HRESULT hr = g_d3dDevice->CreateBuffer(&bufferDesc, inData ? &initialData : nullptr, buffer.GetAddressOf());
+		HR_ASSERT_SUCCESS(hr, "Failed to create graphics buffer");
+
+		return buffer;
+	}
+
+	ComPtr<ID3D11Buffer> URenderer::CreateVertexBuffer(const void* inData, UINT inDataSize) const
+	{
+		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial vertex data");
+		return CreateBuffer(inData, inDataSize, D3D11_USAGE_IMMUTABLE, D3D11_BIND_VERTEX_BUFFER, 0);
+	}
+
+	ComPtr<ID3D11Buffer> URenderer::CreateIndexBuffer(const void* inData, UINT inDataSize) const
+	{
+		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial index data");
+		return CreateBuffer(inData, inDataSize, D3D11_USAGE_IMMUTABLE, D3D11_BIND_INDEX_BUFFER, 0);
+	}
+
+	ComPtr<ID3D11Buffer> URenderer::CreateConstantBuffer(const void* inData, UINT inDataSize) const
+	{
+		MAD_ASSERT_DESC(inDataSize % 16 == 0, "Constant buffer size must be evenly divisible by 16");
+		return CreateBuffer(inData, inDataSize, D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE);
+	}
+
+	inline void* URenderer::MapBuffer(ComPtr<ID3D11Buffer> inBuffer) const
+	{
+		D3D11_MAPPED_SUBRESOURCE subResource;
+		g_d3dDeviceContext->Map(inBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
+		return subResource.pData;
+	}
+
+	inline void URenderer::UnmapBuffer(ComPtr<ID3D11Buffer> inBuffer) const
+	{
+		g_d3dDeviceContext->PSSetConstantBuffers(0, 0, nullptr);
+		g_d3dDeviceContext->PSSetConstantBuffers1(0, 0, nullptr, nullptr, nullptr);
+		g_d3dDeviceContext->Unmap(inBuffer.Get(), 0);
+	}
+
+	inline void URenderer::UpdateBuffer(ComPtr<ID3D11Buffer> inBuffer, const void* inData, size_t inDataSize) const
+	{
+		auto data = MapBuffer(inBuffer);
+		memcpy(data, inData, inDataSize);
+		UnmapBuffer(inBuffer);
 	}
 }

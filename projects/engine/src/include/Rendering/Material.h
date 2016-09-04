@@ -18,16 +18,32 @@ namespace MAD
 	private:
 		float __pad1 = 0.0f;
 
+		// 16 bytes ---------------------------------
+
 	public:
 		DirectX::SimpleMath::Vector3 m_specularColor;
 		float m_specularPower = 1.0f;
+
+		// 16 bytes ---------------------------------
 
 		DirectX::SimpleMath::Vector3 m_emissiveColor;
 
 	private:
 		float __pad2 = 0.0f;
+
+		// 16 bytes ---------------------------------
+
+	public:
+		BOOL m_bHasDiffuseTex = FALSE;
+		BOOL m_bHasSpecularTex = FALSE;
+		BOOL m_bHasEmissiveTex = FALSE;
+
+	private:
+		float __pad3 = 0.0f;
+
+		// 16 bytes ---------------------------------
 	};
-	static_assert(sizeof(SGpuMaterial) == 48, "");
+	static_assert(sizeof(SGpuMaterial) == 64, "");
 
 	class UMaterial
 	{
