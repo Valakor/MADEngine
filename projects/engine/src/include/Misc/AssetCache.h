@@ -26,14 +26,14 @@ namespace MAD
 		static void SetAssetRoot(const eastl::string& inPath) { s_assetRootPath = inPath; }
 
 		template <class T>
-		static eastl::weak_ptr<T> Load(const eastl::string& inPath, bool inIsRelative = true);
+		static eastl::shared_ptr<T> Load(const eastl::string& inPath, bool inIsRelative = true);
 
 	private:
 		static eastl::string s_assetRootPath;
 	};
 
 	template <class T>
-	eastl::weak_ptr<T> UAssetCache::Load(const eastl::string& inPath, bool inIsRelative)
+	eastl::shared_ptr<T> UAssetCache::Load(const eastl::string& inPath, bool inIsRelative)
 	{
 		static eastl::hash_map<eastl::string, eastl::shared_ptr<T>> s_cache;
 
@@ -53,10 +53,10 @@ namespace MAD
 		if (!loadedResource)
 		{
 			LOG(LogAssetCache, Warning, "Failed to load resource: %s\n", fullPath.c_str());
-			return eastl::weak_ptr<T>();
+			return eastl::shared_ptr<T>();
 		}
 
 		s_cache.insert({ fullPath, loadedResource });
-		return eastl::weak_ptr<T>(loadedResource);
+		return eastl::shared_ptr<T>(loadedResource);
 	}
 }

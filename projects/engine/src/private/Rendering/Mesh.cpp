@@ -4,8 +4,10 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include "Core/GameEngine.h"
 #include "Misc/AssetCache.h"
 #include "Misc/Logging.h"
+#include "Rendering/Renderer.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -15,7 +17,7 @@ namespace MAD
 
 #define DO_LOG 0
 
-#if defined(DO_LOG) && DO_LOG == 1
+#if DO_LOG == 1
 #define LOG_ENABLED
 #define LOG_IMPORT(Verbosity, Format, ...) LOG(LogMeshImport, Verbosity, Format, __VA_ARGS__)
 #else
@@ -70,9 +72,10 @@ namespace MAD
 				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_DIFFUSE(0), diffuse_tex))
 				{
 					auto tex = UAssetCache::Load<UTexture>(path + diffuse_tex.C_Str(), false);
-					if (!tex.expired())
+					if (tex)
 					{
-						madMaterial.m_diffuseTex = *tex.lock().get();
+						madMaterial.m_diffuseTex = *tex;
+						madMaterial.m_mat.m_bHasDiffuseTex = TRUE;
 					}
 				}
 				LOG_IMPORT(Log, "\tDiffuse tex = %s\n", diffuse_tex.C_Str());
@@ -92,9 +95,10 @@ namespace MAD
 				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_SPECULAR(0), specular_tex))
 				{
 					auto tex = UAssetCache::Load<UTexture>(path + specular_tex.C_Str(), false);
-					if (!tex.expired())
+					if (tex)
 					{
-						madMaterial.m_specularTex = *tex.lock().get();
+						madMaterial.m_specularTex = *tex;
+						madMaterial.m_mat.m_bHasSpecularTex = TRUE;
 					}
 				}
 				LOG_IMPORT(Log, "\tSpecular tex = %s\n", specular_tex.C_Str());
@@ -109,9 +113,10 @@ namespace MAD
 				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_EMISSIVE(0), emissive_tex))
 				{
 					auto tex = UAssetCache::Load<UTexture>(path + emissive_tex.C_Str(), false);
-					if (!tex.expired())
+					if (tex)
 					{
-						madMaterial.m_emissiveTex = *tex.lock().get();
+						madMaterial.m_emissiveTex = *tex;
+						madMaterial.m_mat.m_bHasEmissiveTex = TRUE;
 					}
 				}
 				LOG_IMPORT(Log, "\tEmissive tex = %s\n", emissive_tex.C_Str());
@@ -217,6 +222,14 @@ namespace MAD
 			LOG_IMPORT(Log, "    %2i: { %2i, %2i, %2i }\n", i / 3, i0, i1, i2);
 		}
 #endif
+
+		auto& renderer = gEngine->GetRenderer();
+
+		UINT vertexDataSize = static_cast<UINT>(mesh->m_vertexBuffer.size() * sizeof(mesh->m_vertexBuffer[0]));
+		mesh->m_gpuVertexBuffer = renderer.CreateVertexBuffer(mesh->m_vertexBuffer.data(), vertexDataSize);
+
+		UINT indexDataSize = static_cast<UINT>(mesh->m_indexBuffer.size() * sizeof(Index_t));
+		mesh->m_gpuIndexBuffer = renderer.CreateIndexBuffer(mesh->m_indexBuffer.data(), indexDataSize);
 
 		return mesh;
 	}
