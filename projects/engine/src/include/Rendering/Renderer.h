@@ -41,6 +41,11 @@ namespace MAD
 		void UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> inBuffer, const T& inData) const;
 		void UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> inBuffer, const void* inData, size_t inDataSize) const;
 
+		void SetViewport(float inWidth, float inHeight) const;
+		void SetViewport(POINT inDimensions) const;
+
+		void SetFullScreen(bool inIsFullscreen) const;
+
 	private:
 		void BeginFrame();
 		void Draw();

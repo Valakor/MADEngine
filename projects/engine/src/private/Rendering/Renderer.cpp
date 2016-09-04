@@ -30,7 +30,10 @@ namespace MAD
 		ComPtr<ID3D11Device2>			g_d3dDevice;
 		ComPtr<ID3D11DeviceContext2>	g_d3dDeviceContext;
 		ComPtr<IDXGISwapChain2>			g_dxgiSwapChain;
-		ComPtr<ID3D11RenderTargetView>	g_d3dBackBuffer;
+		ComPtr<ID3D11RenderTargetView>	g_d3dBackBufferRenderTarget;
+
+		const UINT g_swapChainBufferCount = 3;
+		const DXGI_FORMAT g_swapChainFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		void CreateDevice()
 		{
@@ -63,7 +66,7 @@ namespace MAD
 			HR_ASSERT_SUCCESS(hr, "Failed to get device context as D3d 11_2");
 		}
 
-		HRESULT CreateSwapChain(HWND inWindow, bool fullScreen)
+		HRESULT CreateSwapChain(HWND inWindow)
 		{
 			(void)inWindow;
 
@@ -84,12 +87,12 @@ namespace MAD
 			DXGI_SWAP_CHAIN_DESC1 scd = { 0 };
 			scd.Width = 0;
 			scd.Height = 0;
-			scd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			scd.Format = g_swapChainFormat;
 			scd.Stereo = FALSE;
 			scd.SampleDesc.Count = 1;
 			scd.SampleDesc.Quality = 0;
 			scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			scd.BufferCount = 2;
+			scd.BufferCount = g_swapChainBufferCount;
 			scd.Scaling = DXGI_SCALING_NONE;
 			scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 			scd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
@@ -99,7 +102,7 @@ namespace MAD
 			scfd.RefreshRate = { 0, 0 };
 			scfd.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 			scfd.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-			scfd.Windowed = !fullScreen;
+			scfd.Windowed = TRUE;
 
 			ComPtr<IDXGISwapChain1> swapChain;
 			hr = dxgiFactory->CreateSwapChainForHwnd(g_d3dDevice.Get(), inWindow, &scd, &scfd, nullptr, swapChain.ReleaseAndGetAddressOf());
@@ -118,8 +121,10 @@ namespace MAD
 			HRESULT hr = g_dxgiSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()));
 			HR_ASSERT_SUCCESS(hr, "Failed to get back buffer from swap chain");
 
-			hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, g_d3dBackBuffer.ReleaseAndGetAddressOf());
+			hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, g_d3dBackBufferRenderTarget.ReleaseAndGetAddressOf());
 			HR_ASSERT_SUCCESS(hr, "Failed to create render target view from back buffer");
+
+			g_d3dDeviceContext->OMSetRenderTargets(1, g_d3dBackBufferRenderTarget.GetAddressOf(), nullptr);
 		}
 	}
 
@@ -132,10 +137,12 @@ namespace MAD
 
 		CreateDevice();
 
-		auto window = gEngine->GetWindow().GetHWnd();
-		CreateSwapChain(window, false);
+		auto& window = gEngine->GetWindow();
+		CreateSwapChain(window.GetHWnd());
 
 		CreateBackBufferRenderTargetView();
+
+		SetViewport(window.GetClientSize());
 
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
@@ -149,7 +156,9 @@ namespace MAD
 			g_d3dDeviceContext->Flush();
 		}
 
-		g_d3dBackBuffer.Reset();
+		g_dxgiSwapChain->SetFullscreenState(FALSE, nullptr);
+
+		g_d3dBackBufferRenderTarget.Reset();
 		g_dxgiSwapChain.Reset();
 		g_d3dDeviceContext.Reset();
 		g_d3dDevice.Reset();
@@ -157,7 +166,22 @@ namespace MAD
 
 	void URenderer::OnScreenSizeChanged()
 	{
+		if (!g_d3dDeviceContext) return;
 
+		auto newSize = gEngine->GetWindow().GetClientSize();
+		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
+
+		g_d3dDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+		g_d3dBackBufferRenderTarget.Reset();
+		g_d3dDeviceContext->Flush();
+		g_d3dDeviceContext->ClearState();
+
+		HRESULT hr = g_dxgiSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+		HR_ASSERT_SUCCESS(hr, "Failed to resize swap chain");
+
+		CreateBackBufferRenderTargetView();
+
+		SetViewport(gEngine->GetWindow().GetClientSize());
 	}
 
 	void URenderer::Frame(float framePercent)
@@ -172,7 +196,7 @@ namespace MAD
 	void URenderer::BeginFrame()
 	{
 		static const FLOAT clearColor[] = { 0.392f, 0.584f, 0.929f, 1.0f };
-		g_d3dDeviceContext->ClearRenderTargetView(g_d3dBackBuffer.Get(), clearColor);
+		g_d3dDeviceContext->ClearRenderTargetView(g_d3dBackBufferRenderTarget.Get(), clearColor);
 	}
 
 	void URenderer::Draw()
@@ -298,5 +322,29 @@ namespace MAD
 		auto data = MapBuffer(inBuffer);
 		memcpy(data, inData, inDataSize);
 		UnmapBuffer(inBuffer);
+	}
+
+	inline void URenderer::SetViewport(float inWidth, float inHeight) const
+	{
+		D3D11_VIEWPORT vp;
+		vp.TopLeftX = 0.0f;
+		vp.TopLeftY = 0.0f;
+		vp.Width = inWidth;
+		vp.Height = inHeight;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+
+		g_d3dDeviceContext->RSSetViewports(1, &vp);
+	}
+
+	inline void URenderer::SetViewport(POINT inDimensions) const
+	{
+		SetViewport(static_cast<float>(inDimensions.x), static_cast<float>(inDimensions.y));
+	}
+
+	void URenderer::SetFullScreen(bool inIsFullscreen) const
+	{
+		HRESULT hr = g_dxgiSwapChain->SetFullscreenState(inIsFullscreen, nullptr);
+		HR_ASSERT_SUCCESS(hr, "Failed to set fullscreen state");
 	}
 }
