@@ -13,17 +13,15 @@ namespace MAD
 		MAD_DECLARE_CLASS(UComponent, UObject)
 
 	public:
-		UComponent() = delete;
-		explicit UComponent(AEntity& inCompOwner);
 		virtual ~UComponent() { }
 
-		virtual void UpdateComponent(float inDeltaTime) = 0;
+		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };
 		
-		inline AEntity& GetOwner() { return m_ownerWeakPtr; }
-		inline const AEntity& GetOwner() const { return m_ownerWeakPtr; }
+		inline void SetOwner(AEntity& inOwner) { m_ownerWeakPtr = &inOwner; }
+		inline AEntity& GetOwner() { return *m_ownerWeakPtr; }
+		inline const AEntity& GetOwner() const { return *m_ownerWeakPtr; }
 
 	private:
-		//AEntity& m_owner; // Raw pointer to owner is fine in this case because the component will only exist if it's owner exists and we don't have uncertainty as to if it's owner still exists or not or will the component use the owner ptr
-		AEntity& m_ownerWeakPtr;
+		AEntity* m_ownerWeakPtr;
 	};
 }

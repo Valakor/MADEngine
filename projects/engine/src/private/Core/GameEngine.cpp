@@ -152,7 +152,7 @@ namespace MAD
 			}
 
 			// Update the physics world
-			m_physicsWorld->UpdatePhysics();
+			m_physicsWorld->SimulatePhysics();
 
 
 			// Tick the post-physics components of all Worlds

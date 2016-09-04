@@ -3,8 +3,6 @@
 
 namespace MAD
 {
-	AEntity::AEntity(UGameWorldLayer& inOwningWorldLayer) : m_owningWorldLayer(inOwningWorldLayer) {}
-
 	void AEntity::Destroy()
 	{
 		// Destroying an Entity means to basically destroy all of it's attached components

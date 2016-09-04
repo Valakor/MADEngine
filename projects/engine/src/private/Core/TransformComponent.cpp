@@ -9,8 +9,6 @@ namespace MAD
 	MAD_IMPLEMENT_COMPONENT(UTransformComponent)
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
-	UTransformComponent::UTransformComponent(AEntity& inCompOwner) : Super(inCompOwner) {}
-
 	void UTransformComponent::UpdateComponent(float inDeltaTime)
 	{
 		(void) inDeltaTime;

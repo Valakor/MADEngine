@@ -21,7 +21,7 @@ namespace MAD
 		void RegisterPhysicsBody(eastl::weak_ptr<PhysicsBody> inPhysicsBody);
 		void UnregisterPhysicsBody(ObjectID inPhysicsBodyID);
 
-		virtual void UpdatePhysics();
+		virtual void SimulatePhysics();
 	private:
 		PhysicsComponentContainer m_physicsComponents;
 	};

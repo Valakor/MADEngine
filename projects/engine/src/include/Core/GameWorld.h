@@ -29,7 +29,7 @@ namespace MAD
 		eastl::weak_ptr<EntityType> SpawnEntity(Args&&... inConstructorArgs);
 
 		template <typename EntityType, typename ...Args>
-		eastl::weak_ptr<EntityType> SpawnEntity(const eastl::string& inWorldLayerName, Args&&... inConstructorArgs);
+		eastl::weak_ptr<EntityType> SpawnEntity(Args&&... inConstructorArgs, const eastl::string& inWorldLayerName);
 
 		// Removes any entities (and their components) that pending to be killed
 		void CleanupEntities();
@@ -38,6 +38,8 @@ namespace MAD
 		
 		void UpdatePrePhysics(float inDeltaTime);
 		void UpdatePostPhysics(float inDeltaTime);
+	private:
+		void RegisterEntity(const AEntity& inEntity, const UGameWorldLayer& inWorldLayer); // Registers the entity to the world layer and registers the entity's components to the component updater
 	private:
 		const eastl::string m_defaultLayerName;
 		WorldLayerContainer m_worldLayers;
@@ -51,7 +53,7 @@ namespace MAD
 	}
 
 	template <typename EntityType, typename ...Args>
-	eastl::weak_ptr<EntityType> UGameWorld::SpawnEntity(const eastl::string& inWorldLayerName, Args&&... inConstructorArgs)
+	eastl::weak_ptr<EntityType> UGameWorld::SpawnEntity(Args&&... inConstructorArgs, const eastl::string& inWorldLayerName)
 	{
 		static_assert(eastl::is_base_of<AEntity, EntityType>::value, "ActorType must be a derived type of AActor");
 

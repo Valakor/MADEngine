@@ -29,7 +29,7 @@ namespace MAD
 	class ComponentUpdater
 	{
 	public:
-		static const PriorityLevel s_staticPhysicsPriorityLevel;
+		static const PriorityLevel s_staticPhysicsPriorityLevel; // TODO: Change so that we can change this dynamically before we start updating. Warning: We should only be changing this once though. Changing the default priority level after updating has begun will cause bugs and sad stuff
 		
 		using ComponentContainer = eastl::multimap<PriorityLevel, ComponentPriorityBlock>;
 	public:
@@ -38,6 +38,8 @@ namespace MAD
 		template <typename ComponentType, typename ...Args>
 		eastl::weak_ptr<ComponentType> AddComponent(Args&&... inConstructorArgs);
 		
+		eastl::weak_ptr<ComponentType> 
+
 		inline void SetUpdatingFlag(bool inUpdateFlag) { m_isUpdating = inUpdateFlag; }
 		inline bool IsUpdating() const { return m_isUpdating; }
 
@@ -48,8 +50,9 @@ namespace MAD
 		PriorityLevel m_nextAssignedPriorityLevel;
 		
 		// Separation between pre and post physics priority blocks to simplify component update and performance
-		ComponentContainer m_prePhysicsPriorityBlocks;
-		ComponentContainer m_postPhysicsPriorityBlocks;
+		//ComponentContainer m_prePhysicsPriorityBlocks;
+		//ComponentContainer m_postPhysicsPriorityBlocks;
+		ComponentContainer m_componentPriorityBlocks;
 	};
 
 	template <typename ComponentType, typename ...Args>
@@ -71,9 +74,7 @@ namespace MAD
 
 		eastl::shared_ptr<ComponentType> newComponentPtr = eastl::make_shared<ComponentType>(eastl::forward<Args>(inConstructorArgs)...);
 
-		ComponentUpdater::ComponentContainer& targetComponentContainer = (componentPriorityLevel < ComponentUpdater::s_staticPhysicsPriorityLevel) ? m_prePhysicsPriorityBlocks : m_postPhysicsPriorityBlocks;
-
-		auto priorityBlockFindIter = targetComponentContainer.equal_range(componentPriorityLevel);
+		auto priorityBlockFindIter = m_componentPriorityBlocks.equal_range(componentPriorityLevel);
 
 		// Since there can be multiple priority blocks with the same priority, we need to find the one that has the component ID that
 		// corresponds with the component type we're trying to add
@@ -90,7 +91,7 @@ namespace MAD
 		}
 
 		// If we get here, that means this is the first time we're trying to add a component of this priority level
-		auto priorityBlockInsertIter = targetComponentContainer.emplace(componentPriorityLevel);
+		auto priorityBlockInsertIter = m_componentPriorityBlocks.emplace(componentPriorityLevel);
 
 		priorityBlockInsertIter->second.m_blockComponentTypeID = componentTypeID;
 		priorityBlockInsertIter->second.m_blockComponents.emplace_back(newComponentPtr);

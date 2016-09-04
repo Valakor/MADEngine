@@ -26,7 +26,7 @@ namespace MAD
 		m_physicsComponents.erase(eastl::remove_if(m_physicsComponents.begin(), m_physicsComponents.end(), findPhysicsBodyPredicate), m_physicsComponents.end());
 	}
 
-	void UPhysicsWorld::UpdatePhysics()
+	void UPhysicsWorld::SimulatePhysics()
 	{
 		const float fixedTimeStep = 1 / 30.0f;
 

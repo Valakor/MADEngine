@@ -15,7 +15,6 @@ namespace MAD
 	{
 		MAD_DECLARE_CLASS(UGameWorldLayer, UObject)
 	public:
-		UGameWorldLayer(UGameWorld& inOwningWorld, const eastl::string& inLayerName);
 		virtual ~UGameWorldLayer();
 
 		void CleanupOwnedEntities();
@@ -26,12 +25,15 @@ namespace MAD
 
 		// TODO: Allow for activating/de-activating an entire layer, for now will only support completely removing entities
 
-		inline UGameWorld& GetOwningWorld() const { return m_owningWorld; }
+		inline void SetOwningWorld(UGameWorld& inGameWorld) { m_owningWorld = &inGameWorld; }
+		inline void SetWorldLayerName(const eastl::string& inLayerName) { m_layerName = inLayerName; }
+
+		inline UGameWorld& GetOwningWorld() { return *m_owningWorld; }
 		inline const eastl::string& GetLayerName() const { return m_layerName; }
 	private:
 		bool m_isEnabled;
-		const eastl::string m_layerName;
-		UGameWorld& m_owningWorld;
+		UGameWorld* m_owningWorld;
+		eastl::string m_layerName;
 		eastl::vector<eastl::shared_ptr<AEntity>> m_layerEntities;
 	};
 

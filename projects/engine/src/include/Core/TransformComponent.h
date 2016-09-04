@@ -9,8 +9,6 @@ namespace MAD
 	{
 		MAD_DECLARE_PRIORITIZED_COMPONENT(UTransformComponent, UComponent, 10)
 	public:
-		UTransformComponent(AEntity& inCompOwner);
-
 		virtual void UpdateComponent(float inDeltaTime) override;
 	};
 }

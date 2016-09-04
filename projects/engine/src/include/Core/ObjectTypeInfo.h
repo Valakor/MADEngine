@@ -12,35 +12,47 @@ namespace MAD
 	{
 	public:
 		static TypeID s_currentTypeID;
+		using CreationFunction_t = class UObject* (*) ();
 	public:
-		explicit TTypeInfo(const TTypeInfo* inParent);
+		explicit TTypeInfo(const TTypeInfo* inParent, CreationFunction_t inCreationFunc);
 
 		inline TypeID GetTypeID() const { return m_typeID; }
 		inline const TTypeInfo* GetParent() const { return m_parent; }
 
 	private:
+		const CreationFunction_t m_creationFunction;
 		const TypeID m_typeID;
 		const TTypeInfo* m_parent;
 	};
 
 #pragma region Macro Definitions
 	// Base object class macro definition
+#define MAD_DECLARE_CLASS_COMMON(ClassName)									\
+	private:																\
+	static UObject* CreateObject()											\
+	{																		\
+		return new ClassName();												\
+	}																		\
+																			\
+	friend class TTypeInfo;													\
+
 #define MAD_DECLARE_BASE_CLASS(BaseClass)									\
+	MAD_DECLARE_CLASS_COMMON(BaseClass)										\
 	public:																	\
 		static const TTypeInfo* StaticClass()								\
 		{																	\
-			static TTypeInfo s_classTypeInfo(nullptr);						\
-			return &s_classTypeInfo;											\
+			static TTypeInfo s_classTypeInfo(nullptr, &BaseClass::CreateObject);						\
+			return &s_classTypeInfo;										\
 		}																	\
 	private:																\
 
-// Actor specific macro definition
 #define MAD_DECLARE_CLASS(ClassName, ParentClass)							\
+	MAD_DECLARE_CLASS_COMMON(ClassName)										\
 	public:																	\
-		static const TTypeInfo* StaticClass()								\
-		{																	\
-			static TTypeInfo s_classTypeInfo(ParentClass::StaticClass());	\
-			return &s_classTypeInfo;											\
+		static const TTypeInfo* StaticClass()														\
+		{																							\
+			static TTypeInfo s_classTypeInfo(ParentClass::StaticClass(), &ClassName::CreateObject);	\
+			return &s_classTypeInfo;										\
 		}																	\
 	private:																\
 		using Super = ParentClass;											\

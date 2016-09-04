@@ -2,7 +2,7 @@
 
 namespace MAD
 {
-	ACharacter::ACharacter(UGameWorldLayer& inOwningWorldLayer) : Super(inOwningWorldLayer)
+	ACharacter::ACharacter()
 	{
 		// Add components to the character
 	}

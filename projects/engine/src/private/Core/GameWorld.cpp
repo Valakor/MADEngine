@@ -28,4 +28,12 @@ namespace MAD
 		m_componentUpdater.UpdatePostPhysicsComponents(inDeltaTime);
 	}
 
+	void UGameWorld::RegisterEntity(const AEntity& inEntity, const UGameWorldLayer& inWorldLayer)
+	{
+		// Register to world layer
+		inEntity.RegisterOwningWorldLayer(inWorldLayer);
+
+		// Register 
+	}
+
 }

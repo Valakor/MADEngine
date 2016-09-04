@@ -12,34 +12,31 @@ namespace MAD
 
 	void ComponentUpdater::UpdatePrePhysicsComponents(float inDeltaTime)
 	{
-		// Iterate over the entries of the component containers while the priority level is lower than the physics priority level
-		
-		for (const auto& currentPriorityIter : m_prePhysicsPriorityBlocks)
+		auto currentPriorityLevelIter = m_componentPriorityBlocks.begin();
+
+		while (currentPriorityLevelIter->first < ComponentUpdater::s_staticPhysicsPriorityLevel)
 		{
-			for (auto& currentCompIter : currentPriorityIter.second.m_blockComponents)
+			// Iterate over the entries of the component containers while the priority level is lower than the physics priority level
+			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
 			{
-				if (!currentCompIter->GetOwner().IsPendingForKill())
-				{
-					currentCompIter->UpdateComponent(inDeltaTime);
-				}
+				currentComponent->UpdateComponent(inDeltaTime);
 			}
 		}
 	}
 
 	void ComponentUpdater::UpdatePostPhysicsComponents(float inDeltaTime)
 	{
-		// Iterate over the entries of the component containers from the physics priority level end of the container
-		
-		for (const auto& currentPriorityIter : m_postPhysicsPriorityBlocks)
+		// Find the first priority level entry that is greater priority than the physics priority level
+		const auto priorityLevelEndIter = m_componentPriorityBlocks.end();
+		auto currentPriorityLevelIter = m_componentPriorityBlocks.upper_bound(ComponentUpdater::s_staticPhysicsPriorityLevel);
+
+		while (currentPriorityLevelIter != priorityLevelEndIter)
 		{
-			for (auto& currentCompIter : currentPriorityIter.second.m_blockComponents)
+			// Iterate over the rest of the components
+			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
 			{
-				if (!currentCompIter->GetOwner().IsPendingForKill())
-				{
-					currentCompIter->UpdateComponent(inDeltaTime);
-				}
+				currentComponent->UpdateComponent(inDeltaTime);
 			}
 		}
 	}
-
 }
