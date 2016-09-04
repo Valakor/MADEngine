@@ -6,11 +6,15 @@
 #include "Core/GameInput.h"
 #include "Core/GameWindow.h"
 #include "Core/GameWorld.h"
+#include "Misc/AssetCache.h"
 #include "Misc/ErrorHandling.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/Renderer.h"
 
 #include <EASTL/algorithm.h>
+
+// TESTING
+#include "Rendering/Mesh.h"
 
 using eastl::string;
 
@@ -30,6 +34,7 @@ namespace MAD
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
 		UGameWindow::SetWorkingDirectory();
+		UAssetCache::SetAssetRoot(UGameWindow::GetWorkingDirectory() + "\\assets\\");
 
 		SCmdLine::SetCmdLine(UGameWindow::GetNativeCommandline());
 		ULog::Get().Init();
@@ -53,6 +58,9 @@ namespace MAD
 		{
 			return false;
 		}
+
+		// TODO testing
+		auto cube2 = UAssetCache::Load<UMesh>("engine\\meshes\\primitives\\cube.obj");
 
 		// Start the FrameTimer
 		mFrameTimer = eastl::make_shared<UFrameTimer>();

@@ -17,6 +17,7 @@ namespace MAD
 		static void PumpMessageQueue();
 		static void ShowCursor(bool bVisible);
 		static bool SetWorkingDirectory();
+		static eastl::string GetWorkingDirectory();
 
 	private:
 		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

@@ -51,6 +51,10 @@ function useAssimp()
 	filter { }
 end
 
+function useDirectX()
+	links { "d3d11", "dxgi" }
+end
+
 function useDirectXTK()
 	libdirs { "../ThirdParty/DirectXTK/lib" }
 	includedirs { "../ThirdParty/DirectXTK/include" }
@@ -71,6 +75,7 @@ function commonSetup()
 
 	useEastl()
 	useAssimp()
+	useDirectX()
 	useDirectXTK()
 end
 
@@ -84,6 +89,7 @@ project "engine"
 function useEngine()
 	includedirs "../projects/engine/src/include"
 	links "engine"
+
 end
 
 project "game"
@@ -93,3 +99,7 @@ project "game"
 	commonSetup()
 	useEngine()
 	entrypoint "mainCRTStartup"
+
+	postbuildcommands { "rmdir /S /Q $(TargetDir)assets" }
+	postbuildcommands { "xcopy /Y /S /Q ..\\engine\\assets $(TargetDir)assets\\engine\\" }
+	postbuildcommands { "xcopy /Y /S /Q assets $(TargetDir)assets" }
