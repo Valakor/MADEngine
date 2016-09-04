@@ -79,10 +79,13 @@ namespace MAD
 
 	bool UGameWindow::SetWorkingDirectory()
 	{
-		static wchar_t path[4096];
+		// Sets the engine's working directory to the directory containing the
+		// launched executable.
+
+		static wchar_t path[512];
 		GetModuleFileNameW(nullptr, path, _countof(path));
 
-		// Find the last \ and remove it
+		// Find the last \ and remove everything after it
 		auto pos = wcsrchr(path, '\\');
 		if (pos)
 		{
@@ -90,6 +93,13 @@ namespace MAD
 		}
 
 		return SetCurrentDirectoryW(path) != 0;
+	}
+
+	string UGameWindow::GetWorkingDirectory()
+	{
+		static wchar_t path[512];
+		GetCurrentDirectoryW(_countof(path), path);
+		return utf8util::UTF8FromUTF16(path);
 	}
 
 	ATOM UGameWindow::RegisterWindowClass(HINSTANCE inHInstance, const wchar_t* inWindowClassName)
