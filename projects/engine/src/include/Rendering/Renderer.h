@@ -7,16 +7,17 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 
-class UTexture;
-
 namespace MAD
 {
+	class UTexture;
+	class UGameWindow;
+
 	class URenderer
 	{
 	public:
 		URenderer();
 
-		bool Init();
+		bool Init(UGameWindow& inWindow);
 		void Shutdown();
 
 		void Frame(float framePercent);
@@ -50,6 +51,8 @@ namespace MAD
 		void BeginFrame();
 		void Draw();
 		void EndFrame();
+
+		UGameWindow* m_window;
 	};
 
 	template <typename T>

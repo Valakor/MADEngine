@@ -1,12 +1,8 @@
 #include "Rendering/Renderer.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <d3d11_2.h>
 #include <DirectXTK/DDSTextureLoader.h>
 #include <DirectXTK/WICTextureLoader.h>
-#include <wrl/client.h>
 
-#include "Core/GameEngine.h"
 #include "Core/GameWindow.h"
 #include "Misc/Assert.h"
 #include "Misc/Logging.h"
@@ -128,21 +124,21 @@ namespace MAD
 		}
 	}
 
-	URenderer::URenderer()
-	{ }
+	URenderer::URenderer(): m_window(nullptr) { }
 
-	bool URenderer::Init()
+	bool URenderer::Init(UGameWindow& inWindow)
 	{
 		LOG(LogRenderer, Log, "Renderer initialization begin...\n");
 
+		m_window = &inWindow;
+
 		CreateDevice();
 
-		auto& window = gEngine->GetWindow();
-		CreateSwapChain(window.GetHWnd());
+		CreateSwapChain(m_window->GetHWnd());
 
 		CreateBackBufferRenderTargetView();
 
-		SetViewport(window.GetClientSize());
+		SetViewport(m_window->GetClientSize());
 
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
@@ -168,7 +164,7 @@ namespace MAD
 	{
 		if (!g_d3dDeviceContext) return;
 
-		auto newSize = gEngine->GetWindow().GetClientSize();
+		auto newSize = m_window->GetClientSize();
 		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
 
 		g_d3dDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -181,7 +177,7 @@ namespace MAD
 
 		CreateBackBufferRenderTargetView();
 
-		SetViewport(gEngine->GetWindow().GetClientSize());
+		SetViewport(newSize);
 	}
 
 	void URenderer::Frame(float framePercent)
