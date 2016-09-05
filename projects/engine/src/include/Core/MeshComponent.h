@@ -1,14 +1,15 @@
 #pragma once
 
 #include "Core/Component.h"
-#include "Core/Entity.h"
 
 namespace MAD
 {
-	class UPhysicsComponent : public UComponent
+	class UMeshComponent : public UComponent
 	{
-		MAD_DECLARE_COMPONENT(UPhysicsComponent, UComponent)
+		MAD_DECLARE_COMPONENT(UMeshComponent, UComponent)
 	public:
+		virtual ~UMeshComponent() {}
+
 		virtual void UpdateComponent(float inDeltaTime) override;
 	};
 }

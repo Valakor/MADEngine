@@ -6,12 +6,11 @@
 
 namespace MAD
 {
-	MAD_IMPLEMENT_COMPONENT(UTransformComponent)
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
 	void UTransformComponent::UpdateComponent(float inDeltaTime)
 	{
 		(void) inDeltaTime;
-		LOG(LogTransformComponent, Log, "Updating Transform Component for Entity #%d\n", GetOwner().GetObjectID());
+		LOG(LogTransformComponent, Log, "Updating Transform Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
 	}
 }

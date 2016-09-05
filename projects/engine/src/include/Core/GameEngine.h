@@ -1,11 +1,15 @@
 #pragma once
 
 #include <EASTL/shared_ptr.h>
+#include <EASTL/weak_ptr.h>
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
+#include <EASTL/type_traits.h>
 
 namespace MAD
 {
+	class TTypeInfo;
+
 	struct SCmdLine
 	{
 		static const eastl::string& Get() { return mCmdLine; }
@@ -28,6 +32,14 @@ namespace MAD
 		void Run();
 		void Stop();
 
+		template <typename WorldType>
+		eastl::weak_ptr<WorldType> SpawnGameWorld(const eastl::string& inWorldName);
+
+		// Since the TTypeInfo doesn't explicitly give us class information, the CommonAncetorWorldType
+		// is used as a "I know it is at least derived from this"
+		template <typename CommonAncestorWorldType>
+		eastl::weak_ptr<CommonAncestorWorldType> SpawnGameWorld(const TTypeInfo& inTypeInfo, const eastl::string& inWorldName);
+
 		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
 		float GetFrameTime() const { return static_cast<float>(mFrameTime); }
 		float GetGameTime() const { return static_cast<float>(mGameTime); }
@@ -35,7 +47,9 @@ namespace MAD
 		class URenderer& GetRenderer() const { return *mRenderer; }
 		class UGameWindow& GetWindow() const { return *mGameWindow; }
 		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
-
+	private:
+		void TEMPInitializeGameContext();
+		void LockEngineDefaults();
 	private:
 		const int MAX_SIMULATION_STEPS = 10;
 		const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
@@ -55,4 +69,25 @@ namespace MAD
 		eastl::shared_ptr<class UPhysicsWorld> m_physicsWorld;
 		eastl::shared_ptr<class URenderer> mRenderer;
 	};
+
+	template <typename WorldType>
+	eastl::weak_ptr<WorldType> UGameEngine::SpawnGameWorld(const eastl::string& inWorldName)
+	{
+		static_assert(eastl::is_base_of<UGameWorld, WorldType>::value, "Error: You may only spawn game worlds that are of type UGameWorld or more derived");
+		return SpawnGameWorld<WorldType>(*WorldType::StaticClass(), inWorldName);
+	}
+
+	template <typename CommonAncestorWorldType>
+	eastl::weak_ptr<CommonAncestorWorldType> UGameEngine::SpawnGameWorld(const TTypeInfo& inTypeInfo, const eastl::string& inWorldName)
+	{
+		static_assert(eastl::is_base_of<UGameWorld, CommonAncestorWorldType>::value, "Error: You may only spawn game worlds that are of type UGameWorld or more derived");
+
+		eastl::shared_ptr<CommonAncestorWorldType> newWorld = inTypeInfo.CreateDefaultObject<CommonAncestorWorldType>();
+
+		newWorld->SetWorldName(inWorldName);
+
+		m_worlds.emplace_back(newWorld);
+
+		return newWorld;
+	}
 }

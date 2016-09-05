@@ -3,8 +3,6 @@
 
 namespace MAD
 {
-	UGameWorldLayer::UGameWorldLayer(UGameWorld& inOwningWorld, const eastl::string& inLayerName) : m_isEnabled(true), m_layerName(inLayerName), m_owningWorld(inOwningWorld) {}
-
 	UGameWorldLayer::~UGameWorldLayer()
 	{
 		CleanupOwnedEntities();
@@ -16,8 +14,10 @@ namespace MAD
 		{
 			if (currentEntity->IsPendingForKill())
 			{
-				currentEntity->Destroy();
+				// Remove the entity's components from the component updater
 			}
 		}
+
+		// After removing the components, remove all entities that are marked for kill
 	}
 }
