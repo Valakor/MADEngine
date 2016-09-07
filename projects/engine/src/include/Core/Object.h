@@ -12,6 +12,7 @@ namespace MAD
 
 	public:
 		UObject();
+		virtual ~UObject() {}
 
 		inline ObjectID GetObjectID() const { return m_objectID; }
 

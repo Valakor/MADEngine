@@ -3,53 +3,48 @@
 #include <EASTL/array.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/vector.h>
+#include <EASTL/map.h>
+#include <EASTL/weak_ptr.h>
 
 #include "Core/Component.h"
+#include "Core/ComponentPriorityInfo.h"
 #include "Misc/Assert.h"
 
 namespace MAD
 {
-	class AEntity;
+	// A ComponentPriorityBlock represents a set of components of the same type and same priority. Having one block for each component type allows us
+	// to guarantee update order across component types (i.e if I give TransformComponent a higher priority than CameraComponent, it's guaranteed
+	// that all TransformComponents will update before all CameraComponents
+	struct ComponentPriorityBlock
+	{
+		using ComponentContainer = eastl::vector<eastl::shared_ptr<UComponent>>;
 
-	// ComponentUpdater will maintain weak references to all of the components in a single World instance. Ticks the components based on their tick type
-	// Each World will contain only one ComponentUpdater. Allows easy management of per-World component updates
+		explicit ComponentPriorityBlock(TypeID inComponentTypeID = eastl::numeric_limits<TypeID>::max()) : m_blockComponentTypeID(inComponentTypeID) {}
+
+		TypeID m_blockComponentTypeID;
+		ComponentContainer m_blockComponents;
+	};
+
 	class ComponentUpdater
 	{
 	public:
-		using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
+		using ComponentContainer = eastl::multimap<PriorityLevel, ComponentPriorityBlock>;
 
-		template <typename ComponentType, TickType ComponentTickType>
-		void AddComponentToTickGroup(eastl::weak_ptr<ComponentType> inCompWeakPtr);
+		friend class UGameWorld;
+	public:
+		ComponentUpdater();
 
-		template <TickType ComponentTickType>
-		void UpdateTickGroup(float inDeltaTime);
+		void RemoveComponent(eastl::shared_ptr<UComponent> inTargetComponent);
 
+		inline void SetUpdatingFlag(bool inUpdateFlag) { m_isUpdating = inUpdateFlag; }
+		inline bool IsUpdating() const { return m_isUpdating; }
+
+		void UpdatePrePhysicsComponents(float inDeltaTime);
+		void UpdatePostPhysicsComponents(float inDeltaTime);
 	private:
-		eastl::array<ComponentContainer, static_cast<size_t>(TickType::TT_TickTypeCount)> m_componentTickBuckets; // Number of tick group buckets is known at compile time based on TickType enumeration
+		void RegisterComponent(eastl::shared_ptr<UComponent> inNewComponentPtr);
+	private:
+		bool m_isUpdating;
+		ComponentContainer m_componentPriorityBlocks;
 	};
-
-	template <typename ComponentType, TickType ComponentTickType>
-	void ComponentUpdater::AddComponentToTickGroup(eastl::weak_ptr<ComponentType> inCompWeakPtr)
-	{
-		MAD_ASSERT_DESC(!inCompWeakPtr.expired(), "Warning: Trying to add an expired weak_ptr to the tick group. Will automatically be taken out upon update!");
-
-		m_componentTickBuckets[static_cast<uint8_t>(ComponentTickType)].emplace_back(inCompWeakPtr);
-	}
-
-	template <TickType ComponentTickType>
-	void ComponentUpdater::UpdateTickGroup(float inDeltaTime)
-	{
-		ComponentContainer& tickGroupContainerRef = m_componentTickBuckets[static_cast<uint8_t>(ComponentTickType)];
-
-		// Remove all expired component ptrs first
-		tickGroupContainerRef.erase(eastl::remove_if(tickGroupContainerRef.begin(), tickGroupContainerRef.end(), [](eastl::weak_ptr<UComponent> currentCompWeakPtr)
-		{
-			return currentCompWeakPtr.expired();
-		}), tickGroupContainerRef.end());
-
-		for (auto& currentComponent : tickGroupContainerRef)
-		{
-			currentComponent.lock()->UpdateComponent(inDeltaTime);
-		}
-	}
 }

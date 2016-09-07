@@ -2,20 +2,49 @@
 
 #include "Core/GameEngine.h"
 #include "Core/Entity.h"
+#include "Misc/Logging.h"
 
 namespace MAD
 {
-	void UGameWorld::Update(float inDeltaTime)
+	const eastl::string UGameWorld::s_defaultWorldLayerName = "Default_Layer";
+
+	UGameWorld::UGameWorld() : m_defaultLayerName(s_defaultWorldLayerName) {}
+
+	void UGameWorld::CleanupEntities()
 	{
-		m_componentUpdater.UpdateTickGroup<TickType::TT_PrePhysicsTick>(inDeltaTime);
+		LOG(LogDefault, Log, "Cleaning up entites from %s\n", m_worldName.c_str());
 
-		// Update physics begin -------------------
+		// Cleans up the entities that are pending for kill
+		for (auto& currentWorldLayer : m_worldLayers)
+		{
+			currentWorldLayer.second.CleanupExpiredEntities();
+		}
+	}
 
-		// ...Stuff
+	void UGameWorld::UpdatePrePhysics(float inDeltaTime)
+	{
+		m_componentUpdater.UpdatePrePhysicsComponents(inDeltaTime);
+	}
 
-		// Update physics end ---------------------
+	void UGameWorld::UpdatePostPhysics(float inDeltaTime)
+	{
+		m_componentUpdater.UpdatePostPhysicsComponents(inDeltaTime);
+	}
 
-		m_componentUpdater.UpdateTickGroup<TickType::TT_PostPhysicsTick>(inDeltaTime);
+	void UGameWorld::RegisterEntity(AEntity& inEntity, UGameWorldLayer& inWorldLayer)
+	{
+		// Register entity to world layer
+		inEntity.SetOwningWorldLayer(inWorldLayer);
+
+		// Register entity's components to the component updater
+		AEntity::ComponentContainer entityComponents;
+
+		inEntity.GetEntityComponents(entityComponents);
+		
+		for (const auto& currentComponent : entityComponents)
+		{
+			m_componentUpdater.RegisterComponent(currentComponent.lock());
+		}
 	}
 
 }

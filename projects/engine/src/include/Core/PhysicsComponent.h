@@ -5,12 +5,10 @@
 
 namespace MAD
 {
-	class UTransformComponent : public UComponent
+	class UPhysicsComponent : public UComponent
 	{
-		MAD_DECLARE_PRIORITIZED_COMPONENT(UTransformComponent, UComponent, 0)
+		MAD_DECLARE_COMPONENT(UPhysicsComponent, UComponent)
 	public:
 		virtual void UpdateComponent(float inDeltaTime) override;
-	private:
-		uint32_t m_updateCount = 0;
 	};
 }

@@ -7,6 +7,7 @@
 #include "Core/GameWindow.h"
 #include "Core/GameWorld.h"
 #include "Misc/AssetCache.h"
+#include "Core/PhysicsWorld.h"
 #include "Misc/ErrorHandling.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/Renderer.h"
@@ -15,6 +16,8 @@
 
 // TESTING
 #include "Rendering/Mesh.h"
+#include "Core/Character.h"
+#include "Core/TestCharacters.h"
 
 using eastl::string;
 
@@ -61,6 +64,13 @@ namespace MAD
 
 		// TODO testing
 		auto cube2 = UAssetCache::Load<UMesh>("engine\\meshes\\primitives\\cube.obj");
+		// Init the physics world
+		m_physicsWorld = eastl::make_shared<UPhysicsWorld>();
+
+		if (!m_physicsWorld)
+		{
+			return false;
+		}
 
 		// Start the FrameTimer
 		mFrameTimer = eastl::make_shared<UFrameTimer>();
@@ -76,6 +86,12 @@ namespace MAD
 
 	void UGameEngine::Run()
 	{
+		// In the future, update defaults by configuration file
+		TEMPInitializeGameContext();
+
+		// Before we start the update loop, we need to lock defaults
+		LockEngineDefaults();
+
 		while (bContinue)
 		{
 			Tick();
@@ -104,6 +120,26 @@ namespace MAD
 		ULog::Get().Shutdown();
 	}
 
+	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
+	void UGameEngine::TEMPInitializeGameContext()
+	{
+		eastl::weak_ptr<UGameWorld> initialGameWorld = SpawnGameWorld<UGameWorld>("Gameplay_World");
+
+		initialGameWorld.lock()->SpawnEntity<ACharacter>();
+		initialGameWorld.lock()->SpawnEntity<ACharacter>();
+		initialGameWorld.lock()->SpawnEntity<AMattCharacter>();
+		initialGameWorld.lock()->SpawnEntity<ADerekCharacter>();
+		initialGameWorld.lock()->SpawnEntity<ADerekCharacter>();
+	}
+
+	void UGameEngine::LockEngineDefaults()
+	{
+		for (auto& currentWorld : m_worlds)
+		{
+			currentWorld->LockDefaults();
+		}
+	}
+
 	void UGameEngine::Tick()
 	{
 		auto now = mFrameTimer->TimeSinceStart();
@@ -123,10 +159,37 @@ namespace MAD
 			// Tick input
 			UGameInput::Get().Tick();
 
-			// Tick each world
-			for (auto& world : m_worlds)
+			// Set updating flag so we know when the components are updating or not
+			for (auto& currentWorld : m_worlds)
 			{
-				world->Update(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->GetComponentUpdater().SetUpdatingFlag(true);
+			}
+
+			// Tick the pre-physics components of all Worlds
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
+
+			// Update the physics world
+			m_physicsWorld->SimulatePhysics();
+
+
+			// Tick the post-physics components of all Worlds
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
+
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->GetComponentUpdater().SetUpdatingFlag(false);
+			}
+
+			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->CleanupEntities();
 			}
 
 			steps--;
