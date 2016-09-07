@@ -11,7 +11,7 @@ namespace MAD
 	public:
 		AMattCharacter()
 		{
-			AddComponent<UTestComponentA>();
+			AddComponent<Test::UTestComponentA>();
 		}
 
 		virtual ~AMattCharacter() {}
@@ -23,7 +23,7 @@ namespace MAD
 	public:
 		ADerekCharacter()
 		{
-			AddComponent<UTestComponent5>();
+			AddComponent<Test::UTestComponent5>();
 		}
 
 		virtual ~ADerekCharacter() {}

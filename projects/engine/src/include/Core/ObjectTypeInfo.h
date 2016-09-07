@@ -33,26 +33,29 @@ namespace MAD
 #pragma region Macro Definitions
 	// Base object class macro definition
 #define MAD_DECLARE_CLASS_COMMON(ClassName)									\
+	public:																	\
+	virtual const TTypeInfo* GetTypeInfo()									\
+	{																		\
+		return ClassName::StaticClass();									\
+	}																		\
+																			\
 	private:																\
 	static eastl::shared_ptr<UObject> CreateObject()						\
 	{																		\
-		return eastl::shared_ptr<ClassName>(new ClassName());				\
+		return eastl::make_shared<ClassName>();								\
 	}																		\
 																			\
 	friend class TTypeInfo;													\
 
 #define MAD_DECLARE_BASE_CLASS(BaseClass)									\
+	MAD_DECLARE_CLASS_COMMON(BaseClass)										\
 	public:																	\
 		static const TTypeInfo* StaticClass()								\
 		{																	\
 			static TTypeInfo s_classTypeInfo(nullptr, #BaseClass, nullptr);				\
-			return &s_classTypeInfo;											\
+			return &s_classTypeInfo;													\
 		}																	\
 																			\
-		virtual const TTypeInfo* GetTypeInfo()								\
-		{																	\
-			return BaseClass::StaticClass();								\
-		}																	\
 	private:																\
 
 #define MAD_DECLARE_CLASS(ClassName, ParentClass)							\
@@ -64,10 +67,6 @@ namespace MAD
 			return &s_classTypeInfo;																	\
 		}																							\
 																									\
-		virtual const TTypeInfo* GetTypeInfo()														\
-		{																							\
-			return ClassName::StaticClass();														\
-		}																							\
 	private:																						\
 		using Super = ParentClass;																	\
 

@@ -159,12 +159,6 @@ namespace MAD
 			// Tick input
 			UGameInput::Get().Tick();
 
-			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
-			for (auto& currentWorld : m_worlds)
-			{
-				currentWorld->CleanupEntities();
-			}
-
 			// Set updating flag so we know when the components are updating or not
 			for (auto& currentWorld : m_worlds)
 			{
@@ -190,6 +184,12 @@ namespace MAD
 			for (auto& currentWorld : m_worlds)
 			{
 				currentWorld->GetComponentUpdater().SetUpdatingFlag(false);
+			}
+
+			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->CleanupEntities();
 			}
 
 			steps--;

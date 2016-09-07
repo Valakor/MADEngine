@@ -13,7 +13,7 @@ namespace MAD
 		virtual ~UComponent() { }
 
 		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };
-		
+
 		bool IsOwnerValid() const;
 		inline void SetOwner(AEntity& inOwner) { m_ownerPtr = &inOwner; }
 		inline AEntity& GetOwner() { return *m_ownerPtr; }
