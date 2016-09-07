@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Misc/Assert.h"
+
 namespace MAD
 {
 	// Utility class template that allows you lock a value from being changed after a certain point
@@ -15,6 +17,8 @@ namespace MAD
 		
 		void SetValue(const ValueType& inValue)
 		{
+			MAD_ASSERT_DESC(!m_isLocked, "Warning: You shouldn't be setting this value after it has been locked");
+
 			if (!m_isLocked)
 			{
 				m_internalValue = inValue;

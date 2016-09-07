@@ -90,8 +90,7 @@ namespace MAD
 
 	void ComponentUpdater::RegisterComponent(eastl::shared_ptr<UComponent> inNewComponentPtr)
 	{
-		TComponentPriorityInfo* componentPriorityInfo = inNewComponentPtr->GetPriorityInfo();
-		const PriorityLevel componentPriorityLevel = componentPriorityInfo->GetPriorityLevel();
+		const PriorityLevel componentPriorityLevel = inNewComponentPtr->GetPriorityInfo()->GetPriorityLevel();
 		const TypeID componentTypeID = inNewComponentPtr->GetTypeInfo()->GetTypeID();
 
 		auto priorityBlockFindIter = m_componentPriorityBlocks.equal_range(componentPriorityLevel);

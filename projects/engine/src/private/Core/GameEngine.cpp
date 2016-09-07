@@ -92,17 +92,10 @@ namespace MAD
 		// Before we start the update loop, we need to lock defaults
 		LockEngineDefaults();
 
-		// TESTING: Only tick 5 times
-		//for (size_t i = 0; i < 1; ++i)
+		while (bContinue)
 		{
 			Tick();
 		}
-		
-		getchar();
-		/*while (bContinue)
-		{
-			Tick();
-		}*/
 
 		mGameWindow->CaptureCursor(false);
 	}
@@ -165,7 +158,6 @@ namespace MAD
 
 			// Tick input
 			UGameInput::Get().Tick();
-
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
 			for (auto& currentWorld : m_worlds)

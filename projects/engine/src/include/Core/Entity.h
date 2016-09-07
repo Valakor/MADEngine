@@ -38,6 +38,8 @@ namespace MAD
 		inline UGameWorldLayer& GetOwningWorldLayer() { return *m_owningWorldLayer; }
 		inline const UGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
 
+		// Gets the first component of the input type. Returns weak_ptr because external users shouldn't maintain strong references
+		// to an entity's components
 		template <typename ComponentType>
 		eastl::weak_ptr<const ComponentType> GetFirstComponentByType() const;
 
@@ -50,10 +52,10 @@ namespace MAD
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater
 		// as a progress of the entity construction process. If you try to add components outside of the constructor, they will not update.
 		template <typename ComponentType>
-		eastl::shared_ptr<ComponentType> AddComponent();
+		eastl::weak_ptr<ComponentType> AddComponent();
 
 		template <typename ComponentType>
-		eastl::shared_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
+		eastl::weak_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
 	private:
 		bool m_isPendingForKill;
 		UGameWorldLayer* m_owningWorldLayer;
@@ -64,14 +66,14 @@ namespace MAD
 	// You can check if the component's owner is still valid by calling IsOwnerValid, which just checks if it's owner is not pending for kill.
 
 	template <typename ComponentType>
-	eastl::shared_ptr<ComponentType> AEntity::AddComponent()
+	eastl::weak_ptr<ComponentType> AEntity::AddComponent()
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 		return AddComponent<ComponentType>(*ComponentType::StaticClass());
 	}
 
 	template <typename ComponentType>
-	eastl::shared_ptr<ComponentType> AEntity::AddComponent(const TTypeInfo& inTypeInfo)
+	eastl::weak_ptr<ComponentType> AEntity::AddComponent(const TTypeInfo& inTypeInfo)
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
