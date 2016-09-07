@@ -55,7 +55,7 @@ namespace MAD
 
 		// Init renderer
 		mRenderer = eastl::make_shared<URenderer>();
-		if (!mRenderer->Init())
+		if (!mRenderer->Init(*mGameWindow))
 		{
 			return false;
 		}

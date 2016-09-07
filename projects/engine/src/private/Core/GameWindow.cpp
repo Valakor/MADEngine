@@ -2,6 +2,7 @@
 
 #include "Core/GameEngine.h"
 #include "Core/GameInput.h"
+#include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/Renderer.h"
 
@@ -9,13 +10,18 @@ using eastl::string;
 
 namespace MAD
 {
-	wchar_t s_windowClassName[] = TEXT("MADEngine");
+	const wchar_t c_windowClassName[] = TEXT("MADEngine");
+	const DWORD c_windowStyle = WS_OVERLAPPEDWINDOW;
+
+	bool UGameWindow::s_bIsResizing = false;
+	bool UGameWindow::s_bWasResized = false;
+	bool UGameWindow::s_bIsMinimized = false;
 
 	bool UGameWindow::CreateGameWindow(const string& inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow)
 	{
 		auto hInst = GetModuleHandleW(nullptr);
 
-		if (!UGameWindow::RegisterWindowClass(hInst, s_windowClassName))
+		if (!UGameWindow::RegisterWindowClass(hInst, c_windowClassName))
 		{
 			return false;
 		}
@@ -116,7 +122,7 @@ namespace MAD
 		wcex.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
 		wcex.hIconSm = LoadIconW(nullptr, IDI_APPLICATION);
 		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-		wcex.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+		wcex.hbrBackground = nullptr;
 		wcex.lpszClassName = inWindowClassName;
 		wcex.lpszMenuName = nullptr;
 
@@ -125,17 +131,14 @@ namespace MAD
 
 	HWND UGameWindow::CreateNativeWindow(HINSTANCE inHInstance, const wchar_t* inWindowTitle, int inWidth, int inHeight)
 	{
-		const DWORD windowStyle = WS_OVERLAPPEDWINDOW;
-		const DWORD windowStyleEx = WS_EX_APPWINDOW;
-
 		// Because these are the dimensions we want for rendering, we must determine the actual
 		// window size using AdjustWindowRectEx to be passed to CreateWindowEx.
 		RECT windowRect = { 0, 0, inWidth, inHeight };
-		AdjustWindowRectEx(&windowRect, windowStyle, FALSE, windowStyleEx);
+		AdjustWindowRect(&windowRect, c_windowStyle, FALSE);
 		auto windowWidth = windowRect.right - windowRect.left;
 		auto windowHeight = windowRect.bottom - windowRect.top;
 
-		return CreateWindowExW(windowStyleEx, s_windowClassName, inWindowTitle, windowStyle,
+		return CreateWindowExW(0, c_windowClassName, inWindowTitle, c_windowStyle,
 								 CW_USEDEFAULT, 0, windowWidth, windowHeight, nullptr, nullptr, inHInstance, nullptr);
 	}
 
@@ -180,11 +183,15 @@ namespace MAD
 
 	POINT UGameWindow::GetWindowCenter() const
 	{
-		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);
-		auto clientWidth = clientRect.right - clientRect.left;
-		auto clientHeight = clientRect.bottom - clientRect.top;
-		return{ clientWidth / 2, clientHeight / 2 };
+		auto clientSize = GetClientSize();
+		return{ clientSize.x / 2, clientSize.y / 2 };
+	}
+
+	POINT UGameWindow::GetClientSize() const
+	{
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		return{ rect.right - rect.left, rect.bottom - rect.top };
 	}
 
 	//
@@ -232,6 +239,52 @@ namespace MAD
 			{
 				PostQuitMessage(0);
 			}
+
+			// TEMP: F1 toggles exclusive fullscreen
+			else if (key == VK_F1)
+			{
+				static bool isFullscreen = false;
+
+				isFullscreen = !isFullscreen;
+				gEngine->GetRenderer().SetFullScreen(isFullscreen);
+			}
+
+			// TEMP: F2 toggles borderless windows fullscreen
+			else if (key == VK_F2)
+			{
+				static POINT lastRes = { 1600, 900 };
+				static POINT lastPos = { 0, 0 };
+
+				if (GetWindowLongPtrW(hWnd, GWL_STYLE) & WS_POPUP)
+				{
+					// Leave fullscreen
+					RECT targetRes = { 0, 0, lastRes.x, lastRes.y };
+					AdjustWindowRect(&targetRes, c_windowStyle, FALSE);
+					int w = targetRes.right - targetRes.left;
+					int h = targetRes.bottom - targetRes.top;
+
+					SetWindowLongPtrW(hWnd, GWL_STYLE, WS_VISIBLE | c_windowStyle);
+					SetWindowPos(hWnd, nullptr, lastPos.x, lastPos.y, w, h, SWP_FRAMECHANGED);
+				}
+				else
+				{
+					// Enter fullscreen
+					RECT currentRect;
+					GetWindowRect(hWnd, &currentRect);
+					lastPos.x = currentRect.left;
+					lastPos.y = currentRect.top;
+
+					GetClientRect(hWnd, &currentRect);
+					lastRes.x = currentRect.right;
+					lastRes.y = currentRect.bottom;
+
+					int w = GetSystemMetrics(SM_CXSCREEN);
+					int h = GetSystemMetrics(SM_CYSCREEN);
+					SetWindowLongPtrW(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+					SetWindowPos(hWnd, HWND_TOP, 0, 0, w, h, SWP_FRAMECHANGED);
+				}
+			}
+
 			break;
 		}
 
@@ -288,11 +341,54 @@ namespace MAD
 
 		case WM_SIZE:
 		{
-			//NOTE: You NEVER want to put a breakpoint here or you'll have to restart your computer.
+			// NOTE: You NEVER want to put a breakpoint here or you'll have to restart your computer.
+
+			s_bWasResized = true;
 			if (gEngine)
+			{
+				if (wParam == SIZE_MINIMIZED)
+				{
+					s_bIsMinimized = true;
+					// TODO Probably suspend render/simulation loop?
+				}
+				else if (s_bIsMinimized)
+				{
+					s_bIsMinimized = false;
+					// TODO Probably resume render/simulation loop
+				}
+				else if (!s_bIsResizing)
+				{
+					gEngine->GetRenderer().OnScreenSizeChanged();
+				}
+			}
+
+			break;
+		}
+
+		case WM_ENTERSIZEMOVE:
+		{
+			s_bIsResizing = true;
+			s_bWasResized = false;
+			break;
+		}
+
+		case WM_EXITSIZEMOVE:
+		{
+			s_bIsResizing = false;
+			if (gEngine && s_bWasResized)
 			{
 				gEngine->GetRenderer().OnScreenSizeChanged();
 			}
+			break;
+		}
+
+		case WM_GETMINMAXINFO:
+		{
+			auto info = reinterpret_cast<MINMAXINFO*>(lParam);
+			RECT size = { 0, 0, 320, 200 };
+			AdjustWindowRect(&size, c_windowStyle, FALSE);
+			info->ptMinTrackSize.x = size.right - size.left;
+			info->ptMinTrackSize.y = size.bottom - size.top;
 			break;
 		}
 

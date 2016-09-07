@@ -19,11 +19,24 @@ namespace MAD
 {
 	using Index_t = uint16_t;
 
+	struct SVertex_Pos_Tex
+	{
+		DirectX::SimpleMath::Vector3 P;
+		DirectX::SimpleMath::Vector2 T;
+
+		static const int NumInputElements = 2;
+		static const D3D11_INPUT_ELEMENT_DESC InputElements[NumInputElements];
+	};
+	static_assert(sizeof(SVertex_Pos_Tex) == 20, "");
+
 	struct SVertex_Pos_Norm_Tex
 	{
 		DirectX::SimpleMath::Vector3 P;
 		DirectX::SimpleMath::Vector3 N;
 		DirectX::SimpleMath::Vector2 T;
+
+		static const int NumInputElements = 3;
+		static const D3D11_INPUT_ELEMENT_DESC InputElements[NumInputElements];
 	};
 	static_assert(sizeof(SVertex_Pos_Norm_Tex) == 32, "");
 
@@ -41,5 +54,12 @@ namespace MAD
 
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_gpuVertexBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_gpuIndexBuffer;
+	};
+
+	struct SMeshInstance
+	{
+		DirectX::SimpleMath::Matrix m_transform;
+		eastl::shared_ptr<UMesh> m_mesh;
+		bool m_bVisible;
 	};
 }

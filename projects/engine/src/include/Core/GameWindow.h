@@ -44,7 +44,13 @@ namespace MAD
 		// The center of the window, where (0, 0) is the upper-left corner of the window.
 		POINT GetWindowCenter() const;
 
+		POINT GetClientSize() const;
+
 	private:
+		static bool s_bIsResizing;
+		static bool s_bWasResized;
+		static bool s_bIsMinimized;
+
 		HWND hWnd;
 	};
 }

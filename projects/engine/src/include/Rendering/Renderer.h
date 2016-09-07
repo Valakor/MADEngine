@@ -7,16 +7,17 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 
-class UTexture;
-
 namespace MAD
 {
+	class UTexture;
+	class UGameWindow;
+
 	class URenderer
 	{
 	public:
 		URenderer();
 
-		bool Init();
+		bool Init(UGameWindow& inWindow);
 		void Shutdown();
 
 		void Frame(float framePercent);
@@ -41,10 +42,17 @@ namespace MAD
 		void UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> inBuffer, const T& inData) const;
 		void UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11Buffer> inBuffer, const void* inData, size_t inDataSize) const;
 
+		void SetViewport(float inWidth, float inHeight) const;
+		void SetViewport(POINT inDimensions) const;
+
+		void SetFullScreen(bool inIsFullscreen) const;
+
 	private:
 		void BeginFrame();
 		void Draw();
 		void EndFrame();
+
+		UGameWindow* m_window;
 	};
 
 	template <typename T>

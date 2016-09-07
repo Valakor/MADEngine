@@ -24,6 +24,21 @@ namespace MAD
 #define LOG_IMPORT(Verbosity, Format, ...) (void)0
 #endif
 
+	const D3D11_INPUT_ELEMENT_DESC SVertex_Pos_Tex::InputElements[NumInputElements] =
+	{
+		// SemanticName	SemanticIndex	Format							InputSlot	AlignedByteOffset				InputSlotClass					InstanceDataStepRate
+		{ "POSITION",	0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "TEXCOORD",	0,				DXGI_FORMAT_R32G32_FLOAT,		0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+	};
+
+	const D3D11_INPUT_ELEMENT_DESC SVertex_Pos_Norm_Tex::InputElements[NumInputElements] =
+	{
+		// SemanticName	SemanticIndex	Format							InputSlot	AlignedByteOffset				InputSlotClass					InstanceDataStepRate
+		{ "POSITION",	0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "NORMAL",		0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "TEXCOORD",	0,				DXGI_FORMAT_R32G32_FLOAT,		0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+	};
+
 	eastl::shared_ptr<UMesh> UMesh::Load(const eastl::string& inFilePath)
 	{
 		Assimp::Importer importer;
