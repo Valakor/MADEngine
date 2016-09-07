@@ -17,7 +17,7 @@ namespace MAD
 		// Cleans up the entities that are pending for kill
 		for (auto& currentWorldLayer : m_worldLayers)
 		{
-			currentWorldLayer.second.CleanupOwnedEntities();
+			currentWorldLayer.second.CleanupExpiredEntities();
 		}
 	}
 
@@ -37,11 +37,13 @@ namespace MAD
 		inEntity.SetOwningWorldLayer(inWorldLayer);
 
 		// Register entity's components to the component updater
-		const auto& entityComponents = inEntity.GetEntityComponents();
+		AEntity::ComponentContainer entityComponents;
+
+		inEntity.GetEntityComponents(entityComponents);
 		
 		for (const auto& currentComponent : entityComponents)
 		{
-			m_componentUpdater.RegisterComponent(currentComponent);
+			m_componentUpdater.RegisterComponent(currentComponent.lock());
 		}
 	}
 

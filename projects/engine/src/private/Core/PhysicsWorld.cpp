@@ -1,10 +1,13 @@
 #include "Core/PhysicsWorld.h"
 #include "Core/PhysicsComponent.h"
+#include "Misc/Logging.h"
 
 #include <EASTL/algorithm.h>
 
 namespace MAD
 {
+	DECLARE_LOG_CATEGORY(LogPhysicsWorld);
+
 	void UPhysicsWorld::RegisterPhysicsBody(eastl::weak_ptr<PhysicsBody> inPhysicsBody)
 	{
 		if (inPhysicsBody.expired())
@@ -17,20 +20,7 @@ namespace MAD
 
 	void UPhysicsWorld::SimulatePhysics()
 	{
-		const float fixedTimeStep = 1 / 30.0f;
-
-		auto removeComponentLambda = [](const PhysicsBodyWeakPtr& inPhysicsCompPtr)
-		{
-			return inPhysicsCompPtr.expired();
-		};
-
-		// Remove all the stale physics components
-		m_physicsComponents.erase(eastl::remove_if(m_physicsComponents.begin(), m_physicsComponents.end(), removeComponentLambda), m_physicsComponents.end());
-
-		for (auto& currentPhysicsComp : m_physicsComponents)
-		{
-			currentPhysicsComp.lock()->UpdateComponent(fixedTimeStep);
-		}
+		LOG(LogPhysicsWorld, Log, "================SIMULATING PHYSICS================\n");
 	}
 
 }

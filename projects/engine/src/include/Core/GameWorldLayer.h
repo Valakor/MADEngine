@@ -17,7 +17,7 @@ namespace MAD
 	public:
 		virtual ~UGameWorldLayer();
 
-		void CleanupOwnedEntities();
+		void CleanupExpiredEntities();
 
 		inline void AddEntityToLayer(eastl::shared_ptr<AEntity> inEntity) { if (inEntity) m_layerEntities.emplace_back(inEntity); }
 		inline void SetOwningWorld(UGameWorld& inGameWorld) { m_owningWorld = &inGameWorld; }

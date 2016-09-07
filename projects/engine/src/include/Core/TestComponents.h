@@ -2,6 +2,7 @@
 
 #include "Core/Component.h"
 #include "Core/Entity.h"
+#include "Core/ComponentPriorityInfo.h"
 
 #define MAD_DEFINE_TEST_COMPONENT(TestComponentName)							\
 	DECLARE_LOG_CATEGORY(Log##TestComponentName);											\
@@ -46,9 +47,9 @@ namespace MAD
 	MAD_DEFINE_TEST_COMPONENT(TestComponent8);
 	MAD_DEFINE_TEST_COMPONENT(TestComponent9);
 
-	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentA, 1);
+	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentA, EPriorityLevelReference::EPriorityLevel_Physics + 1);
 	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentB, 2);
-	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentC, 3);
+	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentC, EPriorityLevelReference::EPriorityLevel_Physics + 2);
 	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentE, 4);
 	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentF, 5);
 	MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentG, 6);

@@ -92,10 +92,17 @@ namespace MAD
 		// Before we start the update loop, we need to lock defaults
 		LockEngineDefaults();
 
-		while (bContinue)
+		// TESTING: Only tick 5 times
+		//for (size_t i = 0; i < 1; ++i)
 		{
 			Tick();
 		}
+		
+		getchar();
+		/*while (bContinue)
+		{
+			Tick();
+		}*/
 
 		mGameWindow->CaptureCursor(false);
 	}
@@ -175,7 +182,6 @@ namespace MAD
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				// For each world, we want to tick
 				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
 			}
 

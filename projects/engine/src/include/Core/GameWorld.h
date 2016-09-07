@@ -91,7 +91,7 @@ namespace MAD
 			targetWorldLayerIter->second.SetOwningWorld(*this);
 		}
 
-		LOG(LogDefault, Log, "Spawning Entity at Layer: %s", targetWorldLayerIter->first.c_str());
+		LOG(LogDefault, Log, "Spawning Entity at Layer: %s\n", targetWorldLayerIter->first.c_str());
 
 		// Create default EntityType object through common creation API and assign the entity's owning world layer
 		eastl::shared_ptr<CommonAncestorEntityType> defaultEntityObject = inTypeInfo.CreateDefaultObject<CommonAncestorEntityType>();

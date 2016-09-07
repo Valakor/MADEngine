@@ -26,4 +26,19 @@ namespace MAD
 		return m_owningWorldLayer->GetOwningWorld();
 	}
 
+	void AEntity::GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const
+	{
+		for (auto& currentComponent : m_actorComponents)
+		{
+			inOutConstEntityComponents.emplace_back(currentComponent);
+		}
+	}
+
+	void AEntity::GetEntityComponents(ComponentContainer& inOutEntityComponents)
+	{
+		for (auto& currentComponent : m_actorComponents)
+		{
+			inOutEntityComponents.emplace_back(currentComponent);
+		}
+	}
 }

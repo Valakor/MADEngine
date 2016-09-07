@@ -11,10 +11,37 @@ namespace MAD
 
 	ComponentUpdater::ComponentUpdater() : m_isUpdating(false) {}
 
+	void ComponentUpdater::RemoveComponent(eastl::shared_ptr<UComponent> inTargetComponent)
+	{
+		// Before removing anything, we need to make sure that we aren't in the middle of updating (or else we'll invalidate a lot of iterators)
+		if (!m_isUpdating)
+		{
+			// Get the priority level of the component
+			TComponentPriorityInfo* componentPriorityInfo = inTargetComponent->GetPriorityInfo();
+			const TypeID componentTypeID = inTargetComponent->GetTypeInfo()->GetTypeID();
+			const PriorityLevel componentPriorityLevel = componentPriorityInfo->GetPriorityLevel(); // WARNING: Assumes that priority levels are not being changed after a component is added. Priority levels should only be changed before main loop begins
+
+			auto priorityLevelFindIter = m_componentPriorityBlocks.equal_range(componentPriorityLevel);
+
+			while (priorityLevelFindIter.first != priorityLevelFindIter.second)
+			{
+				if (priorityLevelFindIter.first->second.m_blockComponentTypeID == componentTypeID)
+				{
+					// Found the priority block for the target component to be deleted. We just need to delete it now
+					ComponentPriorityBlock::ComponentContainer& targetComponentContainer = priorityLevelFindIter.first->second.m_blockComponents;
+
+					targetComponentContainer.erase(eastl::remove(targetComponentContainer.begin(), targetComponentContainer.end(), inTargetComponent), targetComponentContainer.end());
+
+					return;
+				}
+
+				++priorityLevelFindIter.first;
+			}
+		}
+	}
+
 	void ComponentUpdater::UpdatePrePhysicsComponents(float inDeltaTime)
 	{
-		(void)inDeltaTime;
-
 		auto currentPriorityLevelIter = m_componentPriorityBlocks.begin();
 		const auto priorityLevelEndIter = m_componentPriorityBlocks.end();
 
@@ -25,7 +52,11 @@ namespace MAD
 			
 			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
 			{
-				currentComponent->UpdateComponent(inDeltaTime);
+				// Only update the component if it's owner hasn't been marked for kill
+				if (!currentComponent->GetOwner().IsPendingForKill())
+				{
+					currentComponent->UpdateComponent(inDeltaTime);
+				}
 			}
 
 			++currentPriorityLevelIter;
@@ -40,14 +71,21 @@ namespace MAD
 
 		while (currentPriorityLevelIter != priorityLevelEndIter)
 		{
+			LOG(LogComponentUpdater, Log, "Updating priority %d\n", currentPriorityLevelIter->first);
+
 			// Iterate over the rest of the components
 			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
 			{
-				currentComponent->UpdateComponent(inDeltaTime);
+				if (!currentComponent->GetOwner().IsPendingForKill())
+				{
+					currentComponent->UpdateComponent(inDeltaTime);
+				}
 			}
 
 			++currentPriorityLevelIter;
 		}
+
+		LOG(LogComponentUpdater, Log, "\n\n\n");
 	}
 
 	void ComponentUpdater::RegisterComponent(eastl::shared_ptr<UComponent> inNewComponentPtr)

@@ -34,6 +34,8 @@ namespace MAD
 	public:
 		ComponentUpdater();
 
+		void RemoveComponent(eastl::shared_ptr<UComponent> inTargetComponent);
+
 		inline void SetUpdatingFlag(bool inUpdateFlag) { m_isUpdating = inUpdateFlag; }
 		inline bool IsUpdating() const { return m_isUpdating; }
 

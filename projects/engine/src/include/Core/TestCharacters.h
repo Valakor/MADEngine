@@ -5,29 +5,25 @@
 
 namespace MAD
 {
-	class AMattCharacter : public ACharacter
+	class AMattCharacter : public AEntity
 	{
-		MAD_DECLARE_ACTOR(AMattCharacter, ACharacter)
+		MAD_DECLARE_ACTOR(AMattCharacter, AEntity)
 	public:
 		AMattCharacter()
 		{
-			AddComponent<UTestComponentF>();
-			AddComponent<UTestComponent2>();
-			AddComponent<UTestComponentC>();
+			AddComponent<UTestComponentA>();
 		}
 
 		virtual ~AMattCharacter() {}
 	};
 
-	class ADerekCharacter : public ACharacter
+	class ADerekCharacter : public AEntity
 	{
-		MAD_DECLARE_ACTOR(ADerekCharacter, ACharacter)
+		MAD_DECLARE_ACTOR(ADerekCharacter, AEntity)
 	public:
 		ADerekCharacter()
 		{
 			AddComponent<UTestComponent5>();
-			AddComponent<UTestComponentC>();
-			AddComponent<UTestComponentE>();
 		}
 
 		virtual ~ADerekCharacter() {}
