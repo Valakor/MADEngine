@@ -6,12 +6,16 @@ namespace MAD
 {
 	using PriorityLevel = uint32_t;
 
+	enum EPriorityLevelReference
+	{
+		EPriorityLevel_Default = 500,
+		EPriorityLevel_Physics = 1000
+	};
+
 	class TComponentPriorityInfo
 	{
 	public:
-		static const PriorityLevel s_defaultPriorityLevel;
-	public:
-		explicit TComponentPriorityInfo(PriorityLevel inInitialPriorityLevel = s_defaultPriorityLevel) : m_priorityLevel(inInitialPriorityLevel) {}
+		explicit TComponentPriorityInfo(PriorityLevel inInitialPriorityLevel = EPriorityLevelReference::EPriorityLevel_Default) : m_priorityLevel(inInitialPriorityLevel) {}
 
 		inline void UpdatePriorityLevel(PriorityLevel inNewPriorityLevel) { m_priorityLevel = inNewPriorityLevel; }
 

@@ -19,7 +19,6 @@ namespace MAD
 		using PhysicsComponentContainer = eastl::vector<PhysicsBodyWeakPtr>;
 	public:
 		void RegisterPhysicsBody(eastl::weak_ptr<PhysicsBody> inPhysicsBody);
-		void UnregisterPhysicsBody(ObjectID inPhysicsBodyID);
 
 		virtual void SimulatePhysics();
 	private:

@@ -9,5 +9,8 @@ namespace MAD
 		MAD_DECLARE_ACTOR(ACharacter, AEntity)
 	public:
 		ACharacter();
+		virtual ~ACharacter() {}
+
+		virtual void OnBeginPlay() override;
 	};
 }

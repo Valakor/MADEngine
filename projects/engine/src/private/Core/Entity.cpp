@@ -1,8 +1,11 @@
 #include "Core/Entity.h"
+#include "Core/GameWorld.h"
 #include "Core/GameWorldLayer.h"
 
 namespace MAD
 {
+	AEntity::AEntity() : m_isPendingForKill(false), m_owningWorldLayer(nullptr) {}
+
 	void AEntity::Destroy()
 	{
 		// Destroying an Entity means to basically destroy all of it's attached components
@@ -13,4 +16,29 @@ namespace MAD
 		m_isPendingForKill = true;
 	}
 
+	UGameWorld& AEntity::GetWorld()
+	{
+		return m_owningWorldLayer->GetOwningWorld();
+	}
+
+	const MAD::UGameWorld& AEntity::GetWorld() const
+	{
+		return m_owningWorldLayer->GetOwningWorld();
+	}
+
+	void AEntity::GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const
+	{
+		for (auto& currentComponent : m_actorComponents)
+		{
+			inOutConstEntityComponents.emplace_back(currentComponent);
+		}
+	}
+
+	void AEntity::GetEntityComponents(ComponentContainer& inOutEntityComponents)
+	{
+		for (auto& currentComponent : m_actorComponents)
+		{
+			inOutEntityComponents.emplace_back(currentComponent);
+		}
+	}
 }

@@ -16,6 +16,8 @@
 
 // TESTING
 #include "Rendering/Mesh.h"
+#include "Core/Character.h"
+#include "Core/TestCharacters.h"
 
 using eastl::string;
 
@@ -84,10 +86,23 @@ namespace MAD
 
 	void UGameEngine::Run()
 	{
-		while (bContinue)
+		// In the future, update defaults by configuration file
+		TEMPInitializeGameContext();
+
+		// Before we start the update loop, we need to lock defaults
+		LockEngineDefaults();
+
+		// TESTING: Only tick 5 times
+		//for (size_t i = 0; i < 1; ++i)
 		{
 			Tick();
 		}
+		
+		getchar();
+		/*while (bContinue)
+		{
+			Tick();
+		}*/
 
 		mGameWindow->CaptureCursor(false);
 	}
@@ -110,6 +125,26 @@ namespace MAD
 
 		LOG(LogGameEngine, Log, "Engine shutdown complete\n");
 		ULog::Get().Shutdown();
+	}
+
+	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
+	void UGameEngine::TEMPInitializeGameContext()
+	{
+		eastl::weak_ptr<UGameWorld> initialGameWorld = SpawnGameWorld<UGameWorld>("Gameplay_World");
+
+		initialGameWorld.lock()->SpawnEntity<ACharacter>();
+		initialGameWorld.lock()->SpawnEntity<ACharacter>();
+		initialGameWorld.lock()->SpawnEntity<AMattCharacter>();
+		initialGameWorld.lock()->SpawnEntity<ADerekCharacter>();
+		initialGameWorld.lock()->SpawnEntity<ADerekCharacter>();
+	}
+
+	void UGameEngine::LockEngineDefaults()
+	{
+		for (auto& currentWorld : m_worlds)
+		{
+			currentWorld->LockDefaults();
+		}
 	}
 
 	void UGameEngine::Tick()
@@ -147,7 +182,6 @@ namespace MAD
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				// For each world, we want to tick
 				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
 			}
 
