@@ -4,12 +4,12 @@
 
 namespace MAD
 {
-	class UMeshComponent : public UComponent
+	class CMeshComponent : public UComponent
 	{
-		MAD_DECLARE_COMPONENT(UMeshComponent, UComponent)
+		MAD_DECLARE_COMPONENT(CMeshComponent, UComponent)
 	public:
-		virtual ~UMeshComponent() {}
-
+		explicit CMeshComponent(OGameWorld* inOwningWorld);
+		
 		virtual void UpdateComponent(float inDeltaTime) override;
 	};
 }

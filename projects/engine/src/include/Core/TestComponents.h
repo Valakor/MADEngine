@@ -7,10 +7,11 @@
 #define MAD_DEFINE_TEST_COMPONENT(TestComponentName)							\
 	DECLARE_LOG_CATEGORY(Log##TestComponentName);											\
 																							\
-	class U##TestComponentName : public UComponent									\
+	class C##TestComponentName : public UComponent									\
 	{																			\
-		MAD_DECLARE_COMPONENT(U##TestComponentName, UComponent)					\
+		MAD_DECLARE_COMPONENT(C##TestComponentName, UComponent)					\
 	public:																		\
+		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override				\
 		{																		\
 			(void)inDeltaTime;																									\
@@ -23,10 +24,11 @@
 #define MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentName, PriorityLevel)				\
 	DECLARE_LOG_CATEGORY(Log##TestComponentName);											\
 																							\
-	class U##TestComponentName : public UComponent												\
+	class C##TestComponentName : public UComponent												\
 	{																						\
-		MAD_DECLARE_PRIORITIZED_COMPONENT(U##TestComponentName, UComponent, PriorityLevel)			\
+		MAD_DECLARE_PRIORITIZED_COMPONENT(C##TestComponentName, UComponent, PriorityLevel)			\
 	public:																					\
+		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override							\
 		{																					\
 			(void)inDeltaTime;																									\

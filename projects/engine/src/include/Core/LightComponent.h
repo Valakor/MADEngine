@@ -4,10 +4,12 @@
 
 namespace MAD
 {
-	class ULightComponent : public UComponent
+	class CLightComponent : public UComponent
 	{
-		MAD_DECLARE_PRIORITIZED_COMPONENT(ULightComponent, UComponent, 1)
+		MAD_DECLARE_PRIORITIZED_COMPONENT(CLightComponent, UComponent, 1)
 	public:
+		explicit CLightComponent(OGameWorld* inOwningWorld);
+		
 		virtual void UpdateComponent(float inDeltaTime) override;
 	};
 }

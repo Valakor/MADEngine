@@ -9,15 +9,15 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogComponentUpdater);
 
-	ComponentUpdater::ComponentUpdater() : m_isUpdating(false) {}
+	UComponentUpdater::UComponentUpdater() : m_isUpdating(false) {}
 
-	void ComponentUpdater::RemoveComponent(eastl::shared_ptr<UComponent> inTargetComponent)
+	void UComponentUpdater::RemoveComponent(eastl::shared_ptr<UComponent> inTargetComponent)
 	{
 		// Before removing anything, we need to make sure that we aren't in the middle of updating (or else we'll invalidate a lot of iterators)
 		if (!m_isUpdating)
 		{
 			// Get the priority level of the component
-			TComponentPriorityInfo* componentPriorityInfo = inTargetComponent->GetPriorityInfo();
+			UComponentPriorityInfo* componentPriorityInfo = inTargetComponent->GetPriorityInfo();
 			const TypeID componentTypeID = inTargetComponent->GetTypeInfo()->GetTypeID();
 			const PriorityLevel componentPriorityLevel = componentPriorityInfo->GetPriorityLevel(); // WARNING: Assumes that priority levels are not being changed after a component is added. Priority levels should only be changed before main loop begins
 
@@ -28,7 +28,7 @@ namespace MAD
 				if (priorityLevelFindIter.first->second.m_blockComponentTypeID == componentTypeID)
 				{
 					// Found the priority block for the target component to be deleted. We just need to delete it now
-					ComponentPriorityBlock::ComponentContainer& targetComponentContainer = priorityLevelFindIter.first->second.m_blockComponents;
+					SComponentPriorityBlock::ComponentContainer& targetComponentContainer = priorityLevelFindIter.first->second.m_blockComponents;
 
 					targetComponentContainer.erase(eastl::remove(targetComponentContainer.begin(), targetComponentContainer.end(), inTargetComponent), targetComponentContainer.end());
 
@@ -40,7 +40,7 @@ namespace MAD
 		}
 	}
 
-	void ComponentUpdater::UpdatePrePhysicsComponents(float inDeltaTime)
+	void UComponentUpdater::UpdatePrePhysicsComponents(float inDeltaTime)
 	{
 		auto currentPriorityLevelIter = m_componentPriorityBlocks.begin();
 		const auto priorityLevelEndIter = m_componentPriorityBlocks.end();
@@ -63,7 +63,7 @@ namespace MAD
 		}
 	}
 
-	void ComponentUpdater::UpdatePostPhysicsComponents(float inDeltaTime)
+	void UComponentUpdater::UpdatePostPhysicsComponents(float inDeltaTime)
 	{
 		// Find the first priority level entry that is greater priority than the physics priority level
 		auto currentPriorityLevelIter = m_componentPriorityBlocks.upper_bound(EPriorityLevelReference::EPriorityLevel_Physics);
@@ -88,7 +88,7 @@ namespace MAD
 		LOG(LogComponentUpdater, Log, "\n\n\n");
 	}
 
-	void ComponentUpdater::RegisterComponent(eastl::shared_ptr<UComponent> inNewComponentPtr)
+	void UComponentUpdater::RegisterComponent(eastl::shared_ptr<UComponent> inNewComponentPtr)
 	{
 		const PriorityLevel componentPriorityLevel = inNewComponentPtr->GetPriorityInfo()->GetPriorityLevel();
 		const TypeID componentTypeID = inNewComponentPtr->GetTypeInfo()->GetTypeID();

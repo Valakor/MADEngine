@@ -5,10 +5,12 @@
 
 namespace MAD
 {
-	class UPhysicsComponent : public UComponent
+	class CPhysicsComponent : public UComponent
 	{
-		MAD_DECLARE_COMPONENT(UPhysicsComponent, UComponent)
+		MAD_DECLARE_COMPONENT(CPhysicsComponent, UComponent)
 	public:
+		explicit CPhysicsComponent(OGameWorld* inOwningWorld);
+
 		virtual void UpdateComponent(float inDeltaTime) override;
 	};
 }

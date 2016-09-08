@@ -5,27 +5,26 @@
 
 namespace MAD
 {
-	class AMattCharacter : public AEntity
+	namespace Test
 	{
-		MAD_DECLARE_ACTOR(AMattCharacter, AEntity)
-	public:
-		AMattCharacter()
+		class AMattCharacter : public AEntity
 		{
-			AddComponent<Test::UTestComponentA>();
-		}
+			MAD_DECLARE_ACTOR(AMattCharacter, AEntity)
+		public:
+			explicit AMattCharacter(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			{
+				AddComponent<Test::CTestComponentA>();
+			}
+		};
 
-		virtual ~AMattCharacter() {}
-	};
-
-	class ADerekCharacter : public AEntity
-	{
-		MAD_DECLARE_ACTOR(ADerekCharacter, AEntity)
-	public:
-		ADerekCharacter()
+		class ADerekCharacter : public AEntity
 		{
-			AddComponent<Test::UTestComponent5>();
-		}
-
-		virtual ~ADerekCharacter() {}
-	};
+			MAD_DECLARE_ACTOR(ADerekCharacter, AEntity)
+		public:
+			explicit ADerekCharacter(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			{
+				AddComponent<Test::CTestComponent5>();
+			}
+		};
+	}
 }

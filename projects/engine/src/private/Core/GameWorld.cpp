@@ -6,11 +6,13 @@
 
 namespace MAD
 {
-	const eastl::string UGameWorld::s_defaultWorldLayerName = "Default_Layer";
+	const eastl::string OGameWorld::s_defaultWorldLayerName = "Default_Layer";
 
-	UGameWorld::UGameWorld() : m_defaultLayerName(s_defaultWorldLayerName) {}
+	OGameWorld::OGameWorld(OGameWorld* inOwningGameWorld)
+		: Super(inOwningGameWorld)
+		, m_defaultLayerName(s_defaultWorldLayerName) {}
 
-	void UGameWorld::CleanupEntities()
+	void OGameWorld::CleanupEntities()
 	{
 		LOG(LogDefault, Log, "Cleaning up entites from %s\n", m_worldName.c_str());
 
@@ -21,30 +23,20 @@ namespace MAD
 		}
 	}
 
-	void UGameWorld::UpdatePrePhysics(float inDeltaTime)
+	void OGameWorld::UpdatePrePhysics(float inDeltaTime)
 	{
 		m_componentUpdater.UpdatePrePhysicsComponents(inDeltaTime);
 	}
 
-	void UGameWorld::UpdatePostPhysics(float inDeltaTime)
+	void OGameWorld::UpdatePostPhysics(float inDeltaTime)
 	{
 		m_componentUpdater.UpdatePostPhysicsComponents(inDeltaTime);
 	}
 
-	void UGameWorld::RegisterEntity(AEntity& inEntity, UGameWorldLayer& inWorldLayer)
+	void OGameWorld::RegisterEntity(AEntity& inEntity, OGameWorldLayer& inWorldLayer)
 	{
 		// Register entity to world layer
 		inEntity.SetOwningWorldLayer(inWorldLayer);
-
-		// Register entity's components to the component updater
-		AEntity::ComponentContainer entityComponents;
-
-		inEntity.GetEntityComponents(entityComponents);
-		
-		for (const auto& currentComponent : entityComponents)
-		{
-			m_componentUpdater.RegisterComponent(currentComponent.lock());
-		}
 	}
 
 }

@@ -8,6 +8,9 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogPhysicsWorld);
 
+	UPhysicsWorld::UPhysicsWorld(OGameWorld* inOwningWorld)
+		: Super(inOwningWorld) {}
+
 	void UPhysicsWorld::SimulatePhysics()
 	{
 		LOG(LogPhysicsWorld, Log, "================SIMULATING PHYSICS================\n");

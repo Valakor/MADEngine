@@ -7,11 +7,12 @@
 #include "Core/Component.h"
 #include "Core/Object.h"
 #include "Core/GameWorld.h"
+#include "Misc/Assert.h"
 
 namespace MAD
 {
-	class UGameWorld;
-	class UGameWorldLayer;
+	class OGameWorld;
+	class OGameWorldLayer;
 
 	class AEntity : public UObject
 	{
@@ -20,23 +21,24 @@ namespace MAD
 		using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
 		using ConstComponentContainer = eastl::vector<eastl::weak_ptr<const UComponent>>;
 	public:
-		AEntity();
+		explicit AEntity(OGameWorld* inOwningWorld);
 
 		virtual void OnBeginPlay() {}
+		virtual void PostInitializeComponents() {}
 
 		void Destroy();
 
 		// Utility getter and setter functions
 		inline bool IsPendingForKill() const { return m_isPendingForKill; }
 
-		UGameWorld& GetWorld();
-		const UGameWorld& GetWorld() const;
+		OGameWorld& GetWorld();
+		const OGameWorld& GetWorld() const;
 
 		void GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const;
 		void GetEntityComponents(ComponentContainer& inOutEntityComponents);
 		inline size_t GetComponentCount() const { return m_actorComponents.size(); }
-		inline UGameWorldLayer& GetOwningWorldLayer() { return *m_owningWorldLayer; }
-		inline const UGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
+		inline OGameWorldLayer& GetOwningWorldLayer() { return *m_owningWorldLayer; }
+		inline const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
 
 		// Gets the first component of the input type. Returns weak_ptr because external users shouldn't maintain strong references
 		// to an entity's components
@@ -46,7 +48,7 @@ namespace MAD
 		template <typename ComponentType>
 		eastl::weak_ptr<ComponentType> GetFirstComponentByType();
 
-		inline void SetOwningWorldLayer(UGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
+		inline void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
 	protected:
 		// Component creation API
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater
@@ -58,7 +60,7 @@ namespace MAD
 		eastl::weak_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
 	private:
 		bool m_isPendingForKill;
-		UGameWorldLayer* m_owningWorldLayer;
+		OGameWorldLayer* m_owningWorldLayer;
 		eastl::vector<eastl::shared_ptr<UComponent>> m_actorComponents;
 	};
 
@@ -77,10 +79,20 @@ namespace MAD
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
-		eastl::shared_ptr<ComponentType> newComponent = inTypeInfo.CreateDefaultObject<ComponentType>();
+		eastl::shared_ptr<ComponentType> newComponent = inTypeInfo.CreateDefaultObject<ComponentType>(GetOwningWorld());
 
 		newComponent->SetOwner(*this);
+		
+		MAD_ASSERT_DESC(GetOwningWorld() != nullptr, "Error: Every entity should have a valid owning UGameWorld!!!");
 
+		if (!GetOwningWorld())
+		{
+			return eastl::weak_ptr<ComponentType>();
+		}
+
+		// Before adding the component to the entity, we need to register it with the owning world's component updater
+		GetOwningWorld()->GetComponentUpdater().RegisterComponent(newComponent);
+		
 		m_actorComponents.push_back(newComponent);
 
 		return newComponent;

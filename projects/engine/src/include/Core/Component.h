@@ -10,6 +10,8 @@ namespace MAD
 	{
 		MAD_DECLARE_BASE_COMPONENT(UComponent, UObject)
 	public:
+		explicit UComponent(OGameWorld* inOwningWorld);
+
 		virtual ~UComponent() { }
 
 		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };

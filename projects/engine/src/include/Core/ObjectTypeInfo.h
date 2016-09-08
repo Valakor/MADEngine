@@ -7,13 +7,15 @@
 
 namespace MAD
 {
+	class OGameWorld;
+
 	using TypeID = uint32_t;
 
 	class TTypeInfo
 	{
 	public:
 		static TypeID s_currentTypeID;
-		using CreationFunction_t = eastl::shared_ptr<class UObject> (*) ();
+		using CreationFunction_t = eastl::shared_ptr<class UObject> (*) (OGameWorld*);
 	public:
 		TTypeInfo(const TTypeInfo* inParent, const char* inTypeName, CreationFunction_t inCreationFunc);
 
@@ -22,7 +24,7 @@ namespace MAD
 		inline const char* GetTypeName() const { return m_typeName; }
 
 		template <typename ObjectType> 
-		eastl::shared_ptr<ObjectType> CreateDefaultObject() const { return eastl::static_shared_pointer_cast<ObjectType>(m_creationFunction()); } // Default create an object
+		eastl::shared_ptr<ObjectType> CreateDefaultObject(OGameWorld* inOwningGameWorld) const { return eastl::static_shared_pointer_cast<ObjectType>(m_creationFunction(inOwningGameWorld)); } // Default create an object
 	private:
 		const CreationFunction_t m_creationFunction;
 		const char* const m_typeName;
@@ -40,9 +42,9 @@ namespace MAD
 	}																		\
 																			\
 	private:																\
-	static eastl::shared_ptr<UObject> CreateObject()						\
-	{																		\
-		return eastl::make_shared<ClassName>();								\
+	static eastl::shared_ptr<UObject> CreateObject(OGameWorld* inOwningGameWorld)						\
+	{																									\
+		return eastl::make_shared<ClassName>(inOwningGameWorld);										\
 	}																		\
 																			\
 	friend class TTypeInfo;													\
@@ -78,13 +80,13 @@ namespace MAD
 #define MAD_DECLARE_COMPONENT_COMMON(ComponentClass, ParentClass, ComponentPriorityLevel)								\
 	MAD_DECLARE_CLASS(ComponentClass, ParentClass)																		\
 	public:																												\
-		static TComponentPriorityInfo* PriorityInfo()																	\
+		static UComponentPriorityInfo* PriorityInfo()																	\
 		{																												\
-			static TComponentPriorityInfo s_componentPriorityInfo(ComponentPriorityLevel);								\
+			static UComponentPriorityInfo s_componentPriorityInfo(ComponentPriorityLevel);								\
 			return &s_componentPriorityInfo;																				\
 		}																												\
 																														\
-		virtual TComponentPriorityInfo* GetPriorityInfo() override														\
+		virtual UComponentPriorityInfo* GetPriorityInfo() override														\
 		{																												\
 			return ComponentClass::PriorityInfo();																		\
 		}																												\
@@ -95,7 +97,7 @@ namespace MAD
 #define MAD_DECLARE_BASE_COMPONENT(BaseComponent, ParentClass)																		\
 	MAD_DECLARE_CLASS(BaseComponent, ParentClass)																					\
 	public:																															\
-		virtual TComponentPriorityInfo* GetPriorityInfo() { return nullptr; }														\
+		virtual UComponentPriorityInfo* GetPriorityInfo() { return nullptr; }														\
 
 #define MAD_DECLARE_COMPONENT(ComponentClass, ParentClass)																	\
 	MAD_DECLARE_COMPONENT_COMMON(ComponentClass, ParentClass, EPriorityLevelReference::EPriorityLevel_Default)				\

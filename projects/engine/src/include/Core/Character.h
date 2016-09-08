@@ -8,8 +8,7 @@ namespace MAD
 	{
 		MAD_DECLARE_ACTOR(ACharacter, AEntity)
 	public:
-		ACharacter();
-		virtual ~ACharacter() {}
+		explicit ACharacter(OGameWorld* inOwningWorld);
 
 		virtual void OnBeginPlay() override;
 	};
