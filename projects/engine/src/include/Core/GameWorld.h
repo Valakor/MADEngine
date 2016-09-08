@@ -98,9 +98,9 @@ namespace MAD
 
 		RegisterEntity(*defaultEntityObject, targetWorldLayerIter->second);
 
-		defaultEntityObject->OnBeginPlay(); // TODO: When should this happen (?)
-
-		defaultEntityObject->PostInitializeComponents(); // TODO: When should this happen (?)
+		defaultEntityObject->PostInitializeComponents();
+	
+		defaultEntityObject->OnBeginPlay();
 
 		return defaultEntityObject;
 	}

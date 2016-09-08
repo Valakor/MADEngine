@@ -12,7 +12,7 @@ namespace MAD
 	{
 		MAD_DECLARE_BASE_CLASS(UObject)
 	public:
-		explicit UObject(OGameWorld* inOwningGameWorld = nullptr);
+		explicit UObject(OGameWorld* inOwningGameWorld);
 
 		virtual ~UObject() {}
 
