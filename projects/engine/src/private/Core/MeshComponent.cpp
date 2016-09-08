@@ -6,7 +6,10 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
-	void UMeshComponent::UpdateComponent(float inDeltaTime)
+	CMeshComponent::CMeshComponent(OGameWorld* inOwningWorld)
+		: Super(inOwningWorld) {}
+
+	void CMeshComponent::UpdateComponent(float inDeltaTime)
 	{
 		(void)inDeltaTime;
 

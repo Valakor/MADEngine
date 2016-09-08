@@ -6,7 +6,9 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogLightComponent);
 
-	void ULightComponent::UpdateComponent(float inDeltaTime)
+	CLightComponent::CLightComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld) {}
+
+	void CLightComponent::UpdateComponent(float inDeltaTime)
 	{
 		(void)inDeltaTime;
 		LOG(LogLightComponent, Log, "Updating Light Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());

@@ -6,11 +6,10 @@
 
 namespace MAD
 {
-	ACharacter::ACharacter()
+	ACharacter::ACharacter(OGameWorld* inOwningWorld)
+		: Super(inOwningWorld)
 	{
-		// Within the constructor, you can add components and edit the component's values, but you CANNOT access the owner's owning GameWorldLayer or owning GameWorld
-		// Add components to the character
-		AddComponent<UTransformComponent>();
+		AddComponent<CTransformComponent>();
 	}
 
 	void ACharacter::OnBeginPlay()

@@ -4,5 +4,8 @@ namespace MAD
 {
 	ObjectID UObject::s_objectRunningUID = 0;
 
-	UObject::UObject() : m_objectID(++s_objectRunningUID) {}
+	UObject::UObject(OGameWorld* inOwningGameWorld)
+		: m_objectID(++s_objectRunningUID)
+		, m_owningGameWorld(inOwningGameWorld) {}
+
 }

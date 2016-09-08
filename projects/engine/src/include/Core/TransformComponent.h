@@ -5,10 +5,12 @@
 
 namespace MAD
 {
-	class UTransformComponent : public UComponent
+	class CTransformComponent : public UComponent
 	{
-		MAD_DECLARE_PRIORITIZED_COMPONENT(UTransformComponent, UComponent, 0)
+		MAD_DECLARE_PRIORITIZED_COMPONENT(CTransformComponent, UComponent, 0)
 	public:
+		explicit CTransformComponent(OGameWorld* inOwningWorld);
+
 		virtual void UpdateComponent(float inDeltaTime) override;
 	private:
 		uint32_t m_updateCount = 0;

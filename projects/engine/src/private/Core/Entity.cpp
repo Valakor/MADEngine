@@ -4,7 +4,10 @@
 
 namespace MAD
 {
-	AEntity::AEntity() : m_isPendingForKill(false), m_owningWorldLayer(nullptr) {}
+	AEntity::AEntity(OGameWorld* inOwningWorld)
+		: Super(inOwningWorld)
+		, m_isPendingForKill(false)
+		, m_owningWorldLayer(nullptr) {}
 
 	void AEntity::Destroy()
 	{
@@ -16,14 +19,14 @@ namespace MAD
 		m_isPendingForKill = true;
 	}
 
-	UGameWorld& AEntity::GetWorld()
+	OGameWorld& AEntity::GetWorld()
 	{
-		return m_owningWorldLayer->GetOwningWorld();
+		return *m_owningWorldLayer->GetOwningWorld();
 	}
 
-	const MAD::UGameWorld& AEntity::GetWorld() const
+	const OGameWorld& AEntity::GetWorld() const
 	{
-		return m_owningWorldLayer->GetOwningWorld();
+		return *m_owningWorldLayer->GetOwningWorld();
 	}
 
 	void AEntity::GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const

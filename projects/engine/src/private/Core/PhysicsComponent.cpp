@@ -3,7 +3,11 @@
 
 namespace MAD
 {
-	void UPhysicsComponent::UpdateComponent(float inDeltaTime)
+
+	CPhysicsComponent::CPhysicsComponent(OGameWorld* inOwningWorld)
+		: Super(inOwningWorld) {}
+
+	void CPhysicsComponent::UpdateComponent(float inDeltaTime)
 	{
 		(void)inDeltaTime;
 	}

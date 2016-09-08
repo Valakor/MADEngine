@@ -29,10 +29,12 @@ namespace MAD
 
 	UGameEngine* gEngine = nullptr;
 
-	UGameEngine::UGameEngine(): bContinue(true)
-	                          , mGameTime(0.0)
-	                          , mFrameTime(0.0)
-	                          , mFrameAccumulator(0.0) { }
+	UGameEngine::UGameEngine()
+		: bContinue(true)
+		, m_isSimulating(false)
+	    , mGameTime(0.0)
+	    , mFrameTime(0.0)
+	    , mFrameAccumulator(0.0) { }
 
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
@@ -65,7 +67,7 @@ namespace MAD
 		// TODO testing
 		auto cube2 = UAssetCache::Load<UMesh>("engine\\meshes\\primitives\\cube.obj");
 		// Init the physics world
-		m_physicsWorld = eastl::make_shared<UPhysicsWorld>();
+		m_physicsWorld = eastl::make_shared<UPhysicsWorld>(nullptr);
 
 		if (!m_physicsWorld)
 		{
@@ -88,9 +90,6 @@ namespace MAD
 	{
 		// In the future, update defaults by configuration file
 		TEMPInitializeGameContext();
-
-		// Before we start the update loop, we need to lock defaults
-		LockEngineDefaults();
 
 		while (bContinue)
 		{
@@ -123,21 +122,13 @@ namespace MAD
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
 	void UGameEngine::TEMPInitializeGameContext()
 	{
-		eastl::weak_ptr<UGameWorld> initialGameWorld = SpawnGameWorld<UGameWorld>("Gameplay_World");
+		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
 
 		initialGameWorld.lock()->SpawnEntity<ACharacter>();
 		initialGameWorld.lock()->SpawnEntity<ACharacter>();
-		initialGameWorld.lock()->SpawnEntity<AMattCharacter>();
-		initialGameWorld.lock()->SpawnEntity<ADerekCharacter>();
-		initialGameWorld.lock()->SpawnEntity<ADerekCharacter>();
-	}
-
-	void UGameEngine::LockEngineDefaults()
-	{
-		for (auto& currentWorld : m_worlds)
-		{
-			currentWorld->LockDefaults();
-		}
+		initialGameWorld.lock()->SpawnEntity<Test::AMattCharacter>();
+		initialGameWorld.lock()->SpawnEntity<Test::ADerekCharacter>();
+		initialGameWorld.lock()->SpawnEntity<Test::ADerekCharacter>();
 	}
 
 	void UGameEngine::Tick()
@@ -159,11 +150,9 @@ namespace MAD
 			// Tick input
 			UGameInput::Get().Tick();
 
-			// Set updating flag so we know when the components are updating or not
-			for (auto& currentWorld : m_worlds)
-			{
-				currentWorld->GetComponentUpdater().SetUpdatingFlag(true);
-			}
+			// Moved simulating flag to engine because we want all worlds to only perform post simulation tasks
+			// once all worlds have had its chance to simulate
+			m_isSimulating = true;
 
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
@@ -181,10 +170,7 @@ namespace MAD
 				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
 			}
 
-			for (auto& currentWorld : m_worlds)
-			{
-				currentWorld->GetComponentUpdater().SetUpdatingFlag(false);
-			}
+			m_isSimulating = false;
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
 			for (auto& currentWorld : m_worlds)

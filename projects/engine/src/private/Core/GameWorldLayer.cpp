@@ -7,12 +7,15 @@
 
 namespace MAD
 {
-	UGameWorldLayer::~UGameWorldLayer()
+	OGameWorldLayer::OGameWorldLayer(OGameWorld* inOwningWorld)
+		: Super(inOwningWorld) {}
+
+	OGameWorldLayer::~OGameWorldLayer()
 	{
 		CleanupExpiredEntities();
 	}
 
-	void UGameWorldLayer::CleanupExpiredEntities()
+	void OGameWorldLayer::CleanupExpiredEntities()
 	{
 		auto entityRemovePredicate = [](eastl::shared_ptr<AEntity> inCurrentEntity) { return inCurrentEntity->IsPendingForKill(); };
 
@@ -29,7 +32,7 @@ namespace MAD
 
 				for (const auto& currentComponent : entityComponents)
 				{
-					m_owningWorld->GetComponentUpdater().RemoveComponent(currentComponent.lock());
+					GetOwningWorld()->GetComponentUpdater().RemoveComponent(currentComponent.lock());
 				}
 			}
 		}

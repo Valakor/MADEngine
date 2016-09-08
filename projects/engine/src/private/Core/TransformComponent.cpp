@@ -8,7 +8,10 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
-	void UTransformComponent::UpdateComponent(float inDeltaTime)
+	CTransformComponent::CTransformComponent(OGameWorld* inOwningWorld)
+		: Super(inOwningWorld) {}
+
+	void CTransformComponent::UpdateComponent(float inDeltaTime)
 	{
 		if (m_updateCount < 2)
 		{

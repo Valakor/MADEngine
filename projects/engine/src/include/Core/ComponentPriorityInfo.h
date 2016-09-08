@@ -12,10 +12,10 @@ namespace MAD
 		EPriorityLevel_Physics = 1000
 	};
 
-	class TComponentPriorityInfo
+	class UComponentPriorityInfo
 	{
 	public:
-		explicit TComponentPriorityInfo(PriorityLevel inInitialPriorityLevel = EPriorityLevelReference::EPriorityLevel_Default) : m_priorityLevel(inInitialPriorityLevel) {}
+		explicit UComponentPriorityInfo(PriorityLevel inInitialPriorityLevel = EPriorityLevelReference::EPriorityLevel_Default) : m_priorityLevel(inInitialPriorityLevel) {}
 
 		inline void UpdatePriorityLevel(PriorityLevel inNewPriorityLevel) { m_priorityLevel = inNewPriorityLevel; }
 
