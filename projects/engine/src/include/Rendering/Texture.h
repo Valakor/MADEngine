@@ -1,25 +1,25 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <d3d11_2.h>
-#include <wrl/client.h>
-
 #include <EASTL/string.h>
 #include <EASTL/shared_ptr.h>
+
+#include "Rendering/GraphicsDriverTypes.h"
 
 namespace MAD
 {
 	class UTexture
 	{
 	public:
-		static eastl::shared_ptr<UTexture> Load(const eastl::string& inPath);
-
+		// Load textures using UAssetCache::Load<UTexture>(...)
 		UTexture();
 
 	private:
+		friend class UAssetCache;
+		static eastl::shared_ptr<UTexture> Load(const eastl::string& inPath);
+
 		uint64_t m_width;
 		uint64_t m_height;
 
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_textureSRV;
+		SShaderResourceId m_textureSRV;
 	};
 }

@@ -6,12 +6,12 @@ __pragma(warning(push))
 __pragma(warning(disable:4838))
 #include <DirectXTK/SimpleMath.h>
 __pragma(warning(pop))
-#include <wrl/client.h>
 
 #include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
 
+#include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/Material.h"
 #include "Rendering/SubMesh.h"
 
@@ -43,17 +43,20 @@ namespace MAD
 	class UMesh
 	{
 	public:
-		static eastl::shared_ptr<UMesh> Load(const eastl::string& inPath);
+		void Draw() { }
 
 	private:
+		friend class UAssetCache;
+		static eastl::shared_ptr<UMesh> Load(const eastl::string& inPath);
+
 		eastl::vector<SSubMesh> m_subMeshes;
 		eastl::vector<UMaterial> m_materials;
 
 		eastl::vector<SVertex_Pos_Norm_Tex> m_vertexBuffer;
 		eastl::vector<Index_t> m_indexBuffer;
 
-		Microsoft::WRL::ComPtr<ID3D11Buffer> m_gpuVertexBuffer;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> m_gpuIndexBuffer;
+		SBufferId m_gpuVertexBuffer;
+		SBufferId m_gpuIndexBuffer;
 	};
 
 	struct SMeshInstance

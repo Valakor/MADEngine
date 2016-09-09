@@ -3,8 +3,6 @@
 #include "Core/GameEngine.h"
 #include "Rendering/Renderer.h"
 
-using Microsoft::WRL::ComPtr;
-
 namespace MAD
 {
 	eastl::shared_ptr<UTexture> UTexture::Load(const eastl::string& inPath)
@@ -26,5 +24,5 @@ namespace MAD
 
 	UTexture::UTexture(): m_width(0)
 	                    , m_height(0)
-	                    , m_textureSRV(nullptr) { }
+	                    , m_textureSRV() { }
 }
