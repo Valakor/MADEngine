@@ -51,7 +51,7 @@ namespace MAD
 
 	void URenderer::QueueDrawItem(const SDrawItem& inDrawItem)
 	{
-		m_queuedDrawItems.push(inDrawItem);
+		m_queuedDrawItems.emplace_back(inDrawItem);
 	}
 
 	void URenderer::OnScreenSizeChanged()
@@ -79,12 +79,10 @@ namespace MAD
 		// G-Buffer textures will be the same size as the screen
 		auto clientSize = m_window->GetClientSize();
 
-		// Use the EGBufferRenderTargetID enum to index into the current G-buffer texture
-		for (size_t i = 0; i < static_cast<size_t>(EGBufferRenderTargetID::Count); ++i)
-		{
-			m_gBufferPassDescriptor.m_renderTargets.push_back(g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM));
-		}
-		
+		m_gBufferPassDescriptor.m_renderTargets.emplace_back(g_graphicsDriver.GetBackBufferRenderTarget());
+		m_gBufferPassDescriptor.m_renderTargets.emplace_back(g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM));
+		m_gBufferPassDescriptor.m_renderTargets.emplace_back(g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM));
+
 		m_gBufferPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(clientSize.x, clientSize.y);
 		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
 		m_gBufferPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
@@ -108,15 +106,13 @@ namespace MAD
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 		// Go through each draw item and bind input assembly data
-		while (!m_queuedDrawItems.empty())
+		for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
 		{
-			const SDrawItem& currentDrawItem = m_queuedDrawItems.top();
-
 			// Each individual DrawItem should issue it's own draw call
-			currentDrawItem.ProcessDrawItem(g_graphicsDriver);
-
-			m_queuedDrawItems.pop();
+			currentDrawItem.Draw(g_graphicsDriver);
 		}
+
+		m_queuedDrawItems.clear();
 	}
 
 	void URenderer::EndFrame()

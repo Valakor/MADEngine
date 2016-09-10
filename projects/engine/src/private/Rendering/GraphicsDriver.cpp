@@ -664,7 +664,7 @@ namespace MAD
 		SetViewport(static_cast<float>(inX), static_cast<float>(inY), static_cast<float>(inWidth), static_cast<float>(inHeight));
 	}
 
-	void UGraphicsDriver::SetRenderTarget(SRenderTargetId** inRenderTargets, int inNumRenderTargets, SDepthStencilId* inOptionalDepthStencil) const
+	void UGraphicsDriver::SetRenderTarget(const SRenderTargetId** inRenderTargets, int inNumRenderTargets, const SDepthStencilId* inOptionalDepthStencil) const
 	{
 		MAD_ASSERT_DESC(inNumRenderTargets <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, "Cannot bind more than 8 render targets at once");
 
@@ -682,7 +682,7 @@ namespace MAD
 
 		for (int i = 0 ; i < inNumRenderTargets; ++i)
 		{
-			auto& renderTargetId = *inRenderTargets[i];
+			const auto& renderTargetId = *inRenderTargets[i];
 			ID_GET_SAFE(renderTarget, renderTargetId, g_renderTargetStore, "Invalid render target");
 			renderTargets[i] = renderTarget.Get();
 		}

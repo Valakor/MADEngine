@@ -11,15 +11,6 @@
 
 namespace MAD
 {
-	enum class EConstantBuffer
-	{
-		PerCamera = 0,
-		PerMaterial,
-		PerObject,
-
-		MAX
-	};
-
 	class UGraphicsDriver
 	{
 	public:
@@ -63,7 +54,7 @@ namespace MAD
 		void UpdateBuffer(SBufferId inBuffer, const T& inData) const;
 		void UpdateBuffer(SBufferId inBuffer, const void* inData, size_t inDataSize) const;
 
-		void SetRenderTarget(SRenderTargetId** inRenderTargets, int inNumRenderTargets, SDepthStencilId* inOptionalDepthStencil) const;
+		void SetRenderTarget(const SRenderTargetId** inRenderTargets, int inNumRenderTargets, const SDepthStencilId* inOptionalDepthStencil) const;
 		void SetDepthStencilState(SDepthStencilStateId inDepthStencilState, UINT inStencilRef) const;
 		void SetViewport(float inX, float inY, float inWidth, float inHeight) const;
 		void SetViewport(int inX, int inY, int inWidth, int inHeight) const;

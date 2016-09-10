@@ -2,7 +2,7 @@
 
 #include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
-#include <EASTl/priority_queue.h>
+#include <EASTl/vector.h>
 
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/RenderPassDescriptor.h"
@@ -11,14 +11,6 @@
 namespace MAD
 {
 	class UGameWindow;
-
-	enum class EGBufferRenderTargetID : uint8_t
-	{
-		Diffuse = 0,
-		Normal,
-		Specular,
-		Count,
-	};
 
 	class URenderer
 	{
@@ -53,6 +45,6 @@ namespace MAD
 		SRenderTargetId m_backBuffer;
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_lightingPassDescriptor;
-		eastl::priority_queue<SDrawItem> m_queuedDrawItems;
+		eastl::vector<SDrawItem> m_queuedDrawItems;
 	};
 }

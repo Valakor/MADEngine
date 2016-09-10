@@ -7,9 +7,9 @@
 
 namespace MAD
 {
-	void SRenderPassDescriptor::ApplyPassState(UGraphicsDriver& inGraphicsDriver)
+	void SRenderPassDescriptor::ApplyPassState(UGraphicsDriver& inGraphicsDriver) const
 	{
-		SRenderTargetId* renderTargetIds = m_renderTargets.data();
+		const SRenderTargetId* renderTargetIds = m_renderTargets.data();
 
 		// Apply pipeline state based on descriptor values
 		inGraphicsDriver.SetRenderTarget(&renderTargetIds, static_cast<int>(m_renderTargets.size()), &m_depthStencilView);

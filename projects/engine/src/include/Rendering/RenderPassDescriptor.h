@@ -10,7 +10,7 @@ namespace MAD
 {
 	struct SRenderPassDescriptor
 	{
-		void ApplyPassState(class UGraphicsDriver& inGraphicsDriver);
+		void ApplyPassState(class UGraphicsDriver& inGraphicsDriver) const;
 
 		eastl::vector<SRenderTargetId> m_renderTargets;
 		SDepthStencilStateId m_depthStencilState;

@@ -1,21 +1,14 @@
 #pragma once
 
-#include "DirectXTK/SimpleMath.h"
+#include "Rendering/RenderingCommon.h"
 
 namespace MAD
 {
-	struct SCPUDirectionalLightInstance
+	struct SDirectionalLight
 	{
-		DirectX::SimpleMath::Vector3 m_lightDirection;
-		DirectX::SimpleMath::Color m_lightColor;
-		float m_lightIntensity;
+		SGPUDirectionalLight m_gpuDirectionalLight;
 		bool m_isLightEnabled;
 	};
 
-	struct SGPUDirectionalLightInstance
-	{
-		DirectX::SimpleMath::Vector3 m_lightDirection;
-		DirectX::SimpleMath::Color m_lightColor;
-		float m_lightIntensity;
-	};
+	
 }

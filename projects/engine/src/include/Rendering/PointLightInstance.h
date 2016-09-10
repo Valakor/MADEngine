@@ -1,23 +1,12 @@
 #pragma once
 
-#include "DirectXTK/SimpleMath.h"
+#include "Rendering/RenderingCommon.h"
 
 namespace MAD
 {
-	struct SCPUPointLightInstance
+	struct SPointLight
 	{
-		DirectX::SimpleMath::Vector3 m_lightPosition;
-		float m_lightRadius;
-		DirectX::SimpleMath::Color m_lightColor;
-		float m_lightIntensity;
+		SGPUPointLight m_gpuPointLight;
 		bool m_isEnabled;
-	};
-
-	struct SGPUPointLightInstance
-	{
-		DirectX::SimpleMath::Vector3 m_lightPosition;
-		float m_lightRadius;
-		DirectX::SimpleMath::Color m_lightColor;
-		float m_lightIntensity;
 	};
 }

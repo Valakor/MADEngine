@@ -1,16 +1,29 @@
 #pragma once
 
 #include <cstdint>
+#include <EASTL/vector.h>
+#include <EASTL/utility.h>
+
+#include "Rendering/GraphicsDriverTypes.h"
+#include "Rendering/RenderingCommon.h"
 
 namespace MAD
 {
 	struct SDrawItem
 	{
-		SDrawItem();
+		void Draw(class UGraphicsDriver& inGraphicsDriver) const;
 
-		void ProcessDrawItem(class UGraphicsDriver& inGraphicsDriver) const;
+		SBufferId m_vertexBuffer;
+		uint32_t m_vertexBufferOffset;
 
-		uint32_t m_drawItemPriority; // TODO: Potentially use a more robust draw item priority system in the future (?)
-		bool operator<(const SDrawItem& inOtherDrawItem) const;
+		SBufferId m_indexBuffer;
+		uint32_t m_indexStart;
+		uint32_t m_indexOffset;
+
+		SInputLayoutId m_inputLayout;
+
+		eastl::vector<eastl::pair<EConstantBufferSlot, void*>> m_constantBufferType;
+
+		eastl::vector<eastl::pair<ETextureSlot, SShaderResourceId>> m_textures;
 	};
 }
