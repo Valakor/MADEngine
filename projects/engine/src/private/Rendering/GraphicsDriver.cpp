@@ -1,4 +1,5 @@
 #include "Rendering/GraphicsDriver.h"
+#include <d3dcompiler.h>
 
 #include <DirectXTK/DDSTextureLoader.h>
 #include <DirectXTK/WICTextureLoader.h>
@@ -10,6 +11,8 @@
 #include "Misc/Assert.h"
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
+
+#pragma comment(lib,"d3dcompiler.lib") // TODO: Add to list of libraries to link against in premake
 
 using Microsoft::WRL::ComPtr;
 
@@ -269,6 +272,105 @@ namespace MAD
 		auto shaderResourceViewId = SShaderResourceId::Next();
 		g_shaderResourceViewStore.insert({ shaderResourceViewId, srv });
 		return shaderResourceViewId;
+	}
+
+	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode)
+	{
+		HRESULT hr = S_OK;
+
+		DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+		// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
+		// Setting this flag improves the shader debugging experience, but still allows 
+		// the shaders to be optimized and to run exactly the way they will run in 
+		// the release configuration of this program.
+		dwShaderFlags |= D3DCOMPILE_DEBUG;
+
+		// Disable optimizations to further improve shader debugging
+		dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+		const size_t cSize = inFileName.length() + 1;
+		size_t retCount;
+		std::wstring wc(cSize, L'#');
+		mbstowcs_s(&retCount, &wc[0], cSize, inFileName.c_str(), _TRUNCATE);
+
+		ID3DBlob* pErrorBlob = nullptr;
+		ID3DBlob* pBlobOut = nullptr;
+		hr = D3DCompileFromFile(wc.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
+			dwShaderFlags, 0, &pBlobOut, &pErrorBlob);
+		if (FAILED(hr))
+		{
+			if (pErrorBlob)
+			{
+				static wchar_t szBuffer[4096];
+				_snwprintf_s(szBuffer, 4096, _TRUNCATE,
+					L"%hs",
+					(char*)pErrorBlob->GetBufferPointer());
+				OutputDebugString(szBuffer);
+				MessageBox(nullptr, szBuffer, L"Error", MB_OK);
+				pErrorBlob->Release();
+				MAD_ASSERT_DESC(hr == S_OK, "Shader Compilation Failed");
+			}
+			return false;
+		}
+		if (pErrorBlob)
+		{
+			pErrorBlob->Release();
+		}
+
+		//now copy to vector if we like it...
+		if (pBlobOut)
+		{
+			size_t compiledCodeSize = pBlobOut->GetBufferSize();
+			inOutCompileByteCode.resize(compiledCodeSize);
+			std::memcpy(inOutCompileByteCode.data(), pBlobOut->GetBufferPointer(), compiledCodeSize);
+
+			pBlobOut->Release();
+		}
+
+		return hr == S_OK;
+	}
+
+	// TODO: Potentially create macro for this (??)
+	SVertexShaderId UGraphicsDriver::CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode)
+	{
+		ComPtr<ID3D11VertexShader> vertexShaderPtr;
+
+		HRESULT hr = g_d3dDevice->CreateVertexShader(inCompiledVSByteCode.data(), inCompiledVSByteCode.size(), nullptr, vertexShaderPtr.GetAddressOf());
+
+		MAD_ASSERT_DESC(hr == S_OK, "Failure Creating Vertex Shader From Compiled Shader Code");
+
+		SVertexShaderId vertexShaderId;
+
+		if (hr == S_OK)
+		{
+			vertexShaderId = SVertexShaderId::Next();
+
+			g_vertexShaderStore.insert({ vertexShaderId, vertexShaderPtr });
+		}
+		
+		return vertexShaderId;
+	}
+
+	SPixelShaderId UGraphicsDriver::CreatePixelShader(const eastl::vector<char>& inCompiledPSByteCode)
+	{
+		ComPtr<ID3D11PixelShader> pixelShaderPtr;
+
+		HRESULT hr = g_d3dDevice->CreatePixelShader(inCompiledPSByteCode.data(), inCompiledPSByteCode.size(), nullptr, pixelShaderPtr.GetAddressOf());
+
+		MAD_ASSERT_DESC(hr == S_OK, "Failure Creating Pixel Shader from Compiled Shader Code");
+
+		SPixelShaderId pixelShaderId;
+
+		if (hr == S_OK)
+		{
+			pixelShaderId = SPixelShaderId::Next();
+
+			g_pixelShaderStore.insert({ pixelShaderId, pixelShaderPtr });
+		}
+
+		return pixelShaderId;
 	}
 
 	SRenderTargetId UGraphicsDriver::CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, SShaderResourceId* outOptionalShaderResource) const

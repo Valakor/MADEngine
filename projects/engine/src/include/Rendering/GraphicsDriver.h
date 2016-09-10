@@ -36,6 +36,11 @@ namespace MAD
 		//     AssetCache.Load<UTexture>(...);
 		SShaderResourceId CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const;
 		
+		bool CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode);
+
+		SVertexShaderId CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode);
+		SPixelShaderId CreatePixelShader(const eastl::vector<char>& inCompiledPSByteCode);
+
 		SRenderTargetId CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, SShaderResourceId* outOptionalShaderResource = nullptr) const;
 		SInputLayoutId CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, int inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
 		SSamplerStateId CreateSamplerState() const;
