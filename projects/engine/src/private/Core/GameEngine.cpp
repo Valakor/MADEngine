@@ -47,9 +47,6 @@ namespace MAD
 		LOG(LogGameEngine, Log, "Engine initialization begin...\n");
 		LOG(LogGameEngine, Log, "Commandline: %s\n", SCmdLine::Get().c_str());
 
-		// Set global engine ptr
-		gEngine = this;
-
 		// Create a window
 		mGameWindow = eastl::make_shared<UGameWindow>();
 		if (!UGameWindow::CreateGameWindow(inGameName, inWindowWidth, inWindowHeight, *mGameWindow))
@@ -63,6 +60,9 @@ namespace MAD
 		{
 			return false;
 		}
+
+		// Set global engine ptr
+		gEngine = this;
 
 		// TODO testing
 		auto cube2 = UAssetCache::Load<UMesh>("engine\\meshes\\primitives\\cube.obj");
@@ -89,7 +89,7 @@ namespace MAD
 	void UGameEngine::Run()
 	{
 		// In the future, update defaults by configuration file
-		TEMPInitializeGameContext();
+		//TEMPInitializeGameContext();
 
 		while (bContinue)
 		{
@@ -155,28 +155,28 @@ namespace MAD
 			m_isSimulating = true;
 
 			// Tick the pre-physics components of all Worlds
-			for (auto& currentWorld : m_worlds)
-			{
-				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
-			}
+			//for (auto& currentWorld : m_worlds)
+			//{
+			//	currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+			//}
 
-			// Update the physics world
-			m_physicsWorld->SimulatePhysics();
+			//// Update the physics world
+			//m_physicsWorld->SimulatePhysics();
 
 
-			// Tick the post-physics components of all Worlds
-			for (auto& currentWorld : m_worlds)
-			{
-				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
-			}
+			//// Tick the post-physics components of all Worlds
+			//for (auto& currentWorld : m_worlds)
+			//{
+			//	currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+			//}
 
 			m_isSimulating = false;
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
-			for (auto& currentWorld : m_worlds)
+			/*for (auto& currentWorld : m_worlds)
 			{
 				currentWorld->CleanupEntities();
-			}
+			}*/
 
 			steps--;
 		}

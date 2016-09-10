@@ -7,9 +7,8 @@
 #include "Core/GameEngine.h"
 #include "Misc/AssetCache.h"
 #include "Misc/Logging.h"
+#include "Rendering/GraphicsDriver.h"
 #include "Rendering/Renderer.h"
-
-using Microsoft::WRL::ComPtr;
 
 namespace MAD
 {
@@ -241,10 +240,10 @@ namespace MAD
 		auto& renderer = gEngine->GetRenderer();
 
 		UINT vertexDataSize = static_cast<UINT>(mesh->m_vertexBuffer.size() * sizeof(mesh->m_vertexBuffer[0]));
-		mesh->m_gpuVertexBuffer = renderer.CreateVertexBuffer(mesh->m_vertexBuffer.data(), vertexDataSize);
+		mesh->m_gpuVertexBuffer = renderer.GetGraphicsDriver().CreateVertexBuffer(mesh->m_vertexBuffer.data(), vertexDataSize);
 
 		UINT indexDataSize = static_cast<UINT>(mesh->m_indexBuffer.size() * sizeof(Index_t));
-		mesh->m_gpuIndexBuffer = renderer.CreateIndexBuffer(mesh->m_indexBuffer.data(), indexDataSize);
+		mesh->m_gpuIndexBuffer = renderer.GetGraphicsDriver().CreateIndexBuffer(mesh->m_indexBuffer.data(), indexDataSize);
 
 		return mesh;
 	}
