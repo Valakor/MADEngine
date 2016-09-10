@@ -1,23 +1,20 @@
 #include "Core/GameEngine.h"
 
-
-#include "Core/FrameTimer.h"
-#include "Core/GameInstance.h"
-#include "Core/GameInput.h"
-#include "Core/GameWindow.h"
-#include "Core/GameWorld.h"
-#include "Misc/AssetCache.h"
-#include "Core/PhysicsWorld.h"
-#include "Misc/ErrorHandling.h"
-#include "Misc/utf8conv.h"
-#include "Rendering/Renderer.h"
-
 #include <EASTL/algorithm.h>
 
+#include "Core/FrameTimer.h"
+#include "Core/GameInput.h"
+#include "Core/GameInstance.h"
+#include "Core/GameWindow.h"
+#include "Core/GameWorld.h"
+#include "Core/PhysicsWorld.h"
+#include "Misc/AssetCache.h"
+#include "Rendering/Renderer.h"
+
 // TESTING
-#include "Rendering/Mesh.h"
 #include "Core/Character.h"
 #include "Core/TestCharacters.h"
+#include "Rendering/Mesh.h"
 
 using eastl::string;
 
@@ -54,6 +51,9 @@ namespace MAD
 			return false;
 		}
 
+		// Set global engine ptr
+		gEngine = this;
+
 		// Init renderer
 		mRenderer = eastl::make_shared<URenderer>();
 		if (!mRenderer->Init(*mGameWindow))
@@ -61,14 +61,11 @@ namespace MAD
 			return false;
 		}
 
-		// Set global engine ptr
-		gEngine = this;
-
 		// TODO testing
 		auto cube2 = UAssetCache::Load<UMesh>("engine\\meshes\\primitives\\cube.obj");
+
 		// Init the physics world
 		m_physicsWorld = eastl::make_shared<UPhysicsWorld>(nullptr);
-
 		if (!m_physicsWorld)
 		{
 			return false;
