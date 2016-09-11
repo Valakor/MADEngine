@@ -9,7 +9,7 @@ namespace MAD
 {
 	class CMeshComponent : public UComponent
 	{
-		MAD_DECLARE_COMPONENT(CMeshComponent, UComponent)
+		MAD_DECLARE_PRIORITIZED_COMPONENT(CMeshComponent, UComponent, EPriorityLevelReference::EPriorityLevel_Physics + 1)
 	public:
 		explicit CMeshComponent(OGameWorld* inOwningWorld);
 		

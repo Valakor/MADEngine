@@ -57,6 +57,8 @@ namespace MAD
 
 	struct SMeshInstance
 	{
+		SMeshInstance() : m_bVisible(false) {}
+
 		SPerDrawConstants m_perDrawConstants;
 		eastl::shared_ptr<UMesh> m_mesh;
 		bool m_bVisible;

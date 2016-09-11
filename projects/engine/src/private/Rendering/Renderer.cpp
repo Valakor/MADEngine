@@ -157,6 +157,7 @@ namespace MAD
 	{
 		m_perFrameConstants.m_cameraViewMatrix = inCameraInstance.m_viewMatrix;
 		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
+		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
 	}
 
 	class UGraphicsDriver& URenderer::GetGraphicsDriver()

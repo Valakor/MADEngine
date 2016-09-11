@@ -23,6 +23,7 @@ namespace MAD
 		// Have the owning SMeshInstance create a draw item to submit to renderer
 		if (m_meshInstance.m_bVisible && m_meshInstance.m_mesh)
 		{
+			// Only create the draw item if our mesh instance is initialized properly with a mesh and direct transform
 			ConstructDrawItem();
 		}
 	}

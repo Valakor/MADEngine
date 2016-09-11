@@ -86,7 +86,7 @@ namespace MAD
 	void UGameEngine::Run()
 	{
 		// In the future, update defaults by configuration file
-		//TEMPInitializeGameContext();
+		TEMPInitializeGameContext();
 
 		while (bContinue)
 		{
@@ -145,7 +145,7 @@ namespace MAD
 
 			// Moved simulating flag to engine because we want all worlds to only perform post simulation tasks
 			// once all worlds have had its chance to simulate
-			/*m_isSimulating = true;
+			m_isSimulating = true;
 
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
@@ -169,7 +169,7 @@ namespace MAD
 			for (auto& currentWorld : m_worlds)
 			{
 				currentWorld->CleanupEntities();
-			}*/
+			}
 
 			steps--;
 		}

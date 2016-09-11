@@ -10,7 +10,7 @@ namespace MAD
 {
 	class CCameraComponent : public UComponent
 	{
-		MAD_DECLARE_COMPONENT(CCameraComponent, UComponent)
+		MAD_DECLARE_PRIORITIZED_COMPONENT(CCameraComponent, UComponent, EPriorityLevelReference::EPriorityLevel_Physics + 1)
 	public:
 		explicit CCameraComponent(OGameWorld* inOwningWorld);
 

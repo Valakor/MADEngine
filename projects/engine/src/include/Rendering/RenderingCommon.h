@@ -84,8 +84,8 @@ namespace MAD
 	struct SGPUDirectionalLight
 	{
 		DirectX::SimpleMath::Vector3 m_lightDirection;
-		DirectX::SimpleMath::Color m_lightColor;
 		float m_lightIntensity;
+		DirectX::SimpleMath::Color m_lightColor;
 	};
 	static_assert(sizeof(SGPUDirectionalLight) == 32, "");
 
@@ -123,8 +123,9 @@ namespace MAD
 	{
 		DirectX::SimpleMath::Matrix m_cameraViewMatrix;
 		DirectX::SimpleMath::Matrix m_cameraProjectionMatrix;
+		DirectX::SimpleMath::Matrix m_cameraViewProjectionMatrix;
 	};
-	static_assert(sizeof(SPerFrameConstants) == 128, "");
+	static_assert(sizeof(SPerFrameConstants) == 192, "");
 
 	struct SPerSceneConstants
 	{
