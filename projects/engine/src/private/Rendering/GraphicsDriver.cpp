@@ -279,10 +279,14 @@ namespace MAD
 
 		// Initialize our samplers
 		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
-		m_samplers[AsIntegral(ESamplerSlot::Point)] = CreateSamplerState();
-		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState();
-		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState();
-		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState();
+		m_samplers[AsIntegral(ESamplerSlot::Point)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_POINT);
+		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
+		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR);
+		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState(D3D11_FILTER_ANISOTROPIC, 16);
+		for (unsigned i = 0; i < m_samplers.size(); ++i)
+		{
+			SetPixelSamplerState(m_samplers[i], i);
+		}
 
 		LOG(LogGraphicsDevice, Log, "Graphics driver initialization successful\n");
 		return true;
@@ -555,16 +559,16 @@ namespace MAD
 		return inputLayoutId;
 	}
 
-	SSamplerStateId UGraphicsDriver::CreateSamplerState() const
+	SSamplerStateId UGraphicsDriver::CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy) const
 	{
 		D3D11_SAMPLER_DESC samplerDesc;
 		MEM_ZERO(samplerDesc);
-		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.Filter = inFilterMode;
 		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.MipLODBias = 0;
-		samplerDesc.MaxAnisotropy = 0;
+		samplerDesc.MaxAnisotropy = inMaxAnisotropy;
 		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		samplerDesc.MinLOD = 0;
 		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;

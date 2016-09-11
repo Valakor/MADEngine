@@ -73,7 +73,7 @@ namespace MAD
 		SInputLayoutId CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
 		SInputLayoutId ReflectInputLayout(ID3DBlob* inTargetBlob) const;
 
-		SSamplerStateId CreateSamplerState() const;
+		SSamplerStateId CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy = 0) const;
 		void SetPixelSamplerState(SSamplerStateId inSamplerState, UINT inSlot) const;
 
 		SBufferId CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const;

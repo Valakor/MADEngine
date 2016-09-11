@@ -214,6 +214,8 @@ namespace MAD
 				vert.N = DirectX::SimpleMath::Vector3(nor.x, nor.y, nor.z);
 				vert.T = DirectX::SimpleMath::Vector2(uvs.x, uvs.y);
 
+				vert.N.Normalize();
+
 				mesh->m_vertexBuffer.push_back(vert);
 			}
 
