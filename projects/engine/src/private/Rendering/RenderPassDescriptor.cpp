@@ -11,6 +11,8 @@ namespace MAD
 	{
 		const SRenderTargetId* renderTargetIds = m_renderTargets.data();
 
+		inGraphicsDriver.ClearDepthStencil(m_depthStencilView, true, 1.0f);
+
 		// Apply pipeline state based on descriptor values
 		inGraphicsDriver.SetRenderTargets(renderTargetIds, static_cast<int>(m_renderTargets.size()), &m_depthStencilView);
 

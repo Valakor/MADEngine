@@ -48,6 +48,9 @@ namespace MAD
 		template <typename ComponentType>
 		eastl::weak_ptr<ComponentType> GetFirstComponentByType();
 
+		template <typename ComponentType>
+		eastl::vector<eastl::weak_ptr<ComponentType>> GetComponentsByType();
+
 		inline void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
 	protected:
 		// Component creation API
@@ -124,5 +127,21 @@ namespace MAD
 		}
 
 		return eastl::weak_ptr<ComponentType>();
+	}
+
+	template <typename ComponentType>
+	eastl::vector<eastl::weak_ptr<ComponentType>> AEntity::GetComponentsByType()
+	{
+		eastl::vector<eastl::weak_ptr<ComponentType>> foundComps;
+
+		for (const auto& currentComponent : m_actorComponents)
+		{
+			if (IsA<ComponentType>(currentComponent.get()))
+			{
+				foundComps.push_back(eastl::reinterpret_pointer_cast<ComponentType>(currentComponent));
+			}
+		}
+
+		return foundComps;
 	}
 }

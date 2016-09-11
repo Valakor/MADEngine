@@ -687,7 +687,7 @@ namespace MAD
 		MEM_ZERO(rasterDesc);
 		rasterDesc.FillMode = inFillMode;
 		rasterDesc.CullMode = inCullMode;
-		rasterDesc.FrontCounterClockwise = false;
+		rasterDesc.FrontCounterClockwise = true;
 
 		ComPtr<ID3D11RasterizerState1> raster;
 		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
@@ -1013,4 +1013,12 @@ namespace MAD
 	{
 		g_dxgiSwapChain->Present(0, 0);
 	}
+
+#ifdef _DEBUG
+	void UGraphicsDriver::SetDebugName_RenderTarget(SRenderTargetId inRenderTarget, const eastl::string& inName) const
+	{
+		ID_GET_SAFE(renderTarget, inRenderTarget, g_renderTargetStore, "Invalid render target");
+		renderTarget->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(inName.size()), inName.data());
+	}
+#endif
 }

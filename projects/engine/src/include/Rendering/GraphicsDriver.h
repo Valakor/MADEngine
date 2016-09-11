@@ -68,6 +68,10 @@ namespace MAD
 		void DrawIndexed(int inIndexCount, int inStartIndex, int inBaseVertex) const;
 		void Present() const;
 
+#ifdef _DEBUG
+		void SetDebugName_RenderTarget(SRenderTargetId inRenderTarget, const eastl::string& inName) const;
+#endif
+
 	private:
 		void CreateBackBufferRenderTargetView();
 		SInputLayoutId CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
