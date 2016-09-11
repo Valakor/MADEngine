@@ -41,6 +41,8 @@ namespace MAD
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 
+		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
 	}
@@ -72,7 +74,7 @@ namespace MAD
 	void URenderer::Frame(float framePercent)
 	{
 		(void)framePercent;
-
+		
 		BeginFrame();
 		Draw();
 		EndFrame();
@@ -99,9 +101,11 @@ namespace MAD
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16_FLOAT);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM);
 
-		m_gBufferPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
+		m_gBufferPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_NONE);
 
 		m_gBufferPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inGBufferProgramPath);
+
+		m_gBufferPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
 	}
 
 	void URenderer::InitializeLightingPass(const eastl::string& inLightingPassProgramPath)
@@ -133,8 +137,6 @@ namespace MAD
 			// Each individual DrawItem should issue it's own draw call
 			currentDrawItem.Draw(g_graphicsDriver, true);
 		}
-
-		m_queuedDrawItems.clear();
 	}
 
 	void URenderer::EndFrame()

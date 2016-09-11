@@ -46,6 +46,8 @@ namespace MAD
 		for (size_t i = 0; i < subMeshCount; ++i)
 		{
 			SDrawItem currentDrawItem;
+			const UMaterial& currentMaterial = m_materials[m_subMeshes[i].m_materialIndex];
+			const SGPUMaterial& currentGPUMaterial = currentMaterial.m_mat;
 
 			memset(&currentDrawItem, 0, sizeof(currentDrawItem));
 
@@ -56,14 +58,25 @@ namespace MAD
 			currentDrawItem.m_indexOffset = m_subMeshes[i].m_indexStart;
 			currentDrawItem.m_indexCount = m_subMeshes[i].m_indexCount;
 			
-			// Constant buffers 
-			currentDrawItem.m_constantBufferData.emplace_back(EConstantBufferSlot::PerDraw, &inPerMeshDrawConstants);
-			currentDrawItem.m_constantBufferData.emplace_back(EConstantBufferSlot::PerMaterial, &m_materials[m_subMeshes[i].m_materialIndex].m_mat);
+			// Constant buffers
+			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerDraw, { &inPerMeshDrawConstants, static_cast<UINT>(sizeof(inPerMeshDrawConstants)) } });
+			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerMaterial, { &currentGPUMaterial, static_cast<UINT>(sizeof(SGPUMaterial)) } });
 
 			// Textures
-			currentDrawItem.m_textures.emplace_back(ETextureSlot::DiffuseMap, m_materials[i].m_diffuseTex.GetTexureResourceId());
-			currentDrawItem.m_textures.emplace_back(ETextureSlot::SpecularMap, m_materials[i].m_specularTex.GetTexureResourceId());
-			currentDrawItem.m_textures.emplace_back(ETextureSlot::EmissiveMap, m_materials[i].m_emissiveTex.GetTexureResourceId());
+			if (currentGPUMaterial.m_bHasDiffuseTex)
+			{
+				currentDrawItem.m_textures.emplace_back(ETextureSlot::DiffuseMap, currentMaterial.m_diffuseTex.GetTexureResourceId());
+			}
+
+			if (currentGPUMaterial.m_bHasSpecularTex)
+			{
+				currentDrawItem.m_textures.emplace_back(ETextureSlot::SpecularMap, currentMaterial.m_specularTex.GetTexureResourceId());
+			}
+
+			if (currentGPUMaterial.m_bHasEmissiveTex)
+			{
+				currentDrawItem.m_textures.emplace_back(ETextureSlot::EmissiveMap, currentMaterial.m_emissiveTex.GetTexureResourceId());
+			}
 
 			inOutTargetDrawItems.emplace_back(currentDrawItem);
 		}

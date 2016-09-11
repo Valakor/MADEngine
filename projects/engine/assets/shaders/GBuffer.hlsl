@@ -11,8 +11,8 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 mHomogenousPos : SV_POSITION;
-	float3 mVSNormal;
-	float2 mTex;
+	float3 mVSNormal : NORMAL;
+	float2 mTex : TEXCOORD0;
 };
 
 struct PS_OUTPUT
@@ -32,7 +32,7 @@ PS_INPUT VS(VS_INPUT input)
 
 	psInput.mHomogenousPos = mul(mul(float4(input.mModelPos, 1.0f), g_objectToWorldMatrix), g_cameraViewProjectionMatrix);
 	psInput.mTex = input.mTex;
-	psInput.mVSNormal = mul(mul(float4(input.mModelNormal, 0.0f), g_objectToWorldMatrix), g_cameraViewMatrix);
+	psInput.mVSNormal = mul(mul(float4(input.mModelNormal, 0.0f), g_objectToWorldMatrix), g_cameraViewMatrix).xyz;
 
 	return psInput;
 }
@@ -44,7 +44,7 @@ PS_OUTPUT PS(PS_INPUT input)
 {
 	PS_OUTPUT output;
 
-	float4 finalLightAccumulation = g_material.m_emissiveColor;
+	float3 finalLightAccumulation = g_material.m_emissiveColor;
 	float3 finalDiffuseColor = g_material.m_diffuseColor;
 	float3 finalSpecularColor = g_material.m_specularColor;
 
@@ -52,19 +52,19 @@ PS_OUTPUT PS(PS_INPUT input)
 
 	if (g_material.m_bHasEmissiveTex)
 	{
-		finalLightAccumulation *= g_emissiveMap.Sample(g_linearSampler, input.mTex);
+		finalLightAccumulation *= g_emissiveMap.Sample(g_linearSampler, input.mTex).xyz;
 	}
 
-	finalLightAccumulation += g_ambientColor;
+	finalLightAccumulation += g_ambientColor.xyz;
 
 	if (g_material.m_bHasDiffuseTex)
 	{
-		finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex);
+		finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex).xyz;
 	}
 
 	if (g_material.m_bHasSpecularTex)
 	{
-		finalSpecularColor *= g_specularMap.Sample(g_linearSampler, input.mTex);
+		finalSpecularColor *= g_specularMap.Sample(g_linearSampler, input.mTex).xyz;
 	}
 
 	output.m_lightAccumulation = saturate(float4(finalLightAccumulation, 1.0f));

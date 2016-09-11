@@ -122,6 +122,8 @@ namespace MAD
 		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
 
 		initialGameWorld.lock()->SpawnEntity<ACharacter>();
+
+		mRenderer->SetWorldAmbientColor(DirectX::SimpleMath::Color(0.1f, 0.1f, 0.1f, 1.0f));
 	}
 
 	void UGameEngine::Tick()
@@ -137,6 +139,9 @@ namespace MAD
 
 		while (steps > 0)
 		{
+			// Clear the old draw items
+			mRenderer->ClearDrawItems();
+
 			// Tick native message queue
 			UGameWindow::PumpMessageQueue();
 

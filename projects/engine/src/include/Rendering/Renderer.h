@@ -22,6 +22,7 @@ namespace MAD
 		void Shutdown();
 
 		void QueueDrawItem(const SDrawItem& inDrawItem);
+		void ClearDrawItems() { m_queuedDrawItems.clear(); }
 
 		void Frame(float framePercent);
 

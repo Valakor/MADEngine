@@ -15,7 +15,7 @@ namespace MAD
 		inGraphicsDriver.SetRenderTargets(renderTargetIds, static_cast<int>(m_renderTargets.size()), &m_depthStencilView);
 
 		inGraphicsDriver.SetDepthStencilState(m_depthStencilState, 0);
-
+		
 		inGraphicsDriver.SetBlendState(m_blendState);
 
 		inGraphicsDriver.SetRasterizerState(m_rasterizerState);
