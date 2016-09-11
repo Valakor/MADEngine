@@ -103,13 +103,13 @@ namespace MAD
 	{
 		for (const auto& currentComponent : m_actorComponents)
 		{
-			if (IsA<ComponentType>(currentComponent))
+			if (IsA<ComponentType>(currentComponent.get()))
 			{
-				return currentComponent;
+				return eastl::reinterpret_pointer_cast<const ComponentType>(currentComponent);
 			}
 		}
 
-		return nullptr;
+		return eastl::weak_ptr<const ComponentType>();
 	}
 
 	template <typename ComponentType>
@@ -117,12 +117,12 @@ namespace MAD
 	{
 		for (const auto& currentComponent : m_actorComponents)
 		{
-			if (IsA<ComponentType>(currentComponent))
+			if (IsA<ComponentType>(currentComponent.get()))
 			{
-				return currentComponent;
+				return eastl::reinterpret_pointer_cast<ComponentType>(currentComponent);
 			}
 		}
 
-		return nullptr;
+		return eastl::weak_ptr<ComponentType>();
 	}
 }

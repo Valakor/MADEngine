@@ -122,10 +122,6 @@ namespace MAD
 		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
 
 		initialGameWorld.lock()->SpawnEntity<ACharacter>();
-		initialGameWorld.lock()->SpawnEntity<ACharacter>();
-		initialGameWorld.lock()->SpawnEntity<Test::AMattCharacter>();
-		initialGameWorld.lock()->SpawnEntity<Test::ADerekCharacter>();
-		initialGameWorld.lock()->SpawnEntity<Test::ADerekCharacter>();
 	}
 
 	void UGameEngine::Tick()
@@ -149,28 +145,28 @@ namespace MAD
 
 			// Moved simulating flag to engine because we want all worlds to only perform post simulation tasks
 			// once all worlds have had its chance to simulate
-			m_isSimulating = true;
+			/*m_isSimulating = true;
 
 			// Tick the pre-physics components of all Worlds
-			//for (auto& currentWorld : m_worlds)
-			//{
-			//	currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
-			//}
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
 
 			//// Update the physics world
-			//m_physicsWorld->SimulatePhysics();
+			m_physicsWorld->SimulatePhysics();
 
 
 			//// Tick the post-physics components of all Worlds
-			//for (auto& currentWorld : m_worlds)
-			//{
-			//	currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
-			//}
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
 
 			m_isSimulating = false;
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
-			/*for (auto& currentWorld : m_worlds)
+			for (auto& currentWorld : m_worlds)
 			{
 				currentWorld->CleanupEntities();
 			}*/

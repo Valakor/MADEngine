@@ -1,9 +1,7 @@
 #include "Core/Character.h"
-#include "Core/TransformComponent.h"
-#include "Core/LightComponent.h"
 #include "Core/MeshComponent.h"
 #include "Core/CameraComponent.h"
-#include "Core/TestComponents.h"
+#include "Core/SimpleMath.h"
 
 namespace MAD
 {
@@ -12,11 +10,12 @@ namespace MAD
 	{
 		AddComponent<CCameraComponent>();
 		AddComponent<CMeshComponent>();
-		AddComponent<CTransformComponent>();
 	}
 
 	void ACharacter::OnBeginPlay()
 	{
+		using namespace DirectX;
 
+		GetFirstComponentByType<CCameraComponent>().lock()->TEMPInitializeCameraInstance(ConvertToRadians(90.0f), 0.1f, 10000.0f, SimpleMath::Matrix::Identity);
 	}
 }

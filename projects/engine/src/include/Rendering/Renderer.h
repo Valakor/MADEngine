@@ -40,6 +40,8 @@ namespace MAD
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeLightingPass(const eastl::string& inLightingPassProgramPath);
 
+		void BindPerFrameConstants();
+
 		void BeginFrame();
 		void Draw();
 		void EndFrame();

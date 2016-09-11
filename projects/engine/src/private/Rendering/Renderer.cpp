@@ -96,6 +96,12 @@ namespace MAD
 		(void)inLightingPassProgramPath;
 	}
 
+	void URenderer::BindPerFrameConstants()
+	{
+		// Update the per frame constant buffer
+		g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerFrame, &m_perFrameConstants, sizeof(m_perFrameConstants));
+	}
+
 	void URenderer::BeginFrame()
 	{
 		static const FLOAT clearColor[] = { 0.392f, 0.584f, 0.929f, 1.0f };
@@ -104,6 +110,9 @@ namespace MAD
 
 	void URenderer::Draw()
 	{
+		// Bind per-frame constants
+		BindPerFrameConstants();
+
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 		// Go through each draw item and bind input assembly data
@@ -133,7 +142,8 @@ namespace MAD
 
 	void URenderer::UpdateCameraConstants(const SCameraInstance& inCameraInstance)
 	{
-		(void)inCameraInstance;
+		m_perFrameConstants.m_cameraViewMatrix = inCameraInstance.m_viewMatrix;
+		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
 	}
 
 	class UGraphicsDriver& URenderer::GetGraphicsDriver()
