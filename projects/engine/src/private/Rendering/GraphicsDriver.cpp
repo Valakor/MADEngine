@@ -37,6 +37,14 @@ namespace MAD
 #define ID_GET_SAFE(outVar, id, cache, desc) auto outVar = cache[id]
 #endif
 
+#define ID_TRY_GET(outVar, id, cache, desc)		\
+	eastl::remove_reference<decltype(cache[inBlendstate])>::type outVar = nullptr;	\
+	if ((id).IsValid())							\
+	{											\
+		ID_ASSERT_VALID(id, cache, desc);		\
+		outVar = cache[id];						\
+	}
+
 #define MEM_ZERO(s) memset(&s, 0, sizeof(s))
 
 	namespace
@@ -181,6 +189,22 @@ namespace MAD
 		CreateDevice();
 		CreateSwapChain(g_nativeWindowHandle);
 		CreateBackBufferRenderTargetView();
+
+		// Initialize our constant buffers
+		m_constantBuffers.resize(AsIntegral(EConstantBufferSlot::MAX));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)] = CreateConstantBuffer(nullptr, sizeof(SPerSceneConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)] = CreateConstantBuffer(nullptr, sizeof(SPerFrameConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)] = CreateConstantBuffer(nullptr, sizeof(SPerPointLightConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)] = CreateConstantBuffer(nullptr, sizeof(SPerDirectionalLightConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)] = CreateConstantBuffer(nullptr, sizeof(SPerMaterialConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)] = CreateConstantBuffer(nullptr, sizeof(SPerDrawConstants));
+
+		// Initialize our samplers
+		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
+		m_samplers[AsIntegral(ESamplerSlot::Point)] = CreateSamplerState();
+		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState();
+		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState();
+		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState();
 
 		LOG(LogGraphicsDevice, Log, "Graphics driver initialization successful\n");
 		return true;
@@ -465,7 +489,7 @@ namespace MAD
 		return samplerStateId;
 	}
 
-	SDepthStencilId UGraphicsDriver::CreateDepthStencil(int inWidth, int inHeight) const
+	SDepthStencilId UGraphicsDriver::CreateDepthStencil(int inWidth, int inHeight, SShaderResourceId* outOptionalShaderResource) const
 	{
 		D3D11_TEXTURE2D_DESC backingTexDesc;
 		MEM_ZERO(backingTexDesc);
@@ -473,7 +497,7 @@ namespace MAD
 		backingTexDesc.Height = inHeight;
 		backingTexDesc.MipLevels = 1;
 		backingTexDesc.ArraySize = 1;
-		backingTexDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		backingTexDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 		backingTexDesc.SampleDesc.Count = 1;
 		backingTexDesc.SampleDesc.Quality = 0;
 		backingTexDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -481,19 +505,42 @@ namespace MAD
 		backingTexDesc.CPUAccessFlags = 0;
 		backingTexDesc.MiscFlags = 0;
 
+		if (outOptionalShaderResource)
+		{
+			backingTexDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+		}
+
 		ComPtr<ID3D11Texture2D> backingTex;
 		HRESULT hr = g_d3dDevice->CreateTexture2D(&backingTexDesc, nullptr, backingTex.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed to create backing texture for depth stencil");
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilDesc;
 		MEM_ZERO(depthStencilDesc);
-		depthStencilDesc.Format = backingTexDesc.Format;
+		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		depthStencilDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		depthStencilDesc.Texture2D.MipSlice = 0;
 
 		ComPtr<ID3D11DepthStencilView> depthStencil;
 		hr = g_d3dDevice->CreateDepthStencilView(backingTex.Get(), &depthStencilDesc, depthStencil.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed to create depth stencil view from backing texture");
+
+		if (outOptionalShaderResource)
+		{
+			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceDesc;
+			MEM_ZERO(shaderResourceDesc);
+			shaderResourceDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+			shaderResourceDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			shaderResourceDesc.Texture2D.MostDetailedMip = 0;
+			shaderResourceDesc.Texture2D.MipLevels = 1;
+
+			ComPtr<ID3D11ShaderResourceView> shaderResource;
+			hr = g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf());
+			HR_ASSERT_SUCCESS(hr, "Failed to create shader resource view from backing texture");
+
+			auto shaderResourceId = SShaderResourceId::Next();
+			g_shaderResourceViewStore.insert({ shaderResourceId, shaderResource });
+			*outOptionalShaderResource = shaderResourceId;
+		}
 
 		auto depthStencilId = SDepthStencilId::Next();
 		g_depthStencilStore.insert({ depthStencilId, depthStencil });
@@ -646,6 +693,12 @@ namespace MAD
 		UnmapBuffer(inBuffer);
 	}
 
+	void UGraphicsDriver::UpdateBuffer(EConstantBufferSlot inSlot, const void* inData, size_t inDataSize) const
+	{
+		MAD_ASSERT_DESC(AsIntegral(inSlot) < AsIntegral(EConstantBufferSlot::MAX), "Invalid EConstantBufferSlot");
+		UpdateBuffer(m_constantBuffers[AsIntegral(inSlot)], inData, inDataSize);
+	}
+
 	void UGraphicsDriver::SetViewport(float inX, float inY, float inWidth, float inHeight) const
 	{
 		D3D11_VIEWPORT vp;
@@ -664,7 +717,7 @@ namespace MAD
 		SetViewport(static_cast<float>(inX), static_cast<float>(inY), static_cast<float>(inWidth), static_cast<float>(inHeight));
 	}
 
-	void UGraphicsDriver::SetRenderTarget(const SRenderTargetId* inRenderTargets, int inNumRenderTargets, const SDepthStencilId* inOptionalDepthStencil) const
+	void UGraphicsDriver::SetRenderTargets(const SRenderTargetId* inRenderTargets, int inNumRenderTargets, const SDepthStencilId* inOptionalDepthStencil) const
 	{
 		MAD_ASSERT_DESC(inNumRenderTargets <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, "Cannot bind more than 8 render targets at once");
 
@@ -775,6 +828,12 @@ namespace MAD
 		g_d3dDeviceContext->PSSetShaderResources(inSlot, 1, shaderResource.GetAddressOf());
 	}
 
+	void UGraphicsDriver::SetPixelShaderResource(SShaderResourceId inShaderResource, ETextureSlot inSlot) const
+	{
+		MAD_ASSERT_DESC(AsIntegral(inSlot) < AsIntegral(ETextureSlot::MAX), "Invalid ETextureSlot");
+		SetPixelShaderResource(inShaderResource, AsIntegral(inSlot));
+	}
+
 	void UGraphicsDriver::SetRasterizerState(SRasterizerStateId inRasterizerState) const
 	{
 		ID_GET_SAFE(raster, inRasterizerState, g_rasterizerStateStore, "Invalid rasterizer state");
@@ -783,9 +842,8 @@ namespace MAD
 
 	void UGraphicsDriver::SetBlendState(SBlendStateId inBlendstate) const
 	{
-		ID_GET_SAFE(blend, inBlendstate, g_blendStateStore, "Invalid blend state");
-
-		FLOAT blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		ID_TRY_GET(blend, inBlendstate, g_blendStateStore, "Invalid blend state");
+		static FLOAT blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		g_d3dDeviceContext->OMSetBlendState(blend.Get(), blendFactor, 0xffffffff);
 	}
 

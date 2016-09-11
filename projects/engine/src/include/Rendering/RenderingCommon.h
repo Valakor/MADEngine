@@ -1,14 +1,22 @@
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
-#include <d3d11_1.h>
+#include <d3d11_2.h>
 __pragma(warning(push))
 __pragma(warning(disable:4838))
 #include <DirectXTK/SimpleMath.h>
 __pragma(warning(pop))
 
+#include <EASTL/type_traits.h>
+
 namespace MAD
 {
+#define DECLARE_SLOT_TO_INTEGRAL(SlotEnum) \
+	inline constexpr eastl::underlying_type<SlotEnum>::type AsIntegral(SlotEnum e) \
+	{ \
+		return static_cast<eastl::underlying_type<SlotEnum>::type>(e); \
+	}
+
 	enum class EConstantBufferSlot
 	{
 		PerScene = 0,
@@ -20,6 +28,7 @@ namespace MAD
 
 		MAX
 	};
+	DECLARE_SLOT_TO_INTEGRAL(EConstantBufferSlot)
 
 	enum class ETextureSlot
 	{
@@ -27,19 +36,28 @@ namespace MAD
 		DiffuseMap = 0,
 		SpecularMap,
 		EmissiveMap,
+
 		// ------------- Defined by renderer -------------------
 		DepthBuffer,
 		NormalBuffer,
-		SpecularBuffer
+		SpecularBuffer,
+
+		MAX
 	};
+	DECLARE_SLOT_TO_INTEGRAL(ETextureSlot)
 
 	enum class ESamplerSlot
 	{
-		Linear = 0,
+		Point = 0,
+		Linear,
 		Trilinear,
-		Point,
-		Anisotropic
+		Anisotropic,
+
+		MAX
 	};
+	DECLARE_SLOT_TO_INTEGRAL(ESamplerSlot)
+
+#undef DECLARE_SLOT_TO_INTEGRAL
 
 	// Lights -------------------------------
 	struct SGPUPointLight
@@ -48,7 +66,13 @@ namespace MAD
 		float m_lightRadius;
 		DirectX::SimpleMath::Color m_lightColor;
 		float m_lightIntensity;
+
+	private:
+		float __pad1 = 0.0f;
+		float __pad2 = 0.0f;
+		float __pad3 = 0.0f;
 	};
+	static_assert(sizeof(SGPUPointLight) == 48, "");
 
 	struct SGPUDirectionalLight
 	{
@@ -56,36 +80,31 @@ namespace MAD
 		DirectX::SimpleMath::Color m_lightColor;
 		float m_lightIntensity;
 	};
+	static_assert(sizeof(SGPUDirectionalLight) == 32, "");
 
 	// Materials --------------------------------
 	struct SGPUMaterial
 	{
 		DirectX::SimpleMath::Vector3 m_diffuseColor;
-
-	private:
-		float __pad1 = 0.0f;
+		BOOL m_bHasDiffuseTex = FALSE;
 
 		// 16 bytes ---------------------------------
 
-	public:
 		DirectX::SimpleMath::Vector3 m_specularColor;
 		float m_specularPower = 1.0f;
 
 		// 16 bytes ---------------------------------
 
 		DirectX::SimpleMath::Vector3 m_emissiveColor;
-
-	private:
-		float __pad2 = 0.0f;
+		BOOL m_bHasEmissiveTex = FALSE;
 
 		// 16 bytes ---------------------------------
 
-	public:
-		BOOL m_bHasDiffuseTex = FALSE;
 		BOOL m_bHasSpecularTex = FALSE;
-		BOOL m_bHasEmissiveTex = FALSE;
 
 	private:
+		float __pad1 = 0.0f;
+		float __pad2 = 0.0f;
 		float __pad3 = 0.0f;
 
 		// 16 bytes ---------------------------------
@@ -98,11 +117,13 @@ namespace MAD
 		DirectX::SimpleMath::Matrix m_cameraViewMatrix;
 		DirectX::SimpleMath::Matrix m_cameraProjectionMatrix;
 	};
+	static_assert(sizeof(SPerFrameConstants) == 128, "");
 
 	struct SPerSceneConstants
 	{
 		DirectX::SimpleMath::Color m_ambientColor;
 	};
+	static_assert(sizeof(SPerSceneConstants) == 16, "");
 
 	struct SPerMaterialConstants
 	{
