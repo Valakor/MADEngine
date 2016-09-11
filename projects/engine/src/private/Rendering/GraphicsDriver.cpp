@@ -276,6 +276,11 @@ namespace MAD
 		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)] = CreateConstantBuffer(nullptr, sizeof(SPerDirectionalLightConstants));
 		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)] = CreateConstantBuffer(nullptr, sizeof(SPerMaterialConstants));
 		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)] = CreateConstantBuffer(nullptr, sizeof(SPerDrawConstants));
+		for (unsigned i = 0; i < m_constantBuffers.size(); ++i)
+		{
+			SetVertexConstantBuffer(m_constantBuffers[i], i);
+			SetPixelConstantBuffer(m_constantBuffers[i], i);
+		}
 
 		// Initialize our samplers
 		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
@@ -878,6 +883,12 @@ namespace MAD
 		g_d3dDeviceContext->VSSetShader(shader.Get(), nullptr, 0);
 	}
 
+	void UGraphicsDriver::SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot) const
+	{
+		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
+		g_d3dDeviceContext->VSSetConstantBuffers(inSlot, 1, buffer.GetAddressOf());
+	}
+
 	void UGraphicsDriver::SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
 	{
 		MAD_ASSERT_DESC(inOffset % 16 == 0, "Offset into constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
@@ -894,6 +905,12 @@ namespace MAD
 	{
 		ID_GET_SAFE(shader, inPixelShader, g_pixelShaderStore, "Invalid pixel shader");
 		g_d3dDeviceContext->PSSetShader(shader.Get(), nullptr, 0);
+	}
+
+	void UGraphicsDriver::SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot) const
+	{
+		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
+		g_d3dDeviceContext->PSSetConstantBuffers(inSlot, 1, buffer.GetAddressOf());
 	}
 
 	void UGraphicsDriver::SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const

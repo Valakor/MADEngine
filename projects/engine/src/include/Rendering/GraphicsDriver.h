@@ -83,7 +83,9 @@ namespace MAD
 		void UnmapBuffer(SBufferId inBuffer) const;
 		void UpdateBuffer(SBufferId inBuffer, const void* inData, size_t inDataSize) const;
 
+		void SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot) const;
 		void SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
+		void SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot) const;
 		void SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
 		void SetPixelShaderResource(SShaderResourceId inShaderResource, UINT inSlot) const;
 
