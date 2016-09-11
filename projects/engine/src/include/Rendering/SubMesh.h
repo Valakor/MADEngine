@@ -4,12 +4,12 @@ namespace MAD
 {
 	struct SSubMesh
 	{
-		size_t m_vertexStart;
-		size_t m_vertexCount;
+		UINT m_vertexStart;
+		UINT m_vertexCount;
 
-		size_t m_indexStart;
-		size_t m_indexCount;
+		UINT m_indexStart;
+		UINT m_indexCount;
 
-		size_t m_materialIndex;
+		UINT m_materialIndex;
 	};
 }

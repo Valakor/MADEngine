@@ -8,6 +8,7 @@ namespace MAD
 
 	void URenderPassProgram::SetProgramActive(UGraphicsDriver& inGraphicsDriver) const
 	{
+		inGraphicsDriver.SetInputLayout(m_programInputLayout);
 		inGraphicsDriver.SetVertexShader(m_vertexShader);
 		inGraphicsDriver.SetPixelShader(m_pixelShader);
 	}

@@ -14,8 +14,6 @@
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
 
-#pragma comment(lib,"d3dcompiler.lib") // TODO: Add to list of libraries to link against in premake
-
 using Microsoft::WRL::ComPtr;
 
 namespace MAD
@@ -40,12 +38,23 @@ namespace MAD
 #endif
 
 #define ID_TRY_GET(outVar, id, cache, desc)		\
-	eastl::remove_reference<decltype(cache[inBlendstate])>::type outVar = nullptr;	\
+	eastl::remove_reference<decltype(cache[id])>::type outVar = nullptr;	\
 	if ((id).IsValid())							\
 	{											\
 		ID_ASSERT_VALID(id, cache, desc);		\
 		outVar = cache[id];						\
 	}
+
+#define ID_DESTROY(id, cache)					\
+		if (id.IsValid())						\
+		{										\
+			auto iter = cache.find(id);			\
+			if (iter != cache.end())			\
+			{									\
+				cache.erase(iter);				\
+			}									\
+		}										\
+		id.Invalidate()
 
 #define MEM_ZERO(s) memset(&s, 0, sizeof(s))
 
@@ -762,7 +771,6 @@ namespace MAD
 	void UGraphicsDriver::UnmapBuffer(SBufferId inBuffer) const
 	{
 		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid buffer");
-
 		g_d3dDeviceContext->Unmap(buffer.Get(), 0);
 	}
 
@@ -904,7 +912,7 @@ namespace MAD
 
 	void UGraphicsDriver::SetPixelShaderResource(SShaderResourceId inShaderResource, UINT inSlot) const
 	{
-		ID_GET_SAFE(shaderResource, inShaderResource, g_shaderResourceViewStore, "Invalid shader resource");
+		ID_TRY_GET(shaderResource, inShaderResource, g_shaderResourceViewStore, "Invalid shader resource");
 		g_d3dDeviceContext->PSSetShaderResources(inSlot, 1, shaderResource.GetAddressOf());
 	}
 
@@ -925,6 +933,21 @@ namespace MAD
 		ID_TRY_GET(blend, inBlendstate, g_blendStateStore, "Invalid blend state");
 		static FLOAT blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		g_d3dDeviceContext->OMSetBlendState(blend.Get(), blendFactor, 0xffffffff);
+	}
+
+	void UGraphicsDriver::DestroyDepthStencil(SDepthStencilId& inOutDepthStencil) const
+	{
+		ID_DESTROY(inOutDepthStencil, g_depthStencilStore);
+	}
+
+	void UGraphicsDriver::DestroyShaderResource(SShaderResourceId& inOutShaderResource) const
+	{
+		ID_DESTROY(inOutShaderResource, g_shaderResourceViewStore);
+	}
+
+	void UGraphicsDriver::DestroyRenderTarget(SRenderTargetId& inOutRenderTarget) const
+	{
+		ID_DESTROY(inOutRenderTarget, g_renderTargetStore);
 	}
 
 	void UGraphicsDriver::SetFullScreen(bool inIsFullscreen) const

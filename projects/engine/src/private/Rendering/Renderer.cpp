@@ -62,6 +62,9 @@ namespace MAD
 
 		g_graphicsDriver.OnScreenSizeChanged();
 
+		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
+		InitializeLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+
 		auto clientSize = m_window->GetClientSize();
 		g_graphicsDriver.SetViewport(0, 0, clientSize.x, clientSize.y);
 	}
@@ -80,12 +83,22 @@ namespace MAD
 		// G-Buffer textures will be the same size as the screen
 		auto clientSize = m_window->GetClientSize();
 
-		m_gBufferPassDescriptor.m_renderTargets.emplace_back(g_graphicsDriver.GetBackBufferRenderTarget());
-		m_gBufferPassDescriptor.m_renderTargets.emplace_back(g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM));
-		m_gBufferPassDescriptor.m_renderTargets.emplace_back(g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM));
-
+		g_graphicsDriver.DestroyDepthStencil(m_gBufferPassDescriptor.m_depthStencilView);
 		m_gBufferPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(clientSize.x, clientSize.y);
 		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+
+		for (unsigned i = 1; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
+		{
+			g_graphicsDriver.DestroyRenderTarget(m_gBufferPassDescriptor.m_renderTargets[i]);
+		}
+
+		// TODO Give the SRV's for each RenderTarget to the LightingPassDescriptor somehow?
+		m_gBufferPassDescriptor.m_renderTargets.resize(AsIntegral(ERenderTargetSlot::MAX));
+		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::BackBuffer)] = g_graphicsDriver.GetBackBufferRenderTarget();
+		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::DiffuseBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM);
+		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM);
+		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_B8G8R8A8_UNORM);
+
 		m_gBufferPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
 
 		m_gBufferPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inGBufferProgramPath);
@@ -119,7 +132,7 @@ namespace MAD
 		for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
 		{
 			// Each individual DrawItem should issue it's own draw call
-			currentDrawItem.Draw(g_graphicsDriver);
+			currentDrawItem.Draw(g_graphicsDriver, true);
 		}
 
 		m_queuedDrawItems.clear();

@@ -20,6 +20,8 @@ namespace MAD
 			return IsValid();
 		}
 
+		inline void Invalidate() { m_Id = INVALID_ID; }
+
 		inline friend bool operator==(SGraphicsObjectId<DerivedType, IdType> lhs, SGraphicsObjectId<DerivedType, IdType> rhs)
 		{
 			return lhs.m_Id == rhs.m_Id;

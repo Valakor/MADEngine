@@ -55,6 +55,10 @@ namespace MAD
 		void SetRasterizerState(SRasterizerStateId inRasterizerState) const;
 		void SetBlendState(SBlendStateId inBlendstate) const;
 
+		void DestroyDepthStencil(SDepthStencilId& inOutDepthStencil) const;
+		void DestroyShaderResource(SShaderResourceId& inOutShaderResource) const;
+		void DestroyRenderTarget(SRenderTargetId& inOutRenderTarget) const;
+
 		void SetFullScreen(bool inIsFullscreen) const;
 
 		void ClearBackBuffer(const float inColor[4]);

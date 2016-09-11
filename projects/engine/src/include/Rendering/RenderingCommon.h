@@ -33,13 +33,25 @@ namespace MAD
 		EmissiveMap,
 
 		// ------------- Defined by renderer -------------------
+		DiffuseBuffer,
+		NormalBuffer,
+		SpecularBuffer,
 		DepthBuffer,
+
+		MAX
+	};
+	DECLARE_SLOT_TO_INTEGRAL(ETextureSlot)
+
+	enum class ERenderTargetSlot
+	{
+		BackBuffer,
+		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,
 
 		MAX
 	};
-	DECLARE_SLOT_TO_INTEGRAL(ETextureSlot)
+	DECLARE_SLOT_TO_INTEGRAL(ERenderTargetSlot);
 
 	enum class ESamplerSlot
 	{

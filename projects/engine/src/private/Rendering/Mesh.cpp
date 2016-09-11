@@ -50,6 +50,7 @@ namespace MAD
 			memset(&currentDrawItem, 0, sizeof(currentDrawItem));
 
 			currentDrawItem.m_vertexBuffer = m_gpuVertexBuffer;
+			currentDrawItem.m_vertexSize = sizeof(m_vertexBuffer[0]);
 			currentDrawItem.m_indexBuffer = m_gpuIndexBuffer;
 			currentDrawItem.m_vertexBufferOffset = m_subMeshes[i].m_vertexStart;
 			currentDrawItem.m_indexOffset = m_subMeshes[i].m_indexStart;
@@ -168,8 +169,8 @@ namespace MAD
 		}
 
 		// Process sub-meshes
-		size_t numVerts = 0;
-		size_t numIndices = 0;
+		UINT numVerts = 0;
+		UINT numIndices = 0;
 		for (unsigned i = 0; i < scene->mNumMeshes; ++i)
 		{
 			auto aiMesh = scene->mMeshes[i];
@@ -180,8 +181,8 @@ namespace MAD
 		mesh->m_vertexBuffer.reserve(numVerts);
 		mesh->m_indexBuffer.reserve(numIndices);
 
-		size_t currentVert = 0;
-		size_t currentIndex = 0;
+		UINT currentVert = 0;
+		UINT currentIndex = 0;
 		for (unsigned i = 0 ; i < scene->mNumMeshes; ++i)
 		{
 			auto aiMesh = scene->mMeshes[i];
