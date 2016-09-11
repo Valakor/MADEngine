@@ -30,6 +30,8 @@ namespace MAD
 		void SetFullScreen(bool inIsFullscreen) const;
 
 		void UpdateCameraConstants(const struct SCameraInstance& inCameraInstance);
+		void SetWorldAmbientColor(DirectX::SimpleMath::Color inColor);
+		void SetBackBufferClearColor(DirectX::SimpleMath::Color inColor);
 
 		class UGraphicsDriver& GetGraphicsDriver();
 
@@ -48,7 +50,9 @@ namespace MAD
 	private:
 		UGameWindow* m_window;
 		SRenderTargetId m_backBuffer;
+		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
+		DirectX::SimpleMath::Color m_clearColor;
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_lightingPassDescriptor;
 		eastl::vector<SDrawItem> m_queuedDrawItems;

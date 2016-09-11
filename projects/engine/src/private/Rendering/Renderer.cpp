@@ -117,8 +117,7 @@ namespace MAD
 
 	void URenderer::BeginFrame()
 	{
-		static const FLOAT clearColor[] = { 0.392f, 0.584f, 0.929f, 1.0f };
-		g_graphicsDriver.ClearBackBuffer(clearColor);
+		g_graphicsDriver.ClearBackBuffer(m_clearColor);
 	}
 
 	void URenderer::Draw()
@@ -158,6 +157,17 @@ namespace MAD
 		m_perFrameConstants.m_cameraViewMatrix = inCameraInstance.m_viewMatrix;
 		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
 		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
+	}
+
+	void URenderer::SetWorldAmbientColor(DirectX::SimpleMath::Color inColor)
+	{
+		m_perSceneConstants.m_ambientColor = inColor;
+		g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerScene, &m_perSceneConstants, sizeof(m_perSceneConstants));
+	}
+
+	void URenderer::SetBackBufferClearColor(DirectX::SimpleMath::Color inColor)
+	{
+		m_clearColor = inColor;
 	}
 
 	class UGraphicsDriver& URenderer::GetGraphicsDriver()
