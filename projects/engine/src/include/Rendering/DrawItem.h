@@ -14,15 +14,13 @@ namespace MAD
 		void Draw(class UGraphicsDriver& inGraphicsDriver) const;
 
 		SBufferId m_vertexBuffer;
-		uint32_t m_vertexBufferOffset;
+		size_t m_vertexBufferOffset;
 
 		SBufferId m_indexBuffer;
-		uint32_t m_indexStart;
-		uint32_t m_indexOffset;
+		size_t m_indexOffset;
+		size_t m_indexCount;
 
-		SInputLayoutId m_inputLayout;
-
-		eastl::vector<eastl::pair<EConstantBufferSlot, void*>> m_constantBufferType;
+		eastl::vector<eastl::pair<EConstantBufferSlot, const void*>> m_constantBufferData;
 
 		eastl::vector<eastl::pair<ETextureSlot, SShaderResourceId>> m_textures;
 	};

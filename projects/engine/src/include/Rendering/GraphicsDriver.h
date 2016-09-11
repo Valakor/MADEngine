@@ -24,13 +24,13 @@ namespace MAD
 		//     AssetCache.Load<UTexture>(...);
 		SShaderResourceId CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const;
 		
-		bool CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode);
+		bool CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, SInputLayoutId* outOptInputLayout = nullptr);
 
 		SVertexShaderId CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode);
 		SPixelShaderId CreatePixelShader(const eastl::vector<char>& inCompiledPSByteCode);
 
 		SRenderTargetId CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, SShaderResourceId* outOptionalShaderResource = nullptr) const;
-		SInputLayoutId CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, int inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
+		SInputLayoutId CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
 		SDepthStencilId CreateDepthStencil(int inWidth, int inHeight, SShaderResourceId* outOptionalShaderResource = nullptr) const;
 		SDepthStencilStateId CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc) const;
 		SRasterizerStateId CreateRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
@@ -66,6 +66,8 @@ namespace MAD
 
 	private:
 		void CreateBackBufferRenderTargetView();
+		SInputLayoutId CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
+		SInputLayoutId ReflectInputLayout(ID3DBlob* inTargetBlob) const;
 
 		SSamplerStateId CreateSamplerState() const;
 		void SetPixelSamplerState(SSamplerStateId inSamplerState, UINT inSlot) const;

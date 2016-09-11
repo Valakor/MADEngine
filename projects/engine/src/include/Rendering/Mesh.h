@@ -1,16 +1,11 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <d3d11_2.h>
-__pragma(warning(push))
-__pragma(warning(disable:4838))
-#include <DirectXTK/SimpleMath.h>
-__pragma(warning(pop))
-
 #include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
 
+#include "Core/SimpleMath.h"
+#include "Rendering/RenderingCommon.h"
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/Material.h"
 #include "Rendering/SubMesh.h"
@@ -45,6 +40,7 @@ namespace MAD
 	public:
 		void Draw() { }
 
+		void BuildDrawItems(eastl::vector<struct SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const;
 	private:
 		friend class UAssetCache;
 		static eastl::shared_ptr<UMesh> Load(const eastl::string& inPath);
@@ -61,7 +57,7 @@ namespace MAD
 
 	struct SMeshInstance
 	{
-		DirectX::SimpleMath::Matrix m_transform;
+		SPerDrawConstants m_perDrawConstants;
 		eastl::shared_ptr<UMesh> m_mesh;
 		bool m_bVisible;
 	};

@@ -5,6 +5,7 @@
 #include <EASTl/vector.h>
 
 #include "Rendering/GraphicsDriverTypes.h"
+#include "Rendering/RenderingCommon.h"
 #include "Rendering/RenderPassDescriptor.h"
 #include "Rendering/DrawItem.h"
 
@@ -28,6 +29,8 @@ namespace MAD
 
 		void SetFullScreen(bool inIsFullscreen) const;
 
+		void UpdateCameraConstants(const struct SCameraInstance& inCameraInstance);
+
 		class UGraphicsDriver& GetGraphicsDriver();
 
 		// Don't use this API to make a Texture, use UAssetCache<UTexture> instead
@@ -43,6 +46,7 @@ namespace MAD
 	private:
 		UGameWindow* m_window;
 		SRenderTargetId m_backBuffer;
+		SPerFrameConstants m_perFrameConstants;
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_lightingPassDescriptor;
 		eastl::vector<SDrawItem> m_queuedDrawItems;

@@ -20,9 +20,9 @@ namespace MAD
 
 		eastl::vector<char> compiledVertexShaderByteCode;
 		eastl::vector<char> compiledPixelShaderByteCode;
-
+	
 		// Every program MUST always have a valid vertex shader
-		if (!graphicsDevice.CompileShaderFromFile(inPath, "VS", "vs_5_0", compiledVertexShaderByteCode))
+		if (!graphicsDevice.CompileShaderFromFile(inPath, "VS", "vs_5_0", compiledVertexShaderByteCode, &newRenderPassProgram->m_programInputLayout))
 		{
 			return nullptr;
 		}

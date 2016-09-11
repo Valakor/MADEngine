@@ -6,6 +6,8 @@
 #include <wrl/client.h>
 
 #include <EASTL/hash_map.h>
+#include <EASTL/string.h>
+#include <EASTL/algorithm.h>
 
 #include "Core/GameWindow.h"
 #include "Misc/Assert.h"
@@ -180,6 +182,73 @@ namespace MAD
 		HR_ASSERT_SUCCESS(hr, "Failed to create render target view from back buffer");
 	}
 
+	SInputLayoutId UGraphicsDriver::ReflectInputLayout(ID3DBlob* inTargetBlob) const
+	{
+		// Reflect shader info
+		ID3D11ShaderReflection* pVertexShaderReflection = NULL;
+
+		HRESULT hr = D3DReflect(inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pVertexShaderReflection);
+		HR_ASSERT_SUCCESS(hr, "Failed to reflect on the shader");
+		
+		// Get shader info
+		D3D11_SHADER_DESC shaderDesc;
+		pVertexShaderReflection->GetDesc(&shaderDesc);
+
+		// Read input layout description from shader info
+		eastl::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc;
+		for (uint32_t i = 0; i < shaderDesc.InputParameters; i++)
+		{
+			D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
+			pVertexShaderReflection->GetInputParameterDesc(i, &paramDesc);
+
+			// fill out input element desc
+			D3D11_INPUT_ELEMENT_DESC elementDesc;
+			elementDesc.SemanticName = paramDesc.SemanticName;
+			elementDesc.SemanticIndex = paramDesc.SemanticIndex;
+			elementDesc.InputSlot = 0;
+			elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			elementDesc.InstanceDataStepRate = 0;
+
+			// determine DXGI format
+			if (paramDesc.Mask == 1)
+			{
+				if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32_UINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32_SINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+			}
+			else if (paramDesc.Mask <= 3)
+			{
+				if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+			}
+			else if (paramDesc.Mask <= 7)
+			{
+				if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			}
+			else if (paramDesc.Mask <= 15)
+			{
+				if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+				else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			}
+
+			//save element desc
+			inputLayoutDesc.push_back(elementDesc);
+		}
+
+		// Create new Input Layout
+		SInputLayoutId inputLayoutId = CreateInputLayout(&inputLayoutDesc[0], static_cast<UINT>(inputLayoutDesc.size()), inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize());
+
+		//Free allocation shader reflection memory
+		pVertexShaderReflection->Release();
+		
+		return inputLayoutId;
+	}
+
 	bool UGraphicsDriver::Init(UGameWindow& inWindow)
 	{
 		LOG(LogGraphicsDevice, Log, "Graphics driver initialization begin...\n");
@@ -298,7 +367,7 @@ namespace MAD
 		return shaderResourceViewId;
 	}
 
-	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode)
+	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, SInputLayoutId* outOptInputLayout)
 	{
 		HRESULT hr = S_OK;
 
@@ -346,6 +415,12 @@ namespace MAD
 		//now copy to vector if we like it...
 		if (pBlobOut)
 		{
+			// Before releasing the blob, reflect the input layout from the shader (if vertex shader)
+			if (inShaderModel.substr(0, 2) == "vs" && outOptInputLayout)
+			{
+				*outOptInputLayout = ReflectInputLayout(pBlobOut);
+			}
+
 			size_t compiledCodeSize = pBlobOut->GetBufferSize();
 			inOutCompileByteCode.resize(compiledCodeSize);
 			std::memcpy(inOutCompileByteCode.data(), pBlobOut->GetBufferPointer(), compiledCodeSize);
@@ -455,10 +530,15 @@ namespace MAD
 		return renderTargetId;
 	}
 
-	SInputLayoutId UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, int inNumElements, const eastl::vector<char>& inCompiledVertexShader) const
+	SInputLayoutId UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const
+	{
+		return CreateInputLayout(inElements, inNumElements, inCompiledVertexShader.data(), inCompiledVertexShader.size());
+	}
+
+	SInputLayoutId UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const
 	{
 		ComPtr<ID3D11InputLayout> inputLayout;
-		HRESULT hr = g_d3dDevice->CreateInputLayout(inElements, inNumElements, inCompiledVertexShader.data(), inCompiledVertexShader.size(), inputLayout.GetAddressOf());
+		HRESULT hr = g_d3dDevice->CreateInputLayout(inElements, inNumElements, inCompiledVSByteCode, inByteCodeSize, inputLayout.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed creating input layout");
 
 		auto inputLayoutId = SInputLayoutId::Next();

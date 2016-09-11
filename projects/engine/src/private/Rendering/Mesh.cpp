@@ -9,6 +9,7 @@
 #include "Misc/Logging.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/Renderer.h"
+#include "Rendering/DrawItem.h"
 
 namespace MAD
 {
@@ -37,6 +38,35 @@ namespace MAD
 		{ "NORMAL",		0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
 		{ "TEXCOORD",	0,				DXGI_FORMAT_R32G32_FLOAT,		0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
 	};
+
+	void UMesh::BuildDrawItems(eastl::vector<SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const
+	{
+		const size_t subMeshCount = m_subMeshes.size();
+
+		for (size_t i = 0; i < subMeshCount; ++i)
+		{
+			SDrawItem currentDrawItem;
+
+			memset(&currentDrawItem, 0, sizeof(currentDrawItem));
+
+			currentDrawItem.m_vertexBuffer = m_gpuVertexBuffer;
+			currentDrawItem.m_indexBuffer = m_gpuIndexBuffer;
+			currentDrawItem.m_vertexBufferOffset = m_subMeshes[i].m_vertexStart;
+			currentDrawItem.m_indexOffset = m_subMeshes[i].m_indexStart;
+			currentDrawItem.m_indexCount = m_subMeshes[i].m_indexCount;
+			
+			// Constant buffers 
+			currentDrawItem.m_constantBufferData.emplace_back(EConstantBufferSlot::PerDraw, &inPerMeshDrawConstants);
+			currentDrawItem.m_constantBufferData.emplace_back(EConstantBufferSlot::PerMaterial, &m_materials[m_subMeshes[i].m_materialIndex].m_mat);
+
+			// Textures
+			currentDrawItem.m_textures.emplace_back(ETextureSlot::DiffuseMap, m_materials[i].m_diffuseTex.GetTexureResourceId());
+			currentDrawItem.m_textures.emplace_back(ETextureSlot::SpecularMap, m_materials[i].m_specularTex.GetTexureResourceId());
+			currentDrawItem.m_textures.emplace_back(ETextureSlot::EmissiveMap, m_materials[i].m_emissiveTex.GetTexureResourceId());
+
+			inOutTargetDrawItems.emplace_back(currentDrawItem);
+		}
+	}
 
 	eastl::shared_ptr<UMesh> UMesh::Load(const eastl::string& inFilePath)
 	{

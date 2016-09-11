@@ -12,7 +12,8 @@ namespace MAD
 	public:
 		// Load textures using UAssetCache::Load<UTexture>(...)
 		UTexture();
-
+		
+		SShaderResourceId GetTexureResourceId() const { return m_textureSRV; }
 	private:
 		friend class UAssetCache;
 		static eastl::shared_ptr<UTexture> Load(const eastl::string& inPath);

@@ -1,5 +1,6 @@
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderPassProgram.h"
+#include "Rendering/CameraInstance.h"
 
 #include "Core/GameWindow.h"
 #include "Misc/AssetCache.h"
@@ -128,6 +129,11 @@ namespace MAD
 	void URenderer::SetFullScreen(bool inIsFullscreen) const
 	{
 		g_graphicsDriver.SetFullScreen(inIsFullscreen);
+	}
+
+	void URenderer::UpdateCameraConstants(const SCameraInstance& inCameraInstance)
+	{
+		(void)inCameraInstance;
 	}
 
 	class UGraphicsDriver& URenderer::GetGraphicsDriver()
