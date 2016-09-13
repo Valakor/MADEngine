@@ -140,7 +140,7 @@ namespace MAD
 		while (steps > 0)
 		{
 			// Clear the old draw items
-			mRenderer->ClearDrawItems();
+			mRenderer->ClearRenderItems();
 
 			// Tick native message queue
 			UGameWindow::PumpMessageQueue();

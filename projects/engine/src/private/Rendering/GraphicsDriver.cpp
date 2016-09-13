@@ -706,8 +706,8 @@ namespace MAD
 		blendDesc.IndependentBlendEnable = FALSE;
 		blendDesc.RenderTarget[0].BlendEnable = inEnableBlend;
 		blendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
@@ -807,11 +807,6 @@ namespace MAD
 		vp.MaxDepth = 1.0f;
 
 		g_d3dDeviceContext->RSSetViewports(1, &vp);
-	}
-
-	void UGraphicsDriver::SetViewport(int inX, int inY, int inWidth, int inHeight) const
-	{
-		SetViewport(static_cast<float>(inX), static_cast<float>(inY), static_cast<float>(inWidth), static_cast<float>(inHeight));
 	}
 
 	void UGraphicsDriver::SetRenderTargets(const SRenderTargetId* inRenderTargets, int inNumRenderTargets, const SDepthStencilId* inOptionalDepthStencil) const

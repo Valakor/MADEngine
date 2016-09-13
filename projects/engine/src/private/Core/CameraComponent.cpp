@@ -20,7 +20,7 @@ namespace MAD
 
 		// Update the renderer's camera's per camera constant buffer values
 		auto& renderer = gEngine->GetRenderer();
-
+		 
 		renderer.UpdateCameraConstants(m_cameraInstance);
 	}
 

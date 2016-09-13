@@ -22,7 +22,9 @@ namespace MAD
 		void Shutdown();
 
 		void QueueDrawItem(const SDrawItem& inDrawItem);
-		void ClearDrawItems() { m_queuedDrawItems.clear(); }
+		void QueueDirectionLight(const SGPUDirectionalLight& inDirectionalLight);
+
+		void ClearRenderItems() { m_queuedDrawItems.clear(); m_queuedDirLights.clear(); }
 
 		void Frame(float framePercent);
 
@@ -41,9 +43,10 @@ namespace MAD
 	private:
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
-		void InitializeLightingPass(const eastl::string& inLightingPassProgramPath);
+		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 
 		void BindPerFrameConstants();
+		void SetViewport(LONG inWidth, LONG inHeight);
 
 		void BeginFrame();
 		void Draw();
@@ -54,8 +57,14 @@ namespace MAD
 		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
 		DirectX::SimpleMath::Color m_clearColor;
-		SRenderPassDescriptor m_gBufferPassDescriptor;
-		SRenderPassDescriptor m_lightingPassDescriptor;
+
 		eastl::vector<SDrawItem> m_queuedDrawItems;
+		eastl::vector<SGPUDirectionalLight> m_queuedDirLights;
+		
+		SRenderPassDescriptor m_gBufferPassDescriptor;
+		SRenderPassDescriptor m_dirLightingPassDescriptor;
+
+		eastl::vector<SShaderResourceId> m_gBufferShaderResources;
+
 	};
 }

@@ -124,14 +124,20 @@ namespace MAD
 		DirectX::SimpleMath::Matrix m_cameraViewMatrix;
 		DirectX::SimpleMath::Matrix m_cameraProjectionMatrix;
 		DirectX::SimpleMath::Matrix m_cameraViewProjectionMatrix;
+		DirectX::SimpleMath::Matrix m_cameraInverseProjectionMatrix;
 	};
-	static_assert(sizeof(SPerFrameConstants) == 192, "");
+	static_assert(sizeof(SPerFrameConstants) == 256, "");
 
 	struct SPerSceneConstants
 	{
 		DirectX::SimpleMath::Color m_ambientColor;
+		DirectX::SimpleMath::Vector2 m_screenDimensions;
+
+	private:
+		float __pad1 = 0.0f;
+		float __pad2 = 0.0f;
 	};
-	static_assert(sizeof(SPerSceneConstants) == 16, "");
+	static_assert(sizeof(SPerSceneConstants) == 32, "");
 
 	struct SPerMaterialConstants
 	{

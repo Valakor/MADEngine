@@ -24,6 +24,12 @@ namespace MAD
 #define LOG_IMPORT(Verbosity, Format, ...) (void)0
 #endif
 
+	const D3D11_INPUT_ELEMENT_DESC SVertex_Pos::InputElements[NumInputElements] =
+	{
+		// SemanticName	SemanticIndex	Format							InputSlot	AlignedByteOffset				InputSlotClass					InstanceDataStepRate
+		{ "POSITION",	0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+	};
+
 	const D3D11_INPUT_ELEMENT_DESC SVertex_Pos_Tex::InputElements[NumInputElements] =
 	{
 		// SemanticName	SemanticIndex	Format							InputSlot	AlignedByteOffset				InputSlotClass					InstanceDataStepRate
@@ -38,6 +44,37 @@ namespace MAD
 		{ "NORMAL",		0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
 		{ "TEXCOORD",	0,				DXGI_FORMAT_R32G32_FLOAT,		0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
 	};
+
+	SMeshInstance UMesh::CreatePrimitivePlane()
+	{
+		static bool meshLoaded = false;
+		static eastl::shared_ptr<UMesh> planeMesh = eastl::make_shared<UMesh>();
+
+		SMeshInstance retInstance;
+		if (meshLoaded)
+		{
+			retInstance.m_mesh = planeMesh;
+			return retInstance;
+		}
+
+		planeMesh->m_subMeshes.push_back_uninitialized();
+		planeMesh->m_subMeshes[0].m_materialIndex = 0;
+		planeMesh->m_subMeshes[0].m_indexStart = 0;
+		planeMesh->m_subMeshes[0].m_indexCount = 6;
+		planeMesh->m_subMeshes[0].m_vertexStart = 0;
+		planeMesh->m_subMeshes[0].m_vertexCount = 4;
+
+		using namespace DirectX::SimpleMath;
+		const SVertex_Pos verts[] = { { Vector3(1.0f, 1.0f, 0.0f) }, { Vector3(-1.0f, 1.0f, 0.0f) }, { Vector3(-1.0f, -1.0f, 0.0f) }, { Vector3(1.0f, -1.0f, 0.0f) } };
+		const Index_t indices[] = { 0, 1, 2, 2, 3, 0 };
+		planeMesh->m_gpuVertexBuffer = gEngine->GetRenderer().GetGraphicsDriver().CreateVertexBuffer(verts, 4 * sizeof(SVertex_Pos));
+		planeMesh->m_gpuIndexBuffer = gEngine->GetRenderer().GetGraphicsDriver().CreateIndexBuffer(indices, 6 * sizeof(Index_t));
+
+		retInstance.m_mesh = planeMesh;
+		
+		meshLoaded = true;
+		return retInstance;
+	}
 
 	void UMesh::BuildDrawItems(eastl::vector<SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const
 	{

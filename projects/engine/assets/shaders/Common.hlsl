@@ -29,6 +29,7 @@ struct MeshMaterial
 cbuffer CBPerSceneConstants : register(b0)
 {
 	float4 g_ambientColor;
+	float2 g_screenDimensions;
 }
 
 cbuffer CBPerFrameConstants : register(b1)
@@ -36,6 +37,7 @@ cbuffer CBPerFrameConstants : register(b1)
 	float4x4 g_cameraViewMatrix;
 	float4x4 g_cameraProjectionMatrix;
 	float4x4 g_cameraViewProjectionMatrix;
+	float4x4 g_cameraInverseProjectionMatrix;
 };
 
 cbuffer CBPerPointLightConstants : register(b2)
