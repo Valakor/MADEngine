@@ -3,15 +3,15 @@
 struct PointLight
 {
 	float3 m_lightPosition;
-	float m_lightRadius;
+	float  m_lightRadius;
 	float4 m_lightColor;
-	float m_lightIntensity;
+	float  m_lightIntensity;
 };
 
 struct DirectionalLight
 {
 	float3 m_lightDirection;
-	float m_lightIntensity;
+	float  m_lightIntensity;
 	float4 m_lightColor;
 };
 
@@ -58,18 +58,20 @@ cbuffer CBPerMaterialConstants : register(b4)
 cbuffer CBPerDrawConstants : register(b5)
 {
 	float4x4 g_objectToWorldMatrix;
+	/*float4x4 g_objectToViewMatrix;
+	float4x4 g_objectToProjectionMatric;*/
 };
 
-SamplerState g_pointSampler : register(s0);
-SamplerState g_linearSampler : register(s1);
-SamplerState g_trilinearSampler : register(s2);
-SamplerState g_anisotropicSampler : register(s3);
+SamplerState g_pointSampler			: register(s0);
+SamplerState g_linearSampler		: register(s1);
+SamplerState g_trilinearSampler		: register(s2);
+SamplerState g_anisotropicSampler	: register(s3);
 
-Texture2D g_diffuseMap : register(t0);
-Texture2D g_specularMap : register(t1);
-Texture2D g_emissiveMap : register(t2);
+Texture2D g_diffuseMap	: register(t0);
+Texture2D g_specularMap	: register(t1);
+Texture2D g_emissiveMap	: register(t2);
 
-Texture2D g_diffuseBuffer : register(t3);
-Texture2D g_normalBuffer : register(t4);
-Texture2D g_specularBuffer : register(t5);
-Texture2D g_depthBuffer : register(t6);
+Texture2D g_diffuseBuffer	: register(t3);
+Texture2D g_normalBuffer	: register(t4);
+Texture2D g_specularBuffer	: register(t5);
+Texture2D g_depthBuffer		: register(t6);

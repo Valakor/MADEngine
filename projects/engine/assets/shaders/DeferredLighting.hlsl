@@ -1,11 +1,6 @@
 #include "Common.hlsl"
 
 // Input structs for vertex and pixel shader
-struct VS_INPUT
-{
-	float3 mPos : POSITION;
-};
-
 struct PS_INPUT
 {
 	float4 mPos : SV_POSITION;
@@ -44,7 +39,7 @@ PS_INPUT VS(uint id : SV_VertexID)
 	PS_INPUT output;
 
 	output.mTexCoord = float2(id & 1, id >> 1);
-	output.mPos = float4((output.mTexCoord.x - 0.5f) * 2, -(output.mTexCoord.y - 0.5f) * 2, 0, 1);
+	output.mPos = float4((output.mTexCoord.x - 0.5f) * 2.0f, -(output.mTexCoord.y - 0.5f) * 2.0f, 0.0f, 1.0f);
 	return output;
 }
 

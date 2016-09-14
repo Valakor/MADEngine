@@ -3,16 +3,16 @@
 // Input structs for vertex and pixel shader
 struct VS_INPUT
 {
-	float3 mModelPos : POSITION;
-	float3 mModelNormal : NORMAL;
-	float2 mTex : TEXCOORD0;
+	float3 mModelPos	: POSITION;
+	float3 mModelNormal	: NORMAL;
+	float2 mTex			: TEXCOORD0;
 };
 
 struct PS_INPUT
 {
-	float4 mHomogenousPos : SV_POSITION;
-	float3 mVSNormal : NORMAL;
-	float2 mTex : TEXCOORD0;
+	float4 mHomogenousPos	: SV_POSITION;
+	float3 mVSNormal		: NORMAL;
+	float2 mTex				: TEXCOORD0;
 };
 
 struct PS_OUTPUT
@@ -67,8 +67,8 @@ PS_OUTPUT PS(PS_INPUT input)
 		finalSpecularColor *= g_specularMap.Sample(g_linearSampler, input.mTex).xyz;
 	}
 
-	output.m_lightAccumulation = saturate(float4(finalLightAccumulation, 1.0f));
-	output.m_diffuse = saturate(float4(finalDiffuseColor, 1.0f));
+	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
+	output.m_diffuse = float4(saturate(finalDiffuseColor), 1.0f);
 	output.m_normal = input.mVSNormal.xy;
 	output.m_specular = saturate(float4(finalSpecularColor, log2(g_material.m_specularPower) / 10.5f));
 

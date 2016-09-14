@@ -43,8 +43,6 @@ namespace MAD
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 
-		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
 	}
@@ -179,6 +177,8 @@ namespace MAD
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
 			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
 		}
+
+		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
 	void URenderer::Draw()
@@ -201,8 +201,6 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[2], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[3], ETextureSlot::DepthBuffer);
 
-		g_graphicsDriver.SetInputLayout(SInputLayoutId::Invalid);
-		g_graphicsDriver.SetIndexBuffer(SBufferId::Invalid, 0);
 		g_graphicsDriver.SetVertexBuffer(SBufferId::Invalid, 0, 0);
 		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
