@@ -1,5 +1,7 @@
 #include "Rendering/DrawItem.h"
 #include "Rendering/GraphicsDriver.h"
+#include "Core/GameEngine.h"
+#include "Rendering/Renderer.h"
 
 namespace MAD
 {
@@ -12,7 +14,19 @@ namespace MAD
 		{
 			for (const auto& cBufferData : m_constantBufferData)
 			{
-				inGraphicsDriver.UpdateBuffer(cBufferData.first, cBufferData.second.first, cBufferData.second.second);
+				if (cBufferData.first == EConstantBufferSlot::PerDraw)
+				{
+					auto perDraw = *reinterpret_cast<const SPerDrawConstants*>(cBufferData.second.first);
+					auto& perFrame = gEngine->GetRenderer().GetCameraConstants();
+
+					perDraw.m_objectToViewMatrix = perDraw.m_objectToWorldMatrix * perFrame.m_cameraViewMatrix;
+					perDraw.m_objectToProjectionMatrix = perDraw.m_objectToWorldMatrix * perFrame.m_cameraViewProjectionMatrix;
+					inGraphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDraw, &perDraw, cBufferData.second.second);
+				}
+				else
+				{
+					inGraphicsDriver.UpdateBuffer(cBufferData.first, cBufferData.second.first, cBufferData.second.second);
+				}
 			}
 
 			for (const auto& textureData : m_textures)

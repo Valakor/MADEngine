@@ -32,6 +32,7 @@ namespace MAD
 
 		void SetFullScreen(bool inIsFullscreen) const;
 
+		const SPerFrameConstants& GetCameraConstants() const { return m_perFrameConstants; }
 		void UpdateCameraConstants(const struct SCameraInstance& inCameraInstance);
 		void SetWorldAmbientColor(DirectX::SimpleMath::Color inColor);
 		void SetBackBufferClearColor(DirectX::SimpleMath::Color inColor);

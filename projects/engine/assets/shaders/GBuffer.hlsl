@@ -30,9 +30,9 @@ PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT psInput;
 
-	psInput.mHomogenousPos = mul(mul(float4(input.mModelPos, 1.0f), g_objectToWorldMatrix), g_cameraViewProjectionMatrix);
+	psInput.mHomogenousPos = mul(float4(input.mModelPos, 1.0f), g_objectToProjectionMatrix);
 	psInput.mTex = input.mTex;
-	psInput.mVSNormal = mul(mul(float4(input.mModelNormal, 0.0f), g_objectToWorldMatrix), g_cameraViewMatrix).xyz;
+	psInput.mVSNormal = mul(float4(input.mModelNormal, 0.0f), g_objectToViewMatrix).xyz;
 
 	return psInput;
 }

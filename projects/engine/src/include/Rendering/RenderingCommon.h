@@ -147,6 +147,8 @@ namespace MAD
 	struct SPerDrawConstants
 	{
 		DirectX::SimpleMath::Matrix m_objectToWorldMatrix;
+		DirectX::SimpleMath::Matrix m_objectToViewMatrix;
+		DirectX::SimpleMath::Matrix m_objectToProjectionMatrix;
 	};
 
 	struct SPerPointLightConstants

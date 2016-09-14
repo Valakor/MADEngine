@@ -58,8 +58,8 @@ cbuffer CBPerMaterialConstants : register(b4)
 cbuffer CBPerDrawConstants : register(b5)
 {
 	float4x4 g_objectToWorldMatrix;
-	/*float4x4 g_objectToViewMatrix;
-	float4x4 g_objectToProjectionMatric;*/
+	float4x4 g_objectToViewMatrix;
+	float4x4 g_objectToProjectionMatrix;
 };
 
 SamplerState g_pointSampler			: register(s0);

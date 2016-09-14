@@ -96,7 +96,7 @@ namespace MAD
 			currentDrawItem.m_indexCount = m_subMeshes[i].m_indexCount;
 			
 			// Constant buffers
-			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerDraw, { &inPerMeshDrawConstants, static_cast<UINT>(sizeof(inPerMeshDrawConstants)) } });
+			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerDraw, { &inPerMeshDrawConstants, static_cast<UINT>(sizeof(SPerDrawConstants)) } });
 			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerMaterial, { &currentGPUMaterial, static_cast<UINT>(sizeof(SGPUMaterial)) } });
 
 			// Textures
