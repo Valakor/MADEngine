@@ -850,7 +850,7 @@ namespace MAD
 
 	void UGraphicsDriver::SetInputLayout(SInputLayoutId inInputLayout) const
 	{
-		ID_GET_SAFE(inputLayout, inInputLayout, g_inputLayoutStore, "Invalid input layout");
+		ID_TRY_GET(inputLayout, inInputLayout, g_inputLayoutStore, "Invalid input layout");
 		g_d3dDeviceContext->IASetInputLayout(inputLayout.Get());
 	}
 
@@ -861,14 +861,14 @@ namespace MAD
 
 	void UGraphicsDriver::SetVertexBuffer(SBufferId inVertexBuffer, UINT inVertexSize, UINT inVertexOffset) const
 	{
-		ID_GET_SAFE(buffer, inVertexBuffer, g_bufferStore, "Invalid vertex buffer");
+		ID_TRY_GET(buffer, inVertexBuffer, g_bufferStore, "Invalid vertex buffer");
 		UINT byteOffset = inVertexOffset * inVertexSize;
 		g_d3dDeviceContext->IASetVertexBuffers(0, 1, buffer.GetAddressOf(), &inVertexSize, &byteOffset);
 	}
 
 	void UGraphicsDriver::SetIndexBuffer(SBufferId inIndexBuffer, UINT inIndexOffset) const
 	{
-		ID_GET_SAFE(buffer, inIndexBuffer, g_bufferStore, "Invalid index buffer");
+		ID_TRY_GET(buffer, inIndexBuffer, g_bufferStore, "Invalid index buffer");
 		g_d3dDeviceContext->IASetIndexBuffer(buffer.Get(), DXGI_FORMAT_R16_UINT, 2 * inIndexOffset);
 	}
 
@@ -940,7 +940,7 @@ namespace MAD
 
 	void UGraphicsDriver::SetRasterizerState(SRasterizerStateId inRasterizerState) const
 	{
-		ID_GET_SAFE(raster, inRasterizerState, g_rasterizerStateStore, "Invalid rasterizer state");
+		ID_TRY_GET(raster, inRasterizerState, g_rasterizerStateStore, "Invalid rasterizer state");
 		g_d3dDeviceContext->RSSetState(raster.Get());
 	}
 

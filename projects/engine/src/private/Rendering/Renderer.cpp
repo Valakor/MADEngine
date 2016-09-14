@@ -140,11 +140,11 @@ namespace MAD
 	void URenderer::InitializeDirectionalLightingPass(const eastl::string& inDirLightingPassProgramPath)
 	{
 		m_dirLightingPassDescriptor.m_depthStencilView = SDepthStencilId::Invalid;
-		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_LESS);
+		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
 
 		m_dirLightingPassDescriptor.m_renderTargets.push_back(g_graphicsDriver.GetBackBufferRenderTarget());
 
-		m_dirLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
+		m_dirLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
 
 		m_dirLightingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inDirLightingPassProgramPath);
 
@@ -172,6 +172,13 @@ namespace MAD
 	void URenderer::BeginFrame()
 	{
 		g_graphicsDriver.ClearBackBuffer(m_clearColor);
+		g_graphicsDriver.ClearDepthStencil(m_gBufferPassDescriptor.m_depthStencilView, true, 1.0f);
+		for (unsigned i = 1; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
+		{
+			static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
+			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
+		}
 	}
 
 	void URenderer::Draw()
@@ -194,22 +201,15 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[2], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[3], ETextureSlot::DepthBuffer);
 
+		g_graphicsDriver.SetInputLayout(SInputLayoutId::Invalid);
+		g_graphicsDriver.SetIndexBuffer(SBufferId::Invalid, 0);
+		g_graphicsDriver.SetVertexBuffer(SBufferId::Invalid, 0, 0);
+		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
 		{
-			static auto fullscreenQuad = UMesh::CreatePrimitivePlane();
-
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
-
-			SDrawItem fullscreenQuadItem;
-			fullscreenQuadItem.m_vertexBuffer = fullscreenQuad.m_mesh->m_gpuVertexBuffer;
-			fullscreenQuadItem.m_vertexSize = sizeof(SVertex_Pos);
-			fullscreenQuadItem.m_vertexBufferOffset = 0;
-			fullscreenQuadItem.m_indexBuffer = fullscreenQuad.m_mesh->m_gpuIndexBuffer;
-			fullscreenQuadItem.m_indexOffset = 0;
-			fullscreenQuadItem.m_indexCount = fullscreenQuad.m_mesh->m_subMeshes[0].m_indexCount;
-			fullscreenQuadItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerDraw,{ &fullscreenQuad.m_perDrawConstants, static_cast<UINT>(sizeof(SPerDrawConstants)) } });
-
-			fullscreenQuadItem.Draw(g_graphicsDriver, false);
+			g_graphicsDriver.Draw(4, 0);
 		}
 
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DiffuseBuffer);

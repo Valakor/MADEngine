@@ -9,6 +9,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 mPos : SV_POSITION;
+	float2 mTexCoord : TEXCOORD0;
 };
 
 // Convert clip space coordinates to view space
@@ -38,11 +39,12 @@ float4 ScreenToView(float4 screen)
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-PS_INPUT VS(VS_INPUT input)
+PS_INPUT VS(uint id : SV_VertexID)
 {
 	PS_INPUT output;
 
-	output.mPos = float4(input.mPos, 1.0f);
+	output.mTexCoord = float2(id & 1, id >> 1);
+	output.mPos = float4((output.mTexCoord.x - 0.5f) * 2, -(output.mTexCoord.y - 0.5f) * 2, 0, 1);
 	return output;
 }
 
