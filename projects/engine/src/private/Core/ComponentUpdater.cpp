@@ -47,7 +47,7 @@ namespace MAD
 
 		while (currentPriorityLevelIter->first < EPriorityLevelReference::EPriorityLevel_Physics && currentPriorityLevelIter != priorityLevelEndIter)
 		{
-			LOG(LogComponentUpdater, Log, "Updating priority %d\n", currentPriorityLevelIter->first);
+			//LOG(LogComponentUpdater, Log, "Updating priority %d\n", currentPriorityLevelIter->first);
 			// Iterate over the entries of the component containers while the priority level is lower than the physics priority level
 			
 			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
@@ -71,7 +71,7 @@ namespace MAD
 
 		while (currentPriorityLevelIter != priorityLevelEndIter)
 		{
-			LOG(LogComponentUpdater, Log, "Updating priority %d\n", currentPriorityLevelIter->first);
+			//LOG(LogComponentUpdater, Log, "Updating priority %d\n", currentPriorityLevelIter->first);
 
 			// Iterate over the rest of the components
 			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
@@ -85,7 +85,7 @@ namespace MAD
 			++currentPriorityLevelIter;
 		}
 
-		LOG(LogComponentUpdater, Log, "\n\n\n");
+		//LOG(LogComponentUpdater, Log, "\n\n\n");
 	}
 
 	void UComponentUpdater::RegisterComponent(eastl::shared_ptr<UComponent> inNewComponentPtr)

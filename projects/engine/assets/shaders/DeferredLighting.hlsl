@@ -34,6 +34,7 @@ float4 ScreenToView(float4 screen)
 	return ClipToView(clip);
 }
 
+
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
@@ -77,6 +78,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	float RdotV = max(dot(R, V), 0.0f);
 	float3 specular = pow(RdotV, specularPower) * specularColor;
 
-	float3 phong = I * (diffuse + specular);
+	float3 phong = saturate(I * (diffuse + specular));
 	return float4(phong, 1.0f);
 }

@@ -344,7 +344,7 @@ namespace MAD
 		{
 			hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
 		}
-		else if (extension == ".png" || extension == ".bmp")
+		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".tiff")
 		{
 			hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
 		}

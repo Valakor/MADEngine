@@ -13,7 +13,7 @@ namespace MAD
 
 	void UPhysicsWorld::SimulatePhysics()
 	{
-		LOG(LogPhysicsWorld, Log, "================SIMULATING PHYSICS================\n");
+		//LOG(LogPhysicsWorld, Log, "================SIMULATING PHYSICS================\n");
 	}
 
 }

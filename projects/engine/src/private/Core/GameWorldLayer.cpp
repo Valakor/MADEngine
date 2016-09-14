@@ -19,7 +19,7 @@ namespace MAD
 	{
 		auto entityRemovePredicate = [](eastl::shared_ptr<AEntity> inCurrentEntity) { return inCurrentEntity->IsPendingForKill(); };
 
-		LOG(LogDefault, Log, "Num Entities Before Cleanup: %d\n", m_layerEntities.size());
+		//LOG(LogDefault, Log, "Num Entities Before Cleanup: %d\n", m_layerEntities.size());
 
 		for (auto& currentEntity : m_layerEntities)
 		{
@@ -40,6 +40,6 @@ namespace MAD
 		// After removing the components, remove all entities that are marked for kill from the layer
 		m_layerEntities.erase(eastl::remove_if(m_layerEntities.begin(), m_layerEntities.end(), entityRemovePredicate), m_layerEntities.end());
 
-		LOG(LogDefault, Log, "Num Entities After Cleanup: %d\n", m_layerEntities.size());
+		//LOG(LogDefault, Log, "Num Entities After Cleanup: %d\n", m_layerEntities.size());
 	}
 }

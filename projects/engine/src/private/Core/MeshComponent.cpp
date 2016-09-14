@@ -18,7 +18,7 @@ namespace MAD
 	{
 		(void)inDeltaTime;
 
-		LOG(LogTransformComponent, Log, "Updating Mesh Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
+		//LOG(LogTransformComponent, Log, "Updating Mesh Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
 		
 		// Have the owning SMeshInstance create a draw item to submit to renderer
 		if (m_meshInstance.m_bVisible && m_meshInstance.m_mesh)

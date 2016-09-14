@@ -1,6 +1,7 @@
 #include "Rendering/Texture.h"
 
 #include "Core/GameEngine.h"
+#include "Misc/Logging.h"
 #include "Rendering/Renderer.h"
 
 namespace MAD
@@ -11,7 +12,8 @@ namespace MAD
 		auto tex = gEngine->GetRenderer().CreateTextureFromFile(inPath, width, height);
 		if (!tex)
 		{
-			return nullptr;
+			LOG(LogDefault, Warning, "Failed to load texture: `%s`. Falling back to default checker.png", inPath.c_str());
+			tex = gEngine->GetRenderer().CreateTextureFromFile(".\\assets\\engine\\meshes\\primitives\\checker.png", width, height);
 		}
 
 		auto ret = eastl::make_shared<UTexture>();

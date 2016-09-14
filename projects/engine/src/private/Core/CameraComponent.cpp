@@ -16,7 +16,7 @@ namespace MAD
 	{
 		(void)inDeltaTime;
 
-		LOG(LogCameraComponent, Log, "Updating Camera Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
+		//LOG(LogCameraComponent, Log, "Updating Camera Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
 
 		// Update the renderer's camera's per camera constant buffer values
 		auto& renderer = gEngine->GetRenderer();
