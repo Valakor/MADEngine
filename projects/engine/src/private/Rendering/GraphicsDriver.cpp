@@ -1,5 +1,7 @@
 #include "Rendering/GraphicsDriver.h"
-#include <d3dcompiler.h>
+
+#include <INITGUID.H>
+#include <D3DCompiler.h>
 
 #include <DirectXTK/DDSTextureLoader.h>
 #include <DirectXTK/WICTextureLoader.h>
