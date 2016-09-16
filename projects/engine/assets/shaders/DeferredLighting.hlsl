@@ -51,7 +51,7 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	int3 texCoord = int3(input.mPos.xy, 0);
 
-	float2 sampleNormal = g_normalBuffer.Load(texCoord).xy;
+	float2 sampleNormal = (g_normalBuffer.Load(texCoord).xy - float2(0.5f, 0.5f)) * 2.0f;
 	float4 sampleSpecular = g_specularBuffer.Load(texCoord);
 	float depth = g_depthBuffer.Load(texCoord).r;
 

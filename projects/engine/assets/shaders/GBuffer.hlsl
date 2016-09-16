@@ -69,7 +69,7 @@ PS_OUTPUT PS(PS_INPUT input)
 
 	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
 	output.m_diffuse = float4(saturate(finalDiffuseColor), 1.0f);
-	output.m_normal = input.mVSNormal.xy;
+	output.m_normal = (input.mVSNormal.xy + float2(1.0f, 1.0f)) * 0.5f;
 	output.m_specular = saturate(float4(finalSpecularColor, log2(g_material.m_specularPower) / 10.5f));
 
 	return output;
