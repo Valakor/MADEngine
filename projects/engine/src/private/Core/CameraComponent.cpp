@@ -25,6 +25,8 @@ namespace MAD
 		cameraScheme.BindEvent<CCameraComponent, &CCameraComponent::OnReset>("Reset", EInputEvent::IE_KeyDown, this);
 
 		m_mouseRightClickDown = false;
+		m_cameraMoveSpeed = 3.0f;
+		m_cameraLookSpeed = 1.0f;
 	}
 
 	CCameraComponent::~CCameraComponent()
@@ -67,26 +69,26 @@ namespace MAD
 	{
 		Vector3 right;
 		Vector3::Transform(Vector3::Right, m_cameraRot, right);
-		m_cameraPos += right * inVal * gEngine->GetDeltaTime();
+		m_cameraPos += right * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed;
 	}
 
 	void CCameraComponent::MoveForward(float inVal)
 	{
 		Vector3 forward;
 		Vector3::Transform(Vector3::Forward, m_cameraRot, forward);
-		m_cameraPos += forward * inVal * gEngine->GetDeltaTime();
+		m_cameraPos += forward * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed;
 	}
 
 	void CCameraComponent::MoveUp(float inVal)
 	{
-		m_cameraPos += Vector3::Up * inVal * gEngine->GetDeltaTime();
+		m_cameraPos += Vector3::Up * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed;
 	}
 
 	void CCameraComponent::LookRight(float inVal)
 	{
 		if (m_mouseRightClickDown)
 		{
-			auto rot = Quaternion::CreateFromAxisAngle(Vector3::Up, inVal * gEngine->GetDeltaTime());
+			auto rot = Quaternion::CreateFromAxisAngle(Vector3::Up, -inVal * gEngine->GetDeltaTime() * m_cameraLookSpeed);
 			m_cameraRot *= rot;
 		}
 	}
@@ -95,7 +97,9 @@ namespace MAD
 	{
 		if (m_mouseRightClickDown)
 		{
-			auto rot = Quaternion::CreateFromAxisAngle(Vector3::Right, inVal * gEngine->GetDeltaTime());
+			Vector3 right;
+			Vector3::Transform(Vector3::Right, m_cameraRot, right);
+			auto rot = Quaternion::CreateFromAxisAngle(right, -inVal * gEngine->GetDeltaTime() * m_cameraLookSpeed);
 			m_cameraRot *= rot;
 		}
 	}

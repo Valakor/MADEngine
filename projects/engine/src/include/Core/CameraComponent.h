@@ -37,6 +37,9 @@ namespace MAD
 		Vector3 m_cameraPos;
 		Quaternion m_cameraRot; // pitch, yaw, roll
 
+		float m_cameraMoveSpeed;
+		float m_cameraLookSpeed;
+
 		bool m_mouseRightClickDown;
 	};
 }
