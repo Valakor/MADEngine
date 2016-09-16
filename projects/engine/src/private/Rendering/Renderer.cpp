@@ -4,14 +4,11 @@
 
 #include "Core/GameWindow.h"
 #include "Misc/AssetCache.h"
-#include "Misc/Assert.h"
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/GraphicsDriver.h"
 
 #include <EASTL/array.h>
-
-#include "Rendering/Mesh.h"
 
 namespace MAD
 {
@@ -22,7 +19,8 @@ namespace MAD
 		UGraphicsDriver g_graphicsDriver;
 	}
 
-	URenderer::URenderer(): m_window(nullptr) { }
+	URenderer::URenderer(): m_window(nullptr)
+	                      , m_visualizeOption(EVisualizeOptions::None) { }
 
 	bool URenderer::Init(UGameWindow& inWindow)
 	{
@@ -186,6 +184,11 @@ namespace MAD
 		// Bind per-frame constants
 		BindPerFrameConstants();
 
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DiffuseBuffer);
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::NormalBuffer);
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::SpecularBuffer);
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DepthBuffer);
+
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 		// Go through each draw item and bind input assembly data
@@ -193,6 +196,12 @@ namespace MAD
 		{
 			// Each individual DrawItem should issue it's own draw call
 			currentDrawItem.Draw(g_graphicsDriver, true);
+		}
+
+		if (m_visualizeOption != EVisualizeOptions::None)
+		{
+			DoVisualizeGBuffer();
+			return;
 		}
 
 		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
@@ -209,16 +218,56 @@ namespace MAD
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
 			g_graphicsDriver.Draw(4, 0);
 		}
-
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DiffuseBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::NormalBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::SpecularBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DepthBuffer);
 	}
 
 	void URenderer::EndFrame()
 	{
 		g_graphicsDriver.Present();
+	}
+
+	void URenderer::DoVisualizeGBuffer()
+	{
+		static bool loadedCopyTextureProgram = false;
+		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
+
+		if (!loadedCopyTextureProgram)
+		{
+			copyTextureProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\CopyTexture.hlsl");
+			loadedCopyTextureProgram = true;
+		}
+
+		SShaderResourceId target;
+
+		auto backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
+		g_graphicsDriver.SetRenderTargets(&backBuffer, 1, nullptr);
+		copyTextureProgram->SetProgramActive(g_graphicsDriver);
+
+		switch(m_visualizeOption)
+		{
+		case EVisualizeOptions::LightAccumulation:
+			// Already in the back buffer, so just return
+			return;
+		case EVisualizeOptions::Diffuse:
+			target = m_gBufferShaderResources[0];
+			break;
+		case EVisualizeOptions::Specular:
+			target = m_gBufferShaderResources[2];
+			break;
+		case EVisualizeOptions::Normals:
+			target = m_gBufferShaderResources[1];
+			break;
+		case EVisualizeOptions::Depth:
+			target = m_gBufferShaderResources[3];
+			break;
+		default: return;
+		}
+
+		g_graphicsDriver.SetPixelShaderResource(target, ETextureSlot::DiffuseBuffer);
+		g_graphicsDriver.SetRasterizerState(m_dirLightingPassDescriptor.m_rasterizerState);
+
+		g_graphicsDriver.SetVertexBuffer(SBufferId::Invalid, 0, 0);
+		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_graphicsDriver.Draw(4, 0);
 	}
 
 	SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const

@@ -13,6 +13,16 @@ namespace MAD
 {
 	class UGameWindow;
 
+	enum class EVisualizeOptions
+	{
+		None,
+		LightAccumulation,
+		Diffuse,
+		Specular,
+		Normals,
+		Depth
+	};
+
 	class URenderer
 	{
 	public:
@@ -41,6 +51,9 @@ namespace MAD
 
 		// Don't use this API to make a Texture, use UAssetCache<UTexture> instead
 		SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const;
+
+		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
+
 	private:
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
@@ -52,6 +65,9 @@ namespace MAD
 		void BeginFrame();
 		void Draw();
 		void EndFrame();
+
+		void DoVisualizeGBuffer();
+
 	private:
 		UGameWindow* m_window;
 		SRenderTargetId m_backBuffer;
@@ -67,5 +83,6 @@ namespace MAD
 
 		eastl::vector<SShaderResourceId> m_gBufferShaderResources;
 
+		EVisualizeOptions m_visualizeOption;
 	};
 }

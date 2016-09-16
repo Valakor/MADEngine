@@ -13,7 +13,6 @@
 
 // TESTING
 #include "Core/Character.h"
-#include "Core/TestCharacters.h"
 #include "Rendering/Mesh.h"
 
 using eastl::string;
@@ -23,6 +22,40 @@ namespace MAD
 	string SCmdLine::mCmdLine;
 
 	DECLARE_LOG_CATEGORY(LogGameEngine);
+
+	namespace
+	{
+		// Temp testing to change render target output for GBuffer
+		void OnDisableGBufferVisualization()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::None);
+		}
+
+		void OnEnableLightAccumulation()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::LightAccumulation);
+		}
+
+		void OnEnableDiffuse()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Diffuse);
+		}
+
+		void OnEnableSpecular()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Specular);
+		}
+
+		void OnEnableNormals()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Normals);
+		}
+
+		void OnEnableDepth()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Depth);
+		}
+	}
 
 	UGameEngine* gEngine = nullptr;
 
@@ -124,6 +157,22 @@ namespace MAD
 		initialGameWorld.lock()->SpawnEntity<ACharacter>();
 
 		mRenderer->SetWorldAmbientColor(DirectX::SimpleMath::Color(0.1f, 0.1f, 0.1f, 1.0f));
+
+		SControlScheme& renderScheme = SControlScheme("RenderDebug")
+			.RegisterEvent("NormalView", '0')
+			.RegisterEvent("LightAccumulationView", '1')
+			.RegisterEvent("DiffuseView", '2')
+			.RegisterEvent("SpecularView", '3')
+			.RegisterEvent("NormalsView", '4')
+			.RegisterEvent("DepthView", '5')
+			.Finalize(true);
+
+		renderScheme.BindEvent<&OnDisableGBufferVisualization>("NormalView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableLightAccumulation>("LightAccumulationView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableDiffuse>("DiffuseView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableSpecular>("SpecularView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
 	}
 
 	void UGameEngine::Tick()
