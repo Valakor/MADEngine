@@ -30,6 +30,20 @@ float4 ScreenToView(float4 screen)
 	return ClipToView(clip);
 }
 
+// Decodes a two-component half-precision pair in the range [0-1]
+// into a 3-component view space normal.
+// See: http://aras-p.info/texts/CompactNormalStorage.html
+float3 DecodeNormal(half2 inEnc)
+{
+	half2 fenc = inEnc * 4.0 - 2.0;
+	half f = dot(fenc, fenc);
+	half g = sqrt(1.0 - f / 4.0);
+	half3 n;
+	n.xy = fenc * g;
+	n.z = 1.0 - f / 2.0;
+	return n;
+}
+
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -51,11 +65,11 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	int3 texCoord = int3(input.mPos.xy, 0);
 
-	float2 sampleNormal = (g_normalBuffer.Load(texCoord).xy - float2(0.5f, 0.5f)) * 2.0f;
+	half2 sampleNormal = g_normalBuffer.Load(texCoord).xy;
 	float4 sampleSpecular = g_specularBuffer.Load(texCoord);
 	float depth = g_depthBuffer.Load(texCoord).r;
 
-	float3 N = float3(sampleNormal.x, sampleNormal.y, sqrt(1.0f - dot(sampleNormal.xy, sampleNormal.xy)));
+	float3 N = DecodeNormal(sampleNormal);
 	float3 diffuseColor = g_diffuseBuffer.Load(texCoord).rgb;
 	float3 specularColor = sampleSpecular.rgb;
 	float specularPower = exp2(sampleSpecular.a * 10.5f);

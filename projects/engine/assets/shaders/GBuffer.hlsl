@@ -19,9 +19,19 @@ struct PS_OUTPUT
 {
 	float4 m_lightAccumulation : SV_Target0;
 	float4 m_diffuse		   : SV_Target1;
-	float2 m_normal			   : SV_Target2;
+	half2  m_normal			   : SV_Target2;
 	float4 m_specular		   : SV_Target3;
 };
+
+// Encodes a 3-component normal using a spheremap transform into
+// a two-component half-precision pair in the range [0-1].
+// Assumes the incoming normal is normalized and in view space.
+// See: http://aras-p.info/texts/CompactNormalStorage.html
+half2 EncodeNormal(float3 inVSNormal)
+{
+	half p = sqrt(inVSNormal.z * 8.0 + 8.0);
+	return half2(inVSNormal.xy / p + 0.5);
+}
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -69,7 +79,7 @@ PS_OUTPUT PS(PS_INPUT input)
 
 	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
 	output.m_diffuse = float4(saturate(finalDiffuseColor), 1.0f);
-	output.m_normal = (input.mVSNormal.xy + float2(1.0f, 1.0f)) * 0.5f;
+	output.m_normal = EncodeNormal(input.mVSNormal);
 	output.m_specular = saturate(float4(finalSpecularColor, log2(g_material.m_specularPower) / 10.5f));
 
 	return output;
