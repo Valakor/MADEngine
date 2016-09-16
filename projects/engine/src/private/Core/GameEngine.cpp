@@ -94,9 +94,6 @@ namespace MAD
 			return false;
 		}
 
-		// TODO testing
-		auto cube2 = UAssetCache::Load<UMesh>("engine\\meshes\\primitives\\cube.obj");
-
 		// Init the physics world
 		m_physicsWorld = eastl::make_shared<UPhysicsWorld>(nullptr);
 		if (!m_physicsWorld)
@@ -154,7 +151,7 @@ namespace MAD
 	{
 		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
 
-		mRenderer->SetWorldAmbientColor(DirectX::SimpleMath::Color(0.1f, 0.1f, 0.1f, 1.0f));
+		mRenderer->SetWorldAmbientColor(DirectX::SimpleMath::Color(0.05f, 0.05f, 0.05f, 1.0f));
 
 		SControlScheme& renderScheme = SControlScheme("RenderDebug")
 			.RegisterEvent("NormalView", '0')

@@ -86,8 +86,6 @@ namespace MAD
 			const UMaterial& currentMaterial = m_materials[m_subMeshes[i].m_materialIndex];
 			const SGPUMaterial& currentGPUMaterial = currentMaterial.m_mat;
 
-			memset(&currentDrawItem, 0, sizeof(currentDrawItem));
-
 			currentDrawItem.m_vertexBuffer = m_gpuVertexBuffer;
 			currentDrawItem.m_vertexSize = sizeof(m_vertexBuffer[0]);
 			currentDrawItem.m_indexBuffer = m_gpuIndexBuffer;
@@ -130,7 +128,7 @@ namespace MAD
 
 		auto path = inFilePath.substr(0, inFilePath.find_last_of('\\') + 1);
 
-		if (!scene)
+		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE)
 		{
 			LOG_IMPORT(Error, "Failed to load mesh '%s': %s\n", inFilePath.c_str(), importer.GetErrorString());
 			return nullptr;
@@ -161,7 +159,7 @@ namespace MAD
 				aiColor3D diffuse_color;
 				aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color);
 				LOG_IMPORT(Log, "\tDiffuse = { %.2f, %.2f, %.2f }\n", diffuse_color.r, diffuse_color.g, diffuse_color.b);
-				madMaterial.m_mat.m_diffuseColor = DirectX::SimpleMath::Vector3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
+				madMaterial.m_mat.m_diffuseColor = Vector3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
 
 				aiString diffuse_tex;
 				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_DIFFUSE(0), diffuse_tex))
@@ -179,7 +177,7 @@ namespace MAD
 				aiColor3D specular_color;
 				aiMaterial->Get(AI_MATKEY_COLOR_SPECULAR, specular_color);
 				LOG_IMPORT(Log, "\tSpecular = { %.2f, %.2f, %.2f }\n", specular_color.r, specular_color.g, specular_color.b);
-				madMaterial.m_mat.m_specularColor = DirectX::SimpleMath::Vector3(specular_color.r, specular_color.g, specular_color.b);
+				madMaterial.m_mat.m_specularColor = Vector3(specular_color.r, specular_color.g, specular_color.b);
 
 				float specular_power = 0.0f;
 				aiMaterial->Get(AI_MATKEY_SHININESS, specular_power);
@@ -202,7 +200,7 @@ namespace MAD
 				aiColor3D emissive_color;
 				aiMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, emissive_color);
 				LOG_IMPORT(Log, "\tEmissive = { %.2f, %.2f, %.2f }\n", emissive_color.r, emissive_color.g, emissive_color.b);
-				madMaterial.m_mat.m_emissiveColor = DirectX::SimpleMath::Vector3(emissive_color.r, emissive_color.g, emissive_color.b);
+				madMaterial.m_mat.m_emissiveColor = Vector3(emissive_color.r, emissive_color.g, emissive_color.b);
 
 				aiString emissive_tex;
 				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_EMISSIVE(0), emissive_tex))
@@ -246,8 +244,8 @@ namespace MAD
 
 			for (unsigned v = 0; v < aiMesh->mNumVertices; ++v)
 			{
-				auto& pos = aiMesh->mVertices[v];
-				auto& nor = aiMesh->mNormals[v];
+				auto pos = aiMesh->mVertices[v];
+				auto nor = aiMesh->mNormals[v];
 
 				aiVector3D uvs;
 				if (aiMesh->HasTextureCoords(0))
@@ -260,9 +258,9 @@ namespace MAD
 				}
 
 				SVertex_Pos_Norm_Tex vert;
-				vert.P = DirectX::SimpleMath::Vector3(pos.x, pos.y, pos.z);
-				vert.N = DirectX::SimpleMath::Vector3(nor.x, nor.y, nor.z);
-				vert.T = DirectX::SimpleMath::Vector2(uvs.x, uvs.y);
+				vert.P = Vector3(pos.x, pos.y, pos.z);
+				vert.N = Vector3(nor.x, nor.y, nor.z);
+				vert.T = Vector2(uvs.x, uvs.y);
 
 				vert.N.Normalize();
 
@@ -276,9 +274,9 @@ namespace MAD
 
 				// Since we use a single vertex / index buffer for the entire model, we must offset
 				// each sub-mesh's indices.
-				Index_t i0 = static_cast<Index_t>(face.mIndices[0] + currentVert);
-				Index_t i1 = static_cast<Index_t>(face.mIndices[1] + currentVert);
-				Index_t i2 = static_cast<Index_t>(face.mIndices[2] + currentVert);
+				Index_t i0 = static_cast<Index_t>(face.mIndices[0]);
+				Index_t i1 = static_cast<Index_t>(face.mIndices[1]);
+				Index_t i2 = static_cast<Index_t>(face.mIndices[2]);
 
 				mesh->m_indexBuffer.push_back(i0);
 				mesh->m_indexBuffer.push_back(i1);

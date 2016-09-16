@@ -5,6 +5,11 @@
 
 namespace MAD
 {
+	SDrawItem::SDrawItem(): m_vertexSize(0)
+	                      , m_vertexBufferOffset(0)
+	                      , m_indexOffset(0)
+	                      , m_indexCount(0) { }
+
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties) const
 	{
 		inGraphicsDriver.SetVertexBuffer(m_vertexBuffer, m_vertexSize, m_vertexBufferOffset);

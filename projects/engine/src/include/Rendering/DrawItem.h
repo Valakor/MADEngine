@@ -10,6 +10,8 @@ namespace MAD
 {
 	struct SDrawItem
 	{
+		SDrawItem();
+
 		void Draw(class UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties) const;
 
 		SBufferId m_vertexBuffer;

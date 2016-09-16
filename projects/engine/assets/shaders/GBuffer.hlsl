@@ -54,33 +54,40 @@ PS_OUTPUT PS(PS_INPUT input)
 {
 	PS_OUTPUT output;
 
-	float3 finalLightAccumulation = g_material.m_emissiveColor;
+	float3 finalLightAccumulation;
+
+	float3 finalAmbientColor = g_ambientColor.rgb;
+	float3 finalEmissiveColor = g_material.m_emissiveColor;
 	float3 finalDiffuseColor = g_material.m_diffuseColor;
 	float3 finalSpecularColor = g_material.m_specularColor;
+	float  finalSpecularPower = g_material.m_specularPower;
 
 	input.mVSNormal = normalize(input.mVSNormal);
 
 	if (g_material.m_bHasEmissiveTex)
 	{
-		finalLightAccumulation *= g_emissiveMap.Sample(g_linearSampler, input.mTex).xyz;
+		finalEmissiveColor *= g_emissiveMap.Sample(g_linearSampler, input.mTex).rgb;
 	}
-
-	finalLightAccumulation += g_ambientColor.xyz;
 
 	if (g_material.m_bHasDiffuseTex)
 	{
-		finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex).xyz;
+		finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex).rgb;
 	}
 
 	if (g_material.m_bHasSpecularTex)
 	{
-		finalSpecularColor *= g_specularMap.Sample(g_linearSampler, input.mTex).xyz;
+		float4 specularSample = g_specularMap.Sample(g_linearSampler, input.mTex).rgba;
+		finalSpecularColor *= specularSample.rgb;
+		finalSpecularPower *= specularSample.a;
 	}
+
+	finalAmbientColor *= finalDiffuseColor;
+	finalLightAccumulation = finalAmbientColor + finalEmissiveColor;
 
 	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
 	output.m_diffuse = float4(saturate(finalDiffuseColor), 1.0f);
 	output.m_normal = EncodeNormal(input.mVSNormal);
-	output.m_specular = saturate(float4(finalSpecularColor, log2(g_material.m_specularPower) / 10.5f));
+	output.m_specular = saturate(float4(finalSpecularColor, log2(finalSpecularPower) / 10.5f));
 
 	return output;
 }
