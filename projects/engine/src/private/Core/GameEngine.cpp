@@ -154,8 +154,6 @@ namespace MAD
 	{
 		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
 
-		initialGameWorld.lock()->SpawnEntity<ACharacter>();
-
 		mRenderer->SetWorldAmbientColor(DirectX::SimpleMath::Color(0.1f, 0.1f, 0.1f, 1.0f));
 
 		SControlScheme& renderScheme = SControlScheme("RenderDebug")
@@ -167,12 +165,24 @@ namespace MAD
 			.RegisterEvent("DepthView", '5')
 			.Finalize(true);
 
+		SControlScheme("CameraDebug")
+			.RegisterAxis("Vertical", VK_SPACE, VK_SHIFT)
+			.RegisterAxis("Horizontal", 'D', 'A')
+			.RegisterAxis("Forward", 'W', 'S')
+			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
+			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
+			.RegisterEvent("RightClick", VK_RBUTTON)
+			.RegisterEvent("Reset", 'R')
+			.Finalize(true);
+
 		renderScheme.BindEvent<&OnDisableGBufferVisualization>("NormalView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableLightAccumulation>("LightAccumulationView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDiffuse>("DiffuseView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableSpecular>("SpecularView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
+
+		initialGameWorld.lock()->SpawnEntity<ACharacter>();
 	}
 
 	void UGameEngine::Tick()

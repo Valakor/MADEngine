@@ -9,6 +9,8 @@ __pragma(warning(pop))
 
 namespace MAD
 {
+	using namespace DirectX::SimpleMath;
+
 	inline constexpr float ConvertToRadians(float inDegrees)
 	{
 		return inDegrees * (DirectX::XM_PI / 180.0f);
