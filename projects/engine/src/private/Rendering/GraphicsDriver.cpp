@@ -346,13 +346,13 @@ namespace MAD
 		{
 			hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
 		}
-		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".tiff")
+		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tiff")
 		{
 			hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
 		}
 		else
 		{
-			LOG(LogTextureImport, Error, "Can only load textures of type DDS, PNG, or BMP\n");
+			LOG(LogTextureImport, Error, "Can only load textures of type DDS, PNG, JPG (JPEG), or BMP\n");
 			return SShaderResourceId::Invalid;
 		}
 

@@ -121,6 +121,7 @@ namespace MAD
 	{
 		Assimp::Importer importer;
 		importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
+		importer.SetPropertyInteger(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80);
 
 		const aiScene* scene = importer.ReadFile(inFilePath.c_str(),
 												 aiProcess_ConvertToLeftHanded |
