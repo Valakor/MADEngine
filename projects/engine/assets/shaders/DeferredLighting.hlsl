@@ -69,7 +69,8 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float I = g_directionalLight.m_lightIntensity;
 
-	float NdotL = max(dot(N, L), 0.0f);
+	//float NdotL = max(dot(N, L), 0.0f); // Normal Phong
+	float NdotL = pow(dot(N, L) * 0.5f + 0.5f, 2.0f); // Valve half-Lambert
 	float3 diffuse = NdotL * diffuseColor * g_directionalLight.m_lightColor;
 
 	float RdotV = max(dot(R, V), 0.0f);
