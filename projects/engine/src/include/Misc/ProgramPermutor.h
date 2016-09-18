@@ -48,8 +48,9 @@ namespace MAD
 		};
 	private:
 		// Utility functions
-		static void ParseProgramMetaFlags(const std::string& inShaderBufferString, eastl::vector<SShaderMetaFlagInstance>& outMetaFlagInstances);
+		static void ParseProgramMetaFlags(const eastl::string& inShaderBufferString, eastl::vector<SShaderMetaFlagInstance>& outMetaFlagInstances);
 		static void GeneratePermutations(const eastl::string& inShaderFilePath, const eastl::vector<SShaderUsageDescription>& inUsageDescriptions, const eastl::vector<SShaderPermuteDescription>& inPermuteOptions, ProgramPermutations_t& outPermutations);
+		static void GenerateProgramPermutationFile(const eastl::string& inOutputFilePath, const eastl::vector<char>& inCompiledByteCode, const SShaderUsageDescription& inTargetUsage, ProgramId_t inTargetProgramID, const eastl::string& inTargetProgramStringDesc);
 		static EMetaFlagType ConvertStringToFlagType(const eastl::string& inMetaFlagString);
 	};
 }

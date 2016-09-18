@@ -1,12 +1,10 @@
 #include "Common.hlsl"
 
-// Format: <MetaFlagType,<Values>>
-
 //=>:(Usage, VS, vs_5_0)
 //=>:(Usage, PS, ps_5_0)
 //=>:(Permute, DIFFUSE)
 //=>:(Permute, SPECULAR)
-//=>:(Permute, NORMAL_MAP)
+//=>:(Permute, EMISSIVE)
 
 // Input structs for vertex and pixel shader
 struct VS_INPUT
@@ -72,22 +70,28 @@ PS_OUTPUT PS(PS_INPUT input)
 
 	input.mVSNormal = normalize(input.mVSNormal);
 
+#ifdef EMISSIVE
 	if (g_material.m_bHasEmissiveTex)
 	{
 		finalEmissiveColor *= g_emissiveMap.Sample(g_linearSampler, input.mTex).rgb;
 	}
+#endif
 
+#ifdef DIFFUSE
 	if (g_material.m_bHasDiffuseTex)
 	{
 		finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex).rgb;
 	}
+#endif
 
+#ifdef SPECULAR
 	if (g_material.m_bHasSpecularTex)
 	{
 		float4 specularSample = g_specularMap.Sample(g_linearSampler, input.mTex).rgba;
 		finalSpecularColor *= specularSample.rgb;
 		finalSpecularPower *= specularSample.a;
 	}
+#endif
 
 	finalAmbientColor *= finalDiffuseColor;
 	finalLightAccumulation = finalAmbientColor + finalEmissiveColor;

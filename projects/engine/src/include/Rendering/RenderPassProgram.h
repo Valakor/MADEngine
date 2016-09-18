@@ -13,7 +13,8 @@ namespace MAD
 	{
 		EProgramIdMask_Diffuse = 1 << 0,
 		EProgramIdMask_Specular = 1 << 1,
-		EProgramIdMask_NormalMap = 1 << 2,
+		EProgramIdMask_Emissive = 1 << 2,
+		EProgramIdMask_NormalMap = 1 << 3,
 		EProgramIdMask_Invalid
 	};
 

@@ -3,6 +3,9 @@
 #include "Rendering/GraphicsDriver.h"
 #include "Core/GameEngine.h"
 
+
+#include <fstream>
+
 namespace MAD
 {
 	EProgramIdMask URenderPassProgram::ConvertStringToPIDMask(const char* inMaskString)
@@ -14,6 +17,10 @@ namespace MAD
 		else if (strcmp(inMaskString, "SPECULAR") == 0)
 		{
 			return EProgramIdMask::EProgramIdMask_Specular;
+		}
+		else if (strcmp(inMaskString, "EMISSIVE") == 0)
+		{
+			return EProgramIdMask::EProgramIdMask_Emissive;
 		}
 		else if (strcmp(inMaskString, "NORMAL_MAP") == 0)
 		{
@@ -33,6 +40,8 @@ namespace MAD
 			return "DIFFUSE";
 		case EProgramIdMask::EProgramIdMask_Specular:
 			return "SPECULAR";
+		case EProgramIdMask::EProgramIdMask_Emissive:
+			return "EMISSIVE";
 		case EProgramIdMask::EProgramIdMask_NormalMap:
 			return "NORMAL_MAP";
 		default:

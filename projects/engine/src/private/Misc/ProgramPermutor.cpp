@@ -21,23 +21,22 @@ namespace MAD
 
 	void UProgramPermutor::PermuteProgram(const eastl::string& inProgramFilePath, ProgramPermutations_t& outProgramPermutations)
 	{
-		(void)outProgramPermutations;
-
-		std::string stdProgramFilePath(inProgramFilePath.c_str()); // Have to make copy of string because EASTL doesn't have streams
-		std::ifstream programInputStream(stdProgramFilePath, std::ios::in | std::ios::ate);
+		std::ifstream programInputStream(inProgramFilePath.c_str(), std::ios::in | std::ios::ate);
 
 		if (programInputStream.is_open())
 		{
-			std::string programStringBuffer;
+			 std::string stdProgramStringBuffer;
 			eastl::vector<UProgramPermutor::SShaderMetaFlagInstance>						programMetaFlagInstances;
 			eastl::vector<UProgramPermutor::SShaderUsageDescription>						programUsageDescriptions;
 			eastl::vector<UProgramPermutor::SShaderPermuteDescription>						programPermutationDescriptions;
 
-			programStringBuffer.reserve(programInputStream.tellg());
+			stdProgramStringBuffer.reserve(programInputStream.tellg());
 
 			programInputStream.seekg(std::ios::beg);
+			
+			stdProgramStringBuffer.assign(std::istream_iterator<char>(programInputStream), std::istream_iterator<char>());
 
-			programStringBuffer.assign(std::istream_iterator<char>(programInputStream), std::istream_iterator<char>());
+			eastl::string programStringBuffer(eastl::move(stdProgramStringBuffer.c_str()));
 
 			// Accumulate all of the meta flag instances in the program file
 			ParseProgramMetaFlags(programStringBuffer, programMetaFlagInstances);
@@ -46,7 +45,7 @@ namespace MAD
 			// TODO: Maybe move the logic to generate specific structs by type (i.e usage description generation logic separated out from here)
 			for (const auto& currentMetaFlagInst : programMetaFlagInstances)
 			{
-				switch (currentMetaFlagInst.MetaFlagType)
+				 switch (currentMetaFlagInst.MetaFlagType)
 				{
 				case EMetaFlagType::EMetaFlagType_Usage:
 					LOG(LogProgramPermutor, Log, "Adding meta usage flag with values: %s - %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str(), currentMetaFlagInst.MetaFlagValues[1].c_str());
@@ -81,7 +80,7 @@ namespace MAD
 	{
 		UGraphicsDriver& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
 		
-		if (inPermuteOptions.size() > 0)
+		if (inPermuteOptions.size() >= 0)
 		{
 			size_t numPermuteOptions = inPermuteOptions.size();
 			size_t totalNumPermutations = 0x1ULL << numPermuteOptions;
@@ -91,27 +90,59 @@ namespace MAD
 				ProgramId_t currentProgramId = 0;
 				eastl::vector<D3D_SHADER_MACRO> programMacroDefines;
 				eastl::vector<char> compiledProgramByteCode;
-				
+				eastl::string currentProgramIdString;
+
 				programMacroDefines.reserve(inPermuteOptions.size());
 				
 				// Find the bits that are set and mask the associated bit mask with the program ID
-				for (size_t j = 0; j < numPermuteOptions; ++j)
+				if (numPermuteOptions > 0)
 				{
-					if ((i & (0x1ULL << j)) != 0)
+					for (size_t j = 0; j < numPermuteOptions; ++j)
 					{
-						currentProgramId |= static_cast<ProgramId_t>(inPermuteOptions[j].PermuteIdMask);
-						programMacroDefines.push_back({ URenderPassProgram::ConvertPIDMaskToString(inPermuteOptions[j].PermuteIdMask), "1" });
+						const char* permuteIdString = URenderPassProgram::ConvertPIDMaskToString(inPermuteOptions[j].PermuteIdMask);
+
+						currentProgramIdString += '[';
+
+						if ((i & (0x1ULL << j)) != 0)
+						{
+							currentProgramId |= static_cast<ProgramId_t>(inPermuteOptions[j].PermuteIdMask);
+
+							currentProgramIdString += '+';
+
+							programMacroDefines.push_back({ permuteIdString, "1" });
+						}
+						else
+						{
+							currentProgramIdString += "-";
+						}
+
+						currentProgramIdString += permuteIdString;
+						currentProgramIdString += ']';
 					}
 				}
-
-				programMacroDefines.push_back({ nullptr, nullptr }); // Sentinel value needed to determine when we are at end of macro list
+				else
+				{
+					currentProgramIdString += "[NO PERMUTE OPTIONS]";
+				}
+				 
+				 programMacroDefines.push_back({ nullptr, nullptr }); // Sentinel value needed to determine when we are at end of macro list
 
 				for (const auto& currentUsageDescription : inUsageDescriptions)
 				{
+					compiledProgramByteCode.clear();
+					
 					// For the current program ID, we want to create the compiled byte code for the current usage
 					if (graphicsDriver.CompileShaderFromFile(inShaderFilePath, currentUsageDescription.ShaderEntryName, currentUsageDescription.ShaderModelName, compiledProgramByteCode, nullptr, (programMacroDefines.size() > 1) ? programMacroDefines.data() : nullptr))
 					{
 						// Compilation successful
+						eastl::string shaderFilePath = inShaderFilePath;
+
+						shaderFilePath.erase(shaderFilePath.find_last_of('\\'), eastl::string::npos);
+
+						LOG(LogProgramPermutor, Log, "Log: Size of compiled byte code: %d\n", compiledProgramByteCode.size());
+
+						GenerateProgramPermutationFile(shaderFilePath, compiledProgramByteCode, currentUsageDescription, currentProgramId, currentProgramIdString);
+
 						outPermutations[currentProgramId][currentUsageDescription.ShaderEntryName] = eastl::move(compiledProgramByteCode);
 					}
 					else
@@ -123,15 +154,43 @@ namespace MAD
 		}
 	}
 
+	void UProgramPermutor::GenerateProgramPermutationFile(const eastl::string& inOutputFilePath, const eastl::vector<char>& inCompiledByteCode, const SShaderUsageDescription& inTargetUsage, ProgramId_t inTargetProgramID, const eastl::string& inTargetProgramStringDesc)
+	{
+		std::string outputFilePath = inOutputFilePath.c_str();
+
+		outputFilePath += '\\';
+		outputFilePath += std::to_string(inTargetProgramID);
+		outputFilePath += '_';
+		outputFilePath += inTargetProgramStringDesc.c_str();
+		outputFilePath += '_';
+		outputFilePath += inTargetUsage.ShaderEntryName.c_str();
+		outputFilePath += '-';
+		outputFilePath += inTargetUsage.ShaderModelName.c_str();
+		outputFilePath += ".cso";
+
+		 std::ofstream outputProgramFileStream(outputFilePath, std::ios::out | std::ios::binary);
+
+		if (outputProgramFileStream.is_open())
+		{
+			for (auto currentChar : inCompiledByteCode)
+			{
+				outputProgramFileStream << currentChar;
+			}
+
+			 outputProgramFileStream.flush();
+		}
+	}
+
 	UProgramPermutor::EMetaFlagType UProgramPermutor::ConvertStringToFlagType(const eastl::string& inMetaFlagString)
 	{
+		// TODO: Transform input meta flag string to lower case so we can be case insensitive (we probably want this? maybe not)
 		if (inMetaFlagString == "Usage")
 		{
 			return EMetaFlagType::EMetaFlagType_Usage;
 		}
 		else if (inMetaFlagString == "Permute")
 		{
-			return EMetaFlagType::EMetaFlagType_Permute;
+			 return EMetaFlagType::EMetaFlagType_Permute;
 		}
 		else
 		{
@@ -141,7 +200,7 @@ namespace MAD
 	// Parses the entire shader string buffer to match instances of the program meta flag
 	// Format of the shader usage flags: "!!>:(Flag Type, <Values, sep. by comma>)"
 	// Flag Type can be either Usage or Permute
-	void UProgramPermutor::ParseProgramMetaFlags(const std::string& inShaderBufferString, eastl::vector<SShaderMetaFlagInstance>& outMetaFlagInstances)
+	void UProgramPermutor::ParseProgramMetaFlags(const eastl::string& inShaderBufferString, eastl::vector<SShaderMetaFlagInstance>& outMetaFlagInstances)
 	{
 		// Find all occurrences of shader meta flag string
 		size_t currentFindIndex = inShaderBufferString.find(s_shaderMetaFlagString, 0);
