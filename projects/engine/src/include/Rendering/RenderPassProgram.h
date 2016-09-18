@@ -7,8 +7,21 @@
 
 namespace MAD
 {
+	using ProgramId_t = uint64_t;
+
+	enum class EProgramIdMask : ProgramId_t
+	{
+		EProgramIdMask_Diffuse = 1 << 0,
+		EProgramIdMask_Specular = 1 << 1,
+		EProgramIdMask_NormalMap = 1 << 2,
+		EProgramIdMask_Invalid
+	};
+
 	class URenderPassProgram
 	{
+	public:
+		static EProgramIdMask ConvertStringToPIDMask(const char* inMaskString);
+		static const char* ConvertPIDMaskToString(EProgramIdMask inMaskId);
 	public:
 		void SetProgramActive(class UGraphicsDriver& inGraphicsDriver) const;
 	private:

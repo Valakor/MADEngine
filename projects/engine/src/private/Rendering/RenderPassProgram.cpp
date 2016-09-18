@@ -5,6 +5,40 @@
 
 namespace MAD
 {
+	EProgramIdMask URenderPassProgram::ConvertStringToPIDMask(const char* inMaskString)
+	{
+		if (strcmp(inMaskString, "DIFFUSE") == 0)
+		{
+			return EProgramIdMask::EProgramIdMask_Diffuse;
+		}
+		else if (strcmp(inMaskString, "SPECULAR") == 0)
+		{
+			return EProgramIdMask::EProgramIdMask_Specular;
+		}
+		else if (strcmp(inMaskString, "NORMAL_MAP") == 0)
+		{
+			return EProgramIdMask::EProgramIdMask_NormalMap;
+		}
+		else
+		{
+			return EProgramIdMask::EProgramIdMask_Invalid;
+		}
+	}
+
+	const char* URenderPassProgram::ConvertPIDMaskToString(EProgramIdMask inMaskId)
+	{
+		switch (inMaskId)
+		{
+		case EProgramIdMask::EProgramIdMask_Diffuse:
+			return "DIFFUSE";
+		case EProgramIdMask::EProgramIdMask_Specular:
+			return "SPECULAR";
+		case EProgramIdMask::EProgramIdMask_NormalMap:
+			return "NORMAL_MAP";
+		default:
+			return "INVALID";
+		}
+	}
 
 	void URenderPassProgram::SetProgramActive(UGraphicsDriver& inGraphicsDriver) const
 	{
