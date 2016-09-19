@@ -44,7 +44,7 @@ namespace MAD
 
 	enum class ERenderTargetSlot
 	{
-		BackBuffer,
+		BackBuffer = 0,
 		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,
@@ -63,6 +63,17 @@ namespace MAD
 		MAX
 	};
 	DECLARE_SLOT_TO_INTEGRAL(ESamplerSlot)
+
+	enum class EVertexBufferSlot : uint8_t
+	{
+		Position = 0,
+		Normal,
+		UV,
+		Tangent,
+
+		MAX
+	};
+	DECLARE_SLOT_TO_INTEGRAL(EVertexBufferSlot);
 
 #undef DECLARE_SLOT_TO_INTEGRAL
 

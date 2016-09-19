@@ -20,9 +20,5 @@ namespace MAD
 		
 		SVertexShaderId m_vertexShader;
 		SPixelShaderId m_pixelShader;
-
-		// TODO: For now, each program will have an expected input layout and our assets just have to conform to it.
-		// Strong chance that we'll change this in the future
-		SInputLayoutId m_programInputLayout;
 	};
 }

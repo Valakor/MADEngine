@@ -9,40 +9,11 @@
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/Material.h"
 #include "Rendering/SubMesh.h"
+#include "Rendering/VertexArray.h"
 
 namespace MAD
 {
 	using Index_t = uint16_t;
-
-	struct SVertex_Pos
-	{
-		DirectX::SimpleMath::Vector3 P;
-
-		static const int NumInputElements = 1;
-		static const D3D11_INPUT_ELEMENT_DESC InputElements[NumInputElements];
-	};
-	static_assert(sizeof(SVertex_Pos) == 12, "");
-
-	struct SVertex_Pos_Tex
-	{
-		DirectX::SimpleMath::Vector3 P;
-		DirectX::SimpleMath::Vector2 T;
-
-		static const int NumInputElements = 2;
-		static const D3D11_INPUT_ELEMENT_DESC InputElements[NumInputElements];
-	};
-	static_assert(sizeof(SVertex_Pos_Tex) == 20, "");
-
-	struct SVertex_Pos_Norm_Tex
-	{
-		DirectX::SimpleMath::Vector3 P;
-		DirectX::SimpleMath::Vector3 N;
-		DirectX::SimpleMath::Vector2 T;
-
-		static const int NumInputElements = 3;
-		static const D3D11_INPUT_ELEMENT_DESC InputElements[NumInputElements];
-	};
-	static_assert(sizeof(SVertex_Pos_Norm_Tex) == 32, "");
 
 	struct SMeshInstance
 	{
@@ -59,6 +30,7 @@ namespace MAD
 		static SMeshInstance CreatePrimitivePlane();
 
 		void BuildDrawItems(eastl::vector<struct SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const;
+
 	//private:
 		friend class UAssetCache;
 		static eastl::shared_ptr<UMesh> Load(const eastl::string& inPath);
@@ -66,10 +38,17 @@ namespace MAD
 		eastl::vector<SSubMesh> m_subMeshes;
 		eastl::vector<UMaterial> m_materials;
 
-		eastl::vector<SVertex_Pos_Norm_Tex> m_vertexBuffer;
-		eastl::vector<Index_t> m_indexBuffer;
+		SInputLayoutId m_inputLayout;
 
-		SBufferId m_gpuVertexBuffer;
+		eastl::vector<Vector3> m_positions;
+		eastl::vector<Vector3> m_normals;
+		eastl::vector<Vector2> m_texCoords;
+
+		UVertexArray m_gpuPositions;
+		UVertexArray m_gpuNormals;
+		UVertexArray m_gpuTexCoords;
+
+		eastl::vector<Index_t> m_indexBuffer;
 		SBufferId m_gpuIndexBuffer;
 	};
 }

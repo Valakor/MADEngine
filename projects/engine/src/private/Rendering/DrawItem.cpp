@@ -5,14 +5,17 @@
 
 namespace MAD
 {
-	SDrawItem::SDrawItem(): m_vertexSize(0)
-	                      , m_vertexBufferOffset(0)
+	SDrawItem::SDrawItem(): m_vertexBufferOffset(0)
 	                      , m_indexOffset(0)
 	                      , m_indexCount(0) { }
 
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties) const
 	{
-		inGraphicsDriver.SetVertexBuffer(m_vertexBuffer, m_vertexSize, m_vertexBufferOffset);
+		for (const auto& vertexBuffer : m_vertexBuffers)
+		{
+			vertexBuffer.Bind(inGraphicsDriver, m_vertexBufferOffset);
+		}
+
 		inGraphicsDriver.SetIndexBuffer(m_indexBuffer, m_indexOffset);
 
 		if (inBindMaterialProperties)
@@ -34,12 +37,13 @@ namespace MAD
 				}
 			}
 
-			for (const auto& textureData : m_textures)
+			for (const auto& textureData : m_shaderResources)
 			{
 				inGraphicsDriver.SetPixelShaderResource(textureData.second, textureData.first);
 			}
 		}
 
+		inGraphicsDriver.SetInputLayout(m_inputLayout);
 		inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
 	}
 }
