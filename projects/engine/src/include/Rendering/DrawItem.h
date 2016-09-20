@@ -26,5 +26,7 @@ namespace MAD
 		eastl::vector<eastl::pair<ETextureSlot, SShaderResourceId>> m_shaderResources;
 
 		SInputLayoutId m_inputLayout;
+
+		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology;
 	};
 }

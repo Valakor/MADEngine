@@ -71,6 +71,9 @@ namespace MAD
 			// Input layout
 			currentDrawItem.m_inputLayout = m_inputLayout;
 
+			// Topology
+			currentDrawItem.m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
 			// Vertices / indices
 			currentDrawItem.m_vertexBufferOffset = m_subMeshes[i].m_vertexStart;
 			currentDrawItem.m_vertexBuffers.push_back(m_gpuPositions);

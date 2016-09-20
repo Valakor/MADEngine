@@ -7,7 +7,8 @@ namespace MAD
 {
 	SDrawItem::SDrawItem(): m_vertexBufferOffset(0)
 	                      , m_indexOffset(0)
-	                      , m_indexCount(0) { }
+	                      , m_indexCount(0)
+	                      , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED) { }
 
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties) const
 	{
@@ -43,6 +44,7 @@ namespace MAD
 			}
 		}
 
+		inGraphicsDriver.SetPrimitiveTopology(m_primitiveTopology);
 		inGraphicsDriver.SetInputLayout(m_inputLayout);
 		inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
 	}

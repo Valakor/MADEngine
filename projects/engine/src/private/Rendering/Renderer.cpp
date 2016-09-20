@@ -175,8 +175,6 @@ namespace MAD
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
 			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
 		}
-
-		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
 	void URenderer::Draw()
