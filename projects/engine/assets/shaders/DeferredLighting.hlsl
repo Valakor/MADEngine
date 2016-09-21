@@ -44,6 +44,15 @@ float3 DecodeNormal(half2 inEnc)
 	return n;
 }
 
+// Decodes a specular power in the range [0-1] to the
+// range [1-1448.15]. Provides best precision for values in the
+// range [1-256].
+// See: http://www.3dgep.com/forward-plus/#Specular_Buffer
+float DecodeSpecPower(float inEncodedSpecularPower)
+{
+	return exp2(inEncodedSpecularPower * 10.5);
+}
+
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -63,33 +72,46 @@ PS_INPUT VS(uint id : SV_VertexID)
 //--------------------------------------------------------------------------------------
 float4 PS(PS_INPUT input) : SV_Target
 {
+	// { screenX, screenY, 0 }
 	int3 texCoord = int3(input.mPos.xy, 0);
 
-	half2 sampleNormal = g_normalBuffer.Load(texCoord).xy;
+	// Sample all of our buffers
+	float4 sampleDiffuse  = g_diffuseBuffer.Load(texCoord);
 	float4 sampleSpecular = g_specularBuffer.Load(texCoord);
-	float depth = g_depthBuffer.Load(texCoord).r;
+	half2  sampleNormal   = g_normalBuffer.Load(texCoord).xy;
+	float  sampleDepth    = g_depthBuffer.Load(texCoord).r;
 
+	// Rebuild our material properties
+	float3 materialDiffuseColor  = sampleDiffuse.rgb;
+	float3 materialSpecularColor = sampleSpecular.rgb;
+	float  materialSpecularPower = DecodeSpecPower(sampleSpecular.a);
+	float  depth                 = sampleDepth;
+
+	// Calculate our lighting information
+	float3 positionVS = ScreenToView(float4(texCoord.xy, depth, 1.0)).xyz;
 	float3 N = DecodeNormal(sampleNormal);
-	float3 diffuseColor = g_diffuseBuffer.Load(texCoord).rgb;
-	float3 specularColor = sampleSpecular.rgb;
-	float specularPower = exp2(sampleSpecular.a * 10.5f);
-
-	float3 posVS = ScreenToView(float4(texCoord.xy, depth, 1.0f)).xyz;
-
-	// Do lighting!
-	float3 L = normalize(-g_directionalLight.m_lightDirection);
-	float3 V = normalize(-posVS);
+	float3 L = normalize(-g_directionalLight.m_lightDirection.xyz); // We transform this to VS on the CPU
+	float3 V = normalize(-positionVS);
 	float3 R = normalize(reflect(-L, N));
+	float  lightIntensity = g_directionalLight.m_lightIntensity;
+	float3 lightColor = g_directionalLight.m_lightColor;
 
-	float I = g_directionalLight.m_lightIntensity;
+	// Directional Phong shading
+	float3 phong = float3(0.0f, 0.0, 0.0);
 
-	//float NdotL = max(dot(N, L), 0.0f); // Normal Phong
-	float NdotL = pow(dot(N, L) * 0.5f + 0.5f, 2.0f); // Valve half-Lambert
-	float3 diffuse = NdotL * diffuseColor * g_directionalLight.m_lightColor;
+	//float NdotL = pow(NdotL * 0.5 + 0.5, 2.0); // Valve half-Lambert scales to [0, 1]
+	float NdotL = dot(N, L); // Normal Phong
+	if (NdotL > 0)
+	{
+		// Calculate diffuse term
+		float3 diffuse = materialDiffuseColor * lightColor * NdotL;
 
-	float RdotV = max(dot(R, V), 0.0f);
-	float3 specular = pow(RdotV, specularPower) * specularColor;
+		// Calculate specular term
+		float RdotV = max(0.0, dot(R, V));
+		float3 specular = materialSpecularColor * lightColor * pow(RdotV, materialSpecularPower);
 
-	float3 phong = saturate(I * (diffuse + specular));
+		phong = saturate(lightIntensity * (diffuse + specular));
+	}
+
 	return float4(phong, 1.0f);
 }
