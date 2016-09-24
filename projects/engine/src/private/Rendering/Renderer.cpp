@@ -175,8 +175,6 @@ namespace MAD
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
 			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
 		}
-
-		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
 	void URenderer::Draw()
@@ -209,8 +207,6 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[1], ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[2], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[3], ETextureSlot::DepthBuffer);
-
-		g_graphicsDriver.SetVertexBuffer(SBufferId::Invalid, 0, 0);
 		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
@@ -265,7 +261,6 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(target, ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetRasterizerState(m_dirLightingPassDescriptor.m_rasterizerState);
 
-		g_graphicsDriver.SetVertexBuffer(SBufferId::Invalid, 0, 0);
 		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		g_graphicsDriver.Draw(4, 0);
 	}

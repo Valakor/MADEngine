@@ -10,6 +10,7 @@
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/DrawItem.h"
+#include "Rendering/InputLayoutCache.h"
 
 namespace MAD
 {
@@ -23,27 +24,6 @@ namespace MAD
 #else
 #define LOG_IMPORT(Verbosity, Format, ...) (void)0
 #endif
-
-	const D3D11_INPUT_ELEMENT_DESC SVertex_Pos::InputElements[NumInputElements] =
-	{
-		// SemanticName	SemanticIndex	Format							InputSlot	AlignedByteOffset				InputSlotClass					InstanceDataStepRate
-		{ "POSITION",	0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-	};
-
-	const D3D11_INPUT_ELEMENT_DESC SVertex_Pos_Tex::InputElements[NumInputElements] =
-	{
-		// SemanticName	SemanticIndex	Format							InputSlot	AlignedByteOffset				InputSlotClass					InstanceDataStepRate
-		{ "POSITION",	0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-		{ "TEXCOORD",	0,				DXGI_FORMAT_R32G32_FLOAT,		0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-	};
-
-	const D3D11_INPUT_ELEMENT_DESC SVertex_Pos_Norm_Tex::InputElements[NumInputElements] =
-	{
-		// SemanticName	SemanticIndex	Format							InputSlot	AlignedByteOffset				InputSlotClass					InstanceDataStepRate
-		{ "POSITION",	0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-		{ "NORMAL",		0,				DXGI_FORMAT_R32G32B32_FLOAT,	0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-		{ "TEXCOORD",	0,				DXGI_FORMAT_R32G32_FLOAT,		0,			D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-	};
 
 	SMeshInstance UMesh::CreatePrimitivePlane()
 	{
@@ -64,11 +44,13 @@ namespace MAD
 		planeMesh->m_subMeshes[0].m_vertexStart = 0;
 		planeMesh->m_subMeshes[0].m_vertexCount = 4;
 
+		auto& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
+
 		using namespace DirectX::SimpleMath;
-		const SVertex_Pos verts[] = { { Vector3(1.0f, 1.0f, 0.0f) }, { Vector3(-1.0f, 1.0f, 0.0f) }, { Vector3(-1.0f, -1.0f, 0.0f) }, { Vector3(1.0f, -1.0f, 0.0f) } };
+		const Vector3 verts[] = { Vector3(1.0f, 1.0f, 0.0f), Vector3(-1.0f, 1.0f, 0.0f), Vector3(-1.0f, -1.0f, 0.0f), Vector3(1.0f, -1.0f, 0.0f) };
 		const Index_t indices[] = { 0, 1, 2, 2, 3, 0 };
-		planeMesh->m_gpuVertexBuffer = gEngine->GetRenderer().GetGraphicsDriver().CreateVertexBuffer(verts, 4 * sizeof(SVertex_Pos));
-		planeMesh->m_gpuIndexBuffer = gEngine->GetRenderer().GetGraphicsDriver().CreateIndexBuffer(indices, 6 * sizeof(Index_t));
+		planeMesh->m_gpuPositions = UVertexArray(graphicsDriver, EVertexBufferSlot::Position, verts, sizeof(Vector3), 4);
+		planeMesh->m_gpuIndexBuffer = graphicsDriver.CreateIndexBuffer(indices, 6 * sizeof(Index_t));
 
 		retInstance.m_mesh = planeMesh;
 		
@@ -86,10 +68,27 @@ namespace MAD
 			const UMaterial& currentMaterial = m_materials[m_subMeshes[i].m_materialIndex];
 			const SGPUMaterial& currentGPUMaterial = currentMaterial.m_mat;
 
-			currentDrawItem.m_vertexBuffer = m_gpuVertexBuffer;
-			currentDrawItem.m_vertexSize = sizeof(m_vertexBuffer[0]);
-			currentDrawItem.m_indexBuffer = m_gpuIndexBuffer;
+			// Input layout
+			currentDrawItem.m_inputLayout = m_inputLayout;
+
+			// Topology
+			currentDrawItem.m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+			// Vertices / indices
 			currentDrawItem.m_vertexBufferOffset = m_subMeshes[i].m_vertexStart;
+			currentDrawItem.m_vertexBuffers.push_back(m_gpuPositions);
+
+			if (!m_gpuNormals.Empty())
+			{
+				currentDrawItem.m_vertexBuffers.push_back(m_gpuNormals);
+			}
+
+			if (!m_gpuTexCoords.Empty())
+			{
+				currentDrawItem.m_vertexBuffers.push_back(m_gpuTexCoords);
+			}
+
+			currentDrawItem.m_indexBuffer = m_gpuIndexBuffer;
 			currentDrawItem.m_indexOffset = m_subMeshes[i].m_indexStart;
 			currentDrawItem.m_indexCount = m_subMeshes[i].m_indexCount;
 			
@@ -100,17 +99,17 @@ namespace MAD
 			// Textures
 			if (currentGPUMaterial.m_bHasDiffuseTex)
 			{
-				currentDrawItem.m_textures.emplace_back(ETextureSlot::DiffuseMap, currentMaterial.m_diffuseTex.GetTexureResourceId());
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::DiffuseMap, currentMaterial.m_diffuseTex.GetTexureResourceId());
 			}
 
 			if (currentGPUMaterial.m_bHasSpecularTex)
 			{
-				currentDrawItem.m_textures.emplace_back(ETextureSlot::SpecularMap, currentMaterial.m_specularTex.GetTexureResourceId());
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::SpecularMap, currentMaterial.m_specularTex.GetTexureResourceId());
 			}
 
 			if (currentGPUMaterial.m_bHasEmissiveTex)
 			{
-				currentDrawItem.m_textures.emplace_back(ETextureSlot::EmissiveMap, currentMaterial.m_emissiveTex.GetTexureResourceId());
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::EmissiveMap, currentMaterial.m_emissiveTex.GetTexureResourceId());
 			}
 
 			inOutTargetDrawItems.emplace_back(currentDrawItem);
@@ -227,7 +226,8 @@ namespace MAD
 			numVerts += aiMesh->mNumVertices;
 			numIndices += aiMesh->mNumFaces * 3;
 		}
-		mesh->m_vertexBuffer.reserve(numVerts);
+
+		mesh->m_positions.reserve(numVerts);
 		mesh->m_indexBuffer.reserve(numIndices);
 
 		UINT currentVert = 0;
@@ -246,26 +246,20 @@ namespace MAD
 			for (unsigned v = 0; v < aiMesh->mNumVertices; ++v)
 			{
 				auto pos = aiMesh->mVertices[v];
-				auto nor = aiMesh->mNormals[v];
+				mesh->m_positions.emplace_back(pos.x, pos.y, pos.z);
 
-				aiVector3D uvs;
+				if (aiMesh->HasNormals())
+				{
+					auto nor = aiMesh->mNormals[v];
+					nor.Normalize();
+					mesh->m_normals.emplace_back(nor.x, nor.y, nor.z);
+				}
+
 				if (aiMesh->HasTextureCoords(0))
 				{
-					uvs = aiMesh->mTextureCoords[0][v];
+					auto uvs = aiMesh->mTextureCoords[0][v];
+					mesh->m_texCoords.emplace_back(uvs.x, uvs.y);
 				}
-				else
-				{
-					uvs = aiVector3D(0);
-				}
-
-				SVertex_Pos_Norm_Tex vert;
-				vert.P = Vector3(pos.x, pos.y, pos.z);
-				vert.N = Vector3(nor.x, nor.y, nor.z);
-				vert.T = Vector2(uvs.x, uvs.y);
-
-				vert.N.Normalize();
-
-				mesh->m_vertexBuffer.push_back(vert);
 			}
 
 			for (unsigned f = 0; f < aiMesh->mNumFaces; ++f)
@@ -319,13 +313,28 @@ namespace MAD
 		}
 #endif
 
-		auto& renderer = gEngine->GetRenderer();
+		auto& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
+		InputLayoutFlags_t inputLayout = EInputLayoutSemantic::Position;
+		const UINT vertexCount = static_cast<UINT>(mesh->m_positions.size());
 
-		UINT vertexDataSize = static_cast<UINT>(mesh->m_vertexBuffer.size() * sizeof(mesh->m_vertexBuffer[0]));
-		mesh->m_gpuVertexBuffer = renderer.GetGraphicsDriver().CreateVertexBuffer(mesh->m_vertexBuffer.data(), vertexDataSize);
+		mesh->m_gpuPositions = UVertexArray(graphicsDriver, EVertexBufferSlot::Position, mesh->m_positions.data(), sizeof(mesh->m_positions[0]), vertexCount);
+		
+		if (mesh->m_normals.size() > 0)
+		{
+			inputLayout |= EInputLayoutSemantic::Normal;
+			mesh->m_gpuNormals = UVertexArray(graphicsDriver, EVertexBufferSlot::Normal, mesh->m_normals.data(), sizeof(mesh->m_normals[0]), vertexCount);
+		}
+
+		if (mesh->m_texCoords.size() > 0)
+		{
+			inputLayout |= EInputLayoutSemantic::UV;
+			mesh->m_gpuTexCoords = UVertexArray(graphicsDriver, EVertexBufferSlot::UV, mesh->m_texCoords.data(), sizeof(mesh->m_texCoords[0]), vertexCount);
+		}
 
 		UINT indexDataSize = static_cast<UINT>(mesh->m_indexBuffer.size() * sizeof(Index_t));
-		mesh->m_gpuIndexBuffer = renderer.GetGraphicsDriver().CreateIndexBuffer(mesh->m_indexBuffer.data(), indexDataSize);
+		mesh->m_gpuIndexBuffer = graphicsDriver.CreateIndexBuffer(mesh->m_indexBuffer.data(), indexDataSize);
+
+		mesh->m_inputLayout = UInputLayoutCache::GetInputLayout(inputLayout);
 
 		return mesh;
 	}

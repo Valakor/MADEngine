@@ -51,7 +51,6 @@ namespace MAD
 
 	void URenderPassProgram::SetProgramActive(UGraphicsDriver& inGraphicsDriver) const
 	{
-		inGraphicsDriver.SetInputLayout(m_programInputLayout);
 		inGraphicsDriver.SetVertexShader(m_vertexShader);
 		inGraphicsDriver.SetPixelShader(m_pixelShader);
 	}
@@ -66,7 +65,7 @@ namespace MAD
 		eastl::vector<char> compiledPixelShaderByteCode;
 	
 		// Every program MUST always have a valid vertex shader
-		if (!graphicsDevice.CompileShaderFromFile(inPath, "VS", "vs_5_0", compiledVertexShaderByteCode, &newRenderPassProgram->m_programInputLayout))
+		if (!graphicsDevice.CompileShaderFromFile(inPath, "VS", "vs_5_0", compiledVertexShaderByteCode))
 		{
 			return nullptr;
 		}

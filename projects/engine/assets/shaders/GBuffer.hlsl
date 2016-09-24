@@ -33,6 +33,15 @@ half2 EncodeNormal(float3 inVSNormal)
 	return half2(inVSNormal.xy / p + 0.5);
 }
 
+// Encodes a specular power in the range [1-1448.15] to the
+// range [0-1]. Provides best precision for values in the
+// range [1-256].
+// See: http://www.3dgep.com/forward-plus/#Specular_Buffer
+float EncodeSpecPower(float inTrueSpecularPower)
+{
+	return log2(inTrueSpecularPower) / 10.5;
+}
+
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
@@ -52,17 +61,15 @@ PS_INPUT VS(VS_INPUT input)
 //--------------------------------------------------------------------------------------
 PS_OUTPUT PS(PS_INPUT input)
 {
-	PS_OUTPUT output;
+	input.mVSNormal = normalize(input.mVSNormal);
 
 	float3 finalLightAccumulation;
 
-	float3 finalAmbientColor = g_ambientColor.rgb;
+	float3 finalAmbientColor  = g_ambientColor.rgb;
 	float3 finalEmissiveColor = g_material.m_emissiveColor;
-	float3 finalDiffuseColor = g_material.m_diffuseColor;
+	float3 finalDiffuseColor  = g_material.m_diffuseColor;
 	float3 finalSpecularColor = g_material.m_specularColor;
 	float  finalSpecularPower = g_material.m_specularPower;
-
-	input.mVSNormal = normalize(input.mVSNormal);
 
 	if (g_material.m_bHasEmissiveTex)
 	{
@@ -84,10 +91,11 @@ PS_OUTPUT PS(PS_INPUT input)
 	finalAmbientColor *= finalDiffuseColor;
 	finalLightAccumulation = finalAmbientColor + finalEmissiveColor;
 
+	PS_OUTPUT output;
 	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
-	output.m_diffuse = float4(saturate(finalDiffuseColor), 1.0f);
-	output.m_normal = EncodeNormal(input.mVSNormal);
-	output.m_specular = saturate(float4(finalSpecularColor, log2(finalSpecularPower) / 10.5f));
+	output.m_diffuse           = float4(saturate(finalDiffuseColor), 1.0f);
+	output.m_normal            = EncodeNormal(input.mVSNormal);
+	output.m_specular          = float4(saturate(finalSpecularColor), EncodeSpecPower(finalSpecularPower));
 
 	return output;
 }
