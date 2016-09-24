@@ -8,23 +8,21 @@
 
 namespace MAD
 {
-	EProgramIdMask URenderPassProgram::ConvertStringToPIDMask(const char* inMaskString)
+	const eastl::hash_map<eastl::string, EProgramIdMask> URenderPassProgram::s_programIdMaskToStringMap =
 	{
-		if (strcmp(inMaskString, "DIFFUSE") == 0)
+		{ "DIFFUSE", EProgramIdMask::EProgramIdMask_Diffuse },
+		{ "SPECULAR", EProgramIdMask::EProgramIdMask_Specular },
+		{ "EMISSIVE", EProgramIdMask::EProgramIdMask_Emissive },
+		{ "NORMAL_MAP", EProgramIdMask::EProgramIdMask_NormalMap }
+	};
+
+	EProgramIdMask URenderPassProgram::ConvertStringToPIDMask(const eastl::string& inMaskString)
+	{
+		auto pidMaskStringFindIter = URenderPassProgram::s_programIdMaskToStringMap.find(inMaskString);
+
+		if (pidMaskStringFindIter != URenderPassProgram::s_programIdMaskToStringMap.cend())
 		{
-			return EProgramIdMask::EProgramIdMask_Diffuse;
-		}
-		else if (strcmp(inMaskString, "SPECULAR") == 0)
-		{
-			return EProgramIdMask::EProgramIdMask_Specular;
-		}
-		else if (strcmp(inMaskString, "EMISSIVE") == 0)
-		{
-			return EProgramIdMask::EProgramIdMask_Emissive;
-		}
-		else if (strcmp(inMaskString, "NORMAL_MAP") == 0)
-		{
-			return EProgramIdMask::EProgramIdMask_NormalMap;
+			return pidMaskStringFindIter->second;
 		}
 		else
 		{
@@ -32,21 +30,20 @@ namespace MAD
 		}
 	}
 
-	const char* URenderPassProgram::ConvertPIDMaskToString(EProgramIdMask inMaskId)
+	eastl::string URenderPassProgram::ConvertPIDMaskToString(EProgramIdMask inMaskId)
 	{
-		switch (inMaskId)
+		auto pidMaskFindIter = URenderPassProgram::s_programIdMaskToStringMap.cbegin();
+		auto pidMaskFindEndIter = URenderPassProgram::s_programIdMaskToStringMap.cend();
+
+		while (pidMaskFindIter != pidMaskFindEndIter)
 		{
-		case EProgramIdMask::EProgramIdMask_Diffuse:
-			return "DIFFUSE";
-		case EProgramIdMask::EProgramIdMask_Specular:
-			return "SPECULAR";
-		case EProgramIdMask::EProgramIdMask_Emissive:
-			return "EMISSIVE";
-		case EProgramIdMask::EProgramIdMask_NormalMap:
-			return "NORMAL_MAP";
-		default:
-			return "INVALID";
+			if (pidMaskFindIter->second == inMaskId)
+			{
+				return pidMaskFindIter->first;
+			}
 		}
+
+		return "INVALID";
 	}
 
 	void URenderPassProgram::SetProgramActive(UGraphicsDriver& inGraphicsDriver) const

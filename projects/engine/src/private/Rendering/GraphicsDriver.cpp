@@ -352,7 +352,7 @@ namespace MAD
 		return shaderResourceViewId;
 	}
 
-	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode)
+	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines)
 	{
 		HRESULT hr = S_OK;
 

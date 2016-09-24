@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <iterator>
-#include <regex>
+#include <string>
 
 #include <EASTL/algorithm.h>
 #include <EASTL/functional.h>
@@ -18,6 +18,19 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogProgramPermutor);
 
 	const char* UProgramPermutor::s_shaderMetaFlagString = "//=>:(";
+	
+	const eastl::hash_map<eastl::string, EProgramShaderType> UProgramPermutor::s_entryPointToShaderTypeMap =
+	{
+		{ "VS", EProgramShaderType::EProgramShaderType_VS },
+		{ "GS", EProgramShaderType::EProgramShaderType_GS },
+		{ "PS", EProgramShaderType::EProgramShaderType_PS }
+	};
+
+	const eastl::hash_map<eastl::string, UProgramPermutor::EMetaFlagType> UProgramPermutor::s_metaFlagStringToTypeMap =
+	{
+		{ "Usage", UProgramPermutor::EMetaFlagType::EMetaFlagType_Usage },
+		{ "Permute", UProgramPermutor::EMetaFlagType::EMetaFlagType_Permute },
+	};
 
 	void UProgramPermutor::PermuteProgram(const eastl::string& inProgramFilePath, ProgramPermutations_t& outProgramPermutations)
 	{
@@ -25,7 +38,7 @@ namespace MAD
 
 		if (programInputStream.is_open())
 		{
-			 std::string stdProgramStringBuffer;
+			std::string stdProgramStringBuffer;
 			eastl::vector<UProgramPermutor::SShaderMetaFlagInstance>						programMetaFlagInstances;
 			eastl::vector<UProgramPermutor::SShaderUsageDescription>						programUsageDescriptions;
 			eastl::vector<UProgramPermutor::SShaderPermuteDescription>						programPermutationDescriptions;
@@ -49,6 +62,7 @@ namespace MAD
 				{
 				case EMetaFlagType::EMetaFlagType_Usage:
 					LOG(LogProgramPermutor, Log, "Adding meta usage flag with values: %s - %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str(), currentMetaFlagInst.MetaFlagValues[1].c_str());
+
 					programUsageDescriptions.push_back({ currentMetaFlagInst.MetaFlagValues[0], currentMetaFlagInst.MetaFlagValues[1] });
 					break;
 				case EMetaFlagType::EMetaFlagType_Permute:
@@ -99,7 +113,7 @@ namespace MAD
 				{
 					for (size_t j = 0; j < numPermuteOptions; ++j)
 					{
-						const char* permuteIdString = URenderPassProgram::ConvertPIDMaskToString(inPermuteOptions[j].PermuteIdMask);
+						const eastl::string permuteIdString = URenderPassProgram::ConvertPIDMaskToString(inPermuteOptions[j].PermuteIdMask);
 
 						currentProgramIdString += '[';
 
@@ -109,7 +123,7 @@ namespace MAD
 
 							currentProgramIdString += '+';
 
-							programMacroDefines.push_back({ permuteIdString, "1" });
+							programMacroDefines.push_back({ permuteIdString.c_str(), "1" });
 						}
 						else
 						{
@@ -132,7 +146,7 @@ namespace MAD
 					compiledProgramByteCode.clear();
 					
 					// For the current program ID, we want to create the compiled byte code for the current usage
-					if (graphicsDriver.CompileShaderFromFile(inShaderFilePath, currentUsageDescription.ShaderEntryName, currentUsageDescription.ShaderModelName, compiledProgramByteCode, nullptr, (programMacroDefines.size() > 1) ? programMacroDefines.data() : nullptr))
+					if (graphicsDriver.CompileShaderFromFile(inShaderFilePath, currentUsageDescription.ShaderEntryName, currentUsageDescription.ShaderModelName, compiledProgramByteCode, (programMacroDefines.size() > 1) ? programMacroDefines.data() : nullptr))
 					{
 						// Compilation successful
 						eastl::string shaderFilePath = inShaderFilePath;
@@ -143,7 +157,18 @@ namespace MAD
 
 						GenerateProgramPermutationFile(shaderFilePath, compiledProgramByteCode, currentUsageDescription, currentProgramId, currentProgramIdString);
 
-						outPermutations[currentProgramId][currentUsageDescription.ShaderEntryName] = eastl::move(compiledProgramByteCode);
+						// To limit EProgramShaderType to string conversions, we convert at the very last moment
+						// Draw back, we potentially do more than we should to find out its invalid at the end, but that's since this will be a pre-build step eventually
+						auto shaderTypeFindIter = UProgramPermutor::s_entryPointToShaderTypeMap.find(currentUsageDescription.ShaderEntryName);
+
+						if (shaderTypeFindIter != UProgramPermutor::s_entryPointToShaderTypeMap.cend())
+						{
+							outPermutations[currentProgramId][shaderTypeFindIter->second] = eastl::move(compiledProgramByteCode);
+						}
+						else
+						{
+							LOG(LogProgramPermutor, Error, "Error: Invalid or unsupported shader usage meta flag (%s, %s)\n", currentUsageDescription.ShaderEntryName, currentUsageDescription.ShaderModelName);
+						}
 					}
 					else
 					{
@@ -181,22 +206,42 @@ namespace MAD
 		}
 	}
 
+	// Utility functions to convert between meta flag type and string
+
 	UProgramPermutor::EMetaFlagType UProgramPermutor::ConvertStringToFlagType(const eastl::string& inMetaFlagString)
 	{
 		// TODO: Transform input meta flag string to lower case so we can be case insensitive (we probably want this? maybe not)
-		if (inMetaFlagString == "Usage")
+		auto metaFlagFindIter = UProgramPermutor::s_metaFlagStringToTypeMap.find(inMetaFlagString);
+		
+		if (metaFlagFindIter != UProgramPermutor::s_metaFlagStringToTypeMap.cend())
 		{
-			return EMetaFlagType::EMetaFlagType_Usage;
-		}
-		else if (inMetaFlagString == "Permute")
-		{
-			 return EMetaFlagType::EMetaFlagType_Permute;
+			return metaFlagFindIter->second;
 		}
 		else
 		{
 			return EMetaFlagType::EMetaFlagType_Invalid;
 		}
 	}
+
+
+	eastl::string UProgramPermutor::ConvertFlagTypeToString(EMetaFlagType inMetaFlagType)
+	{
+		auto metaFlagFindIter = UProgramPermutor::s_metaFlagStringToTypeMap.cbegin();
+		auto metaFlagEndIter = UProgramPermutor::s_metaFlagStringToTypeMap.cend();
+
+		while (metaFlagFindIter != metaFlagEndIter)
+		{
+			if (metaFlagFindIter->second == inMetaFlagType)
+			{
+				return metaFlagFindIter->first;
+			}
+
+			++metaFlagFindIter;
+		}
+
+		return "Invalid";
+	}
+
 	// Parses the entire shader string buffer to match instances of the program meta flag
 	// Format of the shader usage flags: "!!>:(Flag Type, <Values, sep. by comma>)"
 	// Flag Type can be either Usage or Permute
