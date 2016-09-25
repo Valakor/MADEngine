@@ -1,5 +1,8 @@
 #include "Common.hlsl"
 
+//=>:(Usage, VS, vs_5_0)
+//=>:(Usage, PS, ps_5_0)
+
 // Input structs for vertex and pixel shader
 struct PS_INPUT
 {

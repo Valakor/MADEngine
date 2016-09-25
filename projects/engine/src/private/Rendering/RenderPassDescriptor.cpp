@@ -18,7 +18,5 @@ namespace MAD
 		inGraphicsDriver.SetBlendState(m_blendState);
 
 		inGraphicsDriver.SetRasterizerState(m_rasterizerState);
-
-		m_renderPassProgram->SetProgramActive(inGraphicsDriver);
 	}
 }

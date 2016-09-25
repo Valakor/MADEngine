@@ -38,7 +38,9 @@ namespace MAD
 		auto clientSize = inWindow.GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
 
-		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
+		//InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
+		InitializeGBufferPass("engine\\shaders\\GBufferPerm.hlsl");
+
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
@@ -69,7 +71,9 @@ namespace MAD
 
 		g_graphicsDriver.OnScreenSizeChanged();
 
-		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
+		//InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
+		InitializeGBufferPass("engine\\shaders\\GBufferPerm.hlsl");
+
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 
 		auto clientSize = m_window->GetClientSize();
@@ -192,6 +196,9 @@ namespace MAD
 		// Go through each draw item and bind input assembly data
 		for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
 		{
+			// Before processing the draw item, we need to determine which program it should use and apply that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, currentDrawItem.DetermineProgramId());
+
 			// Each individual DrawItem should issue it's own draw call
 			currentDrawItem.Draw(g_graphicsDriver, true);
 		}
@@ -203,6 +210,8 @@ namespace MAD
 		}
 
 		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
+
+		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[0], ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[1], ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[2], ETextureSlot::SpecularBuffer);
@@ -236,7 +245,8 @@ namespace MAD
 
 		auto backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
 		g_graphicsDriver.SetRenderTargets(&backBuffer, 1, nullptr);
-		copyTextureProgram->SetProgramActive(g_graphicsDriver);
+		copyTextureProgram->SetProgramActive(g_graphicsDriver, 0);
+		//copyTextureProgram->SetProgramActive(g_graphicsDriver);
 
 		switch(m_visualizeOption)
 		{

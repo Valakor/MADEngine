@@ -14,7 +14,6 @@
 // TESTING
 #include "Core/Character.h"
 #include "Rendering/Mesh.h"
-#include "Misc/ProgramPermutor.h"
 
 using eastl::string;
 
@@ -109,9 +108,6 @@ namespace MAD
 		// Create the GameInstance
 		mGameInstance = eastl::make_shared<UGameInstance>();
 		mGameInstance->OnStartup();
-
-		ProgramPermutations_t programPermutations;
-		UProgramPermutor::PermuteProgram(UGameWindow::GetWorkingDirectory() + "\\assets\\engine\\shaders\\GBufferPerm.hlsl", programPermutations);
 
 		LOG(LogGameEngine, Log, "Engine initialization successful\n");
 		return true;

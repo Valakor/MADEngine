@@ -1,6 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (c) Electronic Arts Inc. All rights reserved.
 ///////////////////////////////////////////////////////////////////////////////
+#pragma warning(push)
+#pragma warning(disable: 4100)
 
 #ifndef EASTL_TUPLE_H
 #define EASTL_TUPLE_H
@@ -807,3 +809,4 @@ inline typename Internal::TupleCat<Tuples...>::ResultType tuple_cat(Tuples&&... 
 #endif  // EASTL_TUPLE_ENABLED
 
 #endif  // EASTL_TUPLE_H
+#pragma warning(pop)
