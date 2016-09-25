@@ -18,7 +18,7 @@ namespace MAD
 
 #define DO_LOG 0
 
-#if DO_LOG == 1
+#if defined(DO_LOG) && DO_LOG > 0
 #define LOG_ENABLED
 #define LOG_IMPORT(Verbosity, Format, ...) LOG(LogMeshImport, Verbosity, Format, __VA_ARGS__)
 #else
@@ -120,13 +120,16 @@ namespace MAD
 	{
 		Assimp::Importer importer;
 		importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
-		importer.SetPropertyInteger(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80);
+		importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS);
+		importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80.0f);
 
 		const aiScene* scene = importer.ReadFile(inFilePath.c_str(),
 												 aiProcess_ConvertToLeftHanded |
 												 aiProcessPreset_TargetRealtime_MaxQuality);
 
 		auto path = inFilePath.substr(0, inFilePath.find_last_of('\\') + 1);
+		auto ext  = inFilePath.substr(inFilePath.find_last_of('.') + 1);
+		ext.make_lower();
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE)
 		{
@@ -181,6 +184,12 @@ namespace MAD
 
 				float specular_power = 0.0f;
 				aiMaterial->Get(AI_MATKEY_SHININESS, specular_power);
+				if (ext == "obj")
+				{
+					// Assimp arbitrarily multiplies the specular power in .obj files by 4.0...
+					specular_power /= 4.0f;
+				}
+
 				LOG_IMPORT(Log, "\tSpecular power = %f\n", specular_power);
 				madMaterial.m_mat.m_specularPower = specular_power;
 
@@ -291,27 +300,6 @@ namespace MAD
 			currentVert += madSubMesh.m_vertexCount;
 			currentIndex += madSubMesh.m_indexCount;
 		}
-
-#ifdef LOG_ENABLED
-		LOG_IMPORT(Log, "Mesh Verts:\n");
-		for (unsigned i = 0; i < mesh->m_vertexBuffer.size(); ++i)
-		{
-			auto& v = mesh->m_vertexBuffer[i];
-			LOG_IMPORT(Log, "    %2i: P { %0.2f, %0.2f, %0.2f }\n", i, v.P.x, v.P.y, v.P.z);
-			LOG_IMPORT(Log, "        N { %0.2f, %0.2f, %0.2f }\n", i, v.N.x, v.N.y, v.N.z);
-			LOG_IMPORT(Log, "        T { %0.2f, %0.2f }\n", i, v.T.x, v.T.y);
-		}
-
-		LOG_IMPORT(Log, "Mesh Faces:\n");
-		for (unsigned i = 0; i < mesh->m_indexBuffer.size(); i += 3)
-		{
-			auto i0 = mesh->m_indexBuffer[i];
-			auto i1 = mesh->m_indexBuffer[i + 1];
-			auto i2 = mesh->m_indexBuffer[i + 2];
-
-			LOG_IMPORT(Log, "    %2i: { %2i, %2i, %2i }\n", i / 3, i0, i1, i2);
-		}
-#endif
 
 		auto& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
 		InputLayoutFlags_t inputLayout = EInputLayoutSemantic::Position;
