@@ -33,6 +33,7 @@ namespace MAD
 		EmissiveMap,
 
 		// ------------- Defined by renderer -------------------
+		LightingBuffer,
 		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,
@@ -44,7 +45,7 @@ namespace MAD
 
 	enum class ERenderTargetSlot
 	{
-		BackBuffer = 0,
+		LightingBuffer = 0,
 		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,

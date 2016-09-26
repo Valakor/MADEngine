@@ -71,7 +71,6 @@ namespace MAD
 
 		// Constant configuration
 		const UINT g_swapChainBufferCount = 3;
-		const DXGI_FORMAT g_swapChainFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		// Graphics driver object stores
 #define DECLARE_OBJECT_STORE(IdType, D3DType, storeName) eastl::hash_map<IdType, ComPtr<D3DType>> storeName;
@@ -141,7 +140,7 @@ namespace MAD
 			MEM_ZERO(scd);
 			scd.Width = 0;
 			scd.Height = 0;
-			scd.Format = g_swapChainFormat;
+			scd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			scd.Stereo = FALSE;
 			scd.SampleDesc.Count = 1;
 			scd.SampleDesc.Quality = 0;
@@ -190,7 +189,13 @@ namespace MAD
 
 		ComPtr<ID3D11RenderTargetView>& backBufferRTV = g_renderTargetStore[m_backBuffer];
 
-		hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, backBufferRTV.GetAddressOf());
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetDesc;
+		MEM_ZERO(renderTargetDesc);
+		renderTargetDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		renderTargetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetDesc.Texture2D.MipSlice = 0;
+
+		hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), &renderTargetDesc, backBufferRTV.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed to create render target view from back buffer");
 	}
 
@@ -313,7 +318,33 @@ namespace MAD
 		}
 		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tiff")
 		{
-			hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			//hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
+
+			/*	HRESULT __cdecl CreateWICTextureFromFileEx(
+					_In_ ID3D11Device* d3dDevice,
+					_In_z_ const wchar_t* szFileName,
+					_In_ size_t maxsize,
+					_In_ D3D11_USAGE usage,
+					_In_ unsigned int bindFlags,
+					_In_ unsigned int cpuAccessFlags,
+					_In_ unsigned int miscFlags,
+					_In_ bool forceSRGB,
+					_Outptr_opt_ ID3D11Resource** texture,
+					_Outptr_opt_ ID3D11ShaderResourceView** textureView);*/
+
+			/*	HRESULT __cdecl CreateWICTextureFromFileEx(
+					_In_ ID3D11Device* d3dDevice,
+					_In_opt_ ID3D11DeviceContext* d3dContext,
+					_In_z_ const wchar_t* szFileName,
+					_In_ size_t maxsize,
+					_In_ D3D11_USAGE usage,
+					_In_ unsigned int bindFlags,
+					_In_ unsigned int cpuAccessFlags,
+					_In_ unsigned int miscFlags,
+					_In_ bool forceSRGB,
+					_Outptr_opt_ ID3D11Resource** texture,
+					_Outptr_opt_ ID3D11ShaderResourceView** textureView);*/
 		}
 		else
 		{

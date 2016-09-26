@@ -92,7 +92,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 N = DecodeNormal(sampleNormal);
 	float3 L = normalize(-g_directionalLight.m_lightDirection.xyz); // We transform this to VS on the CPU
 	float3 V = normalize(-positionVS);
-	float3 R = normalize(reflect(-L, N));
+	float3 H = normalize(L + V);
 	float  lightIntensity = g_directionalLight.m_lightIntensity;
 	float3 lightColor = g_directionalLight.m_lightColor;
 
@@ -107,10 +107,10 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 diffuse = materialDiffuseColor * lightColor * NdotL;
 
 		// Calculate specular term
-		float RdotV = max(0.0, dot(R, V));
-		float3 specular = materialSpecularColor * lightColor * pow(RdotV, materialSpecularPower);
+		float NdotH = max(0.0, dot(N, H)); // Blinn-Phong
+		float3 specular = materialSpecularColor * lightColor * pow(NdotH, materialSpecularPower);
 
-		phong = saturate(lightIntensity * (diffuse + specular));
+		phong = lightIntensity * (diffuse + specular);
 	}
 
 	return float4(phong, 1.0f);

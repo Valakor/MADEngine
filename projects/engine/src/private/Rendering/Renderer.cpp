@@ -74,6 +74,8 @@ namespace MAD
 
 		auto clientSize = m_window->GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
+
+		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
 	}
 
 	void URenderer::Frame(float framePercent)
@@ -90,7 +92,8 @@ namespace MAD
 		// G-Buffer textures will be the same size as the screen
 		auto clientSize = m_window->GetClientSize();
 
-		m_gBufferShaderResources.resize(4);
+		m_gBufferShaderResources.resize(AsIntegral(ETextureSlot::MAX) - AsIntegral(ETextureSlot::LightingBuffer));
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::LightingBuffer);
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::SpecularBuffer);
@@ -101,26 +104,28 @@ namespace MAD
 		}
 
 		g_graphicsDriver.DestroyDepthStencil(m_gBufferPassDescriptor.m_depthStencilView);
-		SShaderResourceId& depthBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::DiffuseBuffer)];
+		SShaderResourceId& depthBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 		m_gBufferPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(clientSize.x, clientSize.y, &depthBufferSRV);
 		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
 
-		for (unsigned i = 1; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
+		for (unsigned i = 0; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
 		{
 			g_graphicsDriver.DestroyRenderTarget(m_gBufferPassDescriptor.m_renderTargets[i]);
 		}
 		
-		SShaderResourceId& diffuseBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::DiffuseBuffer)];
-		SShaderResourceId& normalBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::DiffuseBuffer)];
-		SShaderResourceId& specularBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::DiffuseBuffer)];
+		SShaderResourceId& lightBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		SShaderResourceId& diffuseBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		SShaderResourceId& normalBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		SShaderResourceId& specularBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 
 		m_gBufferPassDescriptor.m_renderTargets.resize(AsIntegral(ERenderTargetSlot::MAX));
-		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::BackBuffer)] = g_graphicsDriver.GetBackBufferRenderTarget();
+		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16B16A16_FLOAT, &lightBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::DiffuseBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM, &diffuseBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16_UNORM, &normalBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM, &specularBufferSRV);
 #ifdef _DEBUG
-		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::BackBuffer)], "Light Accumulation Buffer");
+		g_graphicsDriver.SetDebugName_RenderTarget(g_graphicsDriver.GetBackBufferRenderTarget(), "Back Buffer");
+		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)], "Light Accumulation Buffer");
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::DiffuseBuffer)], "Diffuse Buffer");
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)], "Normal Buffer");
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)], "Specular Buffer");
@@ -138,7 +143,7 @@ namespace MAD
 		m_dirLightingPassDescriptor.m_depthStencilView = SDepthStencilId::Invalid;
 		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
 
-		m_dirLightingPassDescriptor.m_renderTargets.push_back(g_graphicsDriver.GetBackBufferRenderTarget());
+		m_dirLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
 		m_dirLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
 
@@ -167,11 +172,14 @@ namespace MAD
 
 	void URenderer::BeginFrame()
 	{
-		g_graphicsDriver.ClearBackBuffer(m_clearColor);
+		static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		//g_graphicsDriver.ClearBackBuffer(zero);
 		g_graphicsDriver.ClearDepthStencil(m_gBufferPassDescriptor.m_depthStencilView, true, 1.0f);
+
+		g_graphicsDriver.ClearRenderTarget(m_gBufferPassDescriptor.m_renderTargets[0], m_clearColor);
 		for (unsigned i = 1; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
 		{
-			static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
 			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
 		}
@@ -182,6 +190,7 @@ namespace MAD
 		// Bind per-frame constants
 		BindPerFrameConstants();
 
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::LightingBuffer);
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::SpecularBuffer);
@@ -202,11 +211,12 @@ namespace MAD
 			return;
 		}
 
+		// Do directional lighting
 		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
-		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[0], ETextureSlot::DiffuseBuffer);
-		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[1], ETextureSlot::NormalBuffer);
-		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[2], ETextureSlot::SpecularBuffer);
-		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[3], ETextureSlot::DepthBuffer);
+		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DiffuseBuffer);
+		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::NormalBuffer);
+		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
+		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DepthBuffer);
 		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
@@ -218,6 +228,24 @@ namespace MAD
 
 	void URenderer::EndFrame()
 	{
+		static bool loadedBackBufferProgram = false;
+		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
+		if (!loadedBackBufferProgram)
+		{
+			backBufferProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\BackBufferFinalize.hlsl");
+			loadedBackBufferProgram = true;
+		}
+
+		// Copy the finalized linear lighting buffer to the back buffer
+		// This (will) perform HDR and already performs gamma correction
+		g_graphicsDriver.SetRenderTargets(&m_backBuffer, 1, nullptr);
+		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::LightingBuffer);
+		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_graphicsDriver.SetRasterizerState(m_dirLightingPassDescriptor.m_rasterizerState);
+		g_graphicsDriver.SetBlendState(SBlendStateId::Invalid);
+		backBufferProgram->SetProgramActive(g_graphicsDriver);
+		g_graphicsDriver.Draw(4, 0);
+
 		g_graphicsDriver.Present();
 	}
 
@@ -234,29 +262,29 @@ namespace MAD
 
 		SShaderResourceId target;
 
-		auto backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
-		g_graphicsDriver.SetRenderTargets(&backBuffer, 1, nullptr);
-		copyTextureProgram->SetProgramActive(g_graphicsDriver);
-
 		switch(m_visualizeOption)
 		{
 		case EVisualizeOptions::LightAccumulation:
 			// Already in the back buffer, so just return
 			return;
 		case EVisualizeOptions::Diffuse:
-			target = m_gBufferShaderResources[0];
-			break;
-		case EVisualizeOptions::Specular:
-			target = m_gBufferShaderResources[2];
-			break;
-		case EVisualizeOptions::Normals:
 			target = m_gBufferShaderResources[1];
 			break;
-		case EVisualizeOptions::Depth:
+		case EVisualizeOptions::Specular:
 			target = m_gBufferShaderResources[3];
+			break;
+		case EVisualizeOptions::Normals:
+			target = m_gBufferShaderResources[2];
+			break;
+		case EVisualizeOptions::Depth:
+			target = m_gBufferShaderResources[4];
 			break;
 		default: return;
 		}
+
+		auto& renderTarget = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
+		g_graphicsDriver.SetRenderTargets(&renderTarget, 1, nullptr);
+		copyTextureProgram->SetProgramActive(g_graphicsDriver);
 
 		g_graphicsDriver.SetPixelShaderResource(target, ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetRasterizerState(m_dirLightingPassDescriptor.m_rasterizerState);
@@ -283,15 +311,25 @@ namespace MAD
 		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
 	}
 
-	void URenderer::SetWorldAmbientColor(DirectX::SimpleMath::Color inColor)
+	void URenderer::SetWorldAmbientColor(Color inColor)
 	{
-		m_perSceneConstants.m_ambientColor = inColor;
+		// Convet from sRGB space to linear color space.
+		// This is then converted back to sRGB space when rendering to the back buffer
+		// and then back to linear by the monitor...
+		m_perSceneConstants.m_ambientColor.x = powf(inColor.x, 2.2f);
+		m_perSceneConstants.m_ambientColor.y = powf(inColor.y, 2.2f);
+		m_perSceneConstants.m_ambientColor.z = powf(inColor.z, 2.2f);
+		m_perSceneConstants.m_ambientColor.w = 1.0f;
+
 		g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerScene, &m_perSceneConstants, sizeof(m_perSceneConstants));
 	}
 
-	void URenderer::SetBackBufferClearColor(DirectX::SimpleMath::Color inColor)
+	void URenderer::SetBackBufferClearColor(Color inColor)
 	{
-		m_clearColor = inColor;
+		m_clearColor.x = powf(inColor.x, 2.2f);
+		m_clearColor.y = powf(inColor.y, 2.2f);
+		m_clearColor.z = powf(inColor.z, 2.2f);
+		m_clearColor.w = 1.0f;
 	}
 
 	class UGraphicsDriver& URenderer::GetGraphicsDriver()
