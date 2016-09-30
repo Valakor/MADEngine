@@ -3,6 +3,7 @@
 #include "Rendering/CameraInstance.h"
 
 #include "Core/GameWindow.h"
+#include "Misc/ProgramPermutor.h"
 #include "Misc/AssetCache.h"
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
@@ -38,8 +39,7 @@ namespace MAD
 		auto clientSize = inWindow.GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
 
-		//InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-		InitializeGBufferPass("engine\\shaders\\GBufferPerm.hlsl");
+		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 
@@ -71,8 +71,7 @@ namespace MAD
 
 		g_graphicsDriver.OnScreenSizeChanged();
 
-		//InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-		InitializeGBufferPass("engine\\shaders\\GBufferPerm.hlsl");
+		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 
@@ -196,8 +195,8 @@ namespace MAD
 		// Go through each draw item and bind input assembly data
 		for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
 		{
-			// Before processing the draw item, we need to determine which program it should use and apply that
-			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, currentDrawItem.DetermineProgramId());
+			// Before processing the draw item, we need to determine which program it should use and bind that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem));
 
 			// Each individual DrawItem should issue it's own draw call
 			currentDrawItem.Draw(g_graphicsDriver, true);
@@ -233,7 +232,7 @@ namespace MAD
 	void URenderer::DoVisualizeGBuffer()
 	{
 		static bool loadedCopyTextureProgram = false;
-		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
+		 static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
 
 		if (!loadedCopyTextureProgram)
 		{
@@ -246,7 +245,6 @@ namespace MAD
 		auto backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
 		g_graphicsDriver.SetRenderTargets(&backBuffer, 1, nullptr);
 		copyTextureProgram->SetProgramActive(g_graphicsDriver, 0);
-		//copyTextureProgram->SetProgramActive(g_graphicsDriver);
 
 		switch(m_visualizeOption)
 		{
@@ -273,6 +271,29 @@ namespace MAD
 
 		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		g_graphicsDriver.Draw(4, 0);
+	}
+
+	ProgramId_t URenderer::DetermineProgramId(const SDrawItem& inTargetDrawItem) const
+	{
+		ProgramId_t outputProgramId = 0;
+
+		for (const auto& currentTextureSlot : inTargetDrawItem.m_shaderResources)
+		{
+			switch (currentTextureSlot.first)
+			{
+			case ETextureSlot::DiffuseMap: // Do you have a diffuse map?
+				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Diffuse);
+				break;
+			case ETextureSlot::SpecularMap: // Do you have a specular map?
+				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Specular);
+				break;
+			case ETextureSlot::EmissiveMap: // Do you have a emissive map?
+				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Emissive);
+				break;
+			}
+		}
+
+		return outputProgramId;
 	}
 
 	SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const

@@ -168,14 +168,13 @@ namespace MAD
 							switch (usageShaderType)
 							{
 							case EProgramShaderType::EProgramShaderType_VS:
-								GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(currentProgramIDTuple) = graphicsDriver.CreateVertexShader(compiledProgramByteCode);
-								//eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(EProgramShaderType::EProgramShaderType_VS)>(currentProgramIDTuple) = graphicsDriver.CreateVertexShader(compiledProgramByteCode);
+								SetIdToShaderTuple<EProgramShaderType::EProgramShaderType_VS>(currentProgramIDTuple, graphicsDriver.CreateVertexShader(compiledProgramByteCode));
 								break;
 							case EProgramShaderType::EProgramShaderType_GS:
-								eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(EProgramShaderType::EProgramShaderType_GS)>(currentProgramIDTuple) /* = graphicsDriver.CreateGeomtryShader(....) When the time comes*/;
+								//SetIdToShaderTuple<EProgramShaderType::EProgramShaderType_GS>(currentProgramIDTuple, /* create geometry shader here eventually */
 								break;
 							case EProgramShaderType::EProgramShaderType_PS:
-								eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(EProgramShaderType::EProgramShaderType_PS)>(currentProgramIDTuple) = graphicsDriver.CreatePixelShader(compiledProgramByteCode);
+								SetIdToShaderTuple<EProgramShaderType::EProgramShaderType_PS>(currentProgramIDTuple, graphicsDriver.CreatePixelShader(compiledProgramByteCode));
 								break;
 							}
 

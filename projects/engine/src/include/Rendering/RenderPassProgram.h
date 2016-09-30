@@ -27,7 +27,10 @@ namespace MAD
 
 	// Utility template getter function for shader tuple
 	template <EProgramShaderType ShaderType>
-	auto GetIdFromShaderTuple(ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple));
+	auto GetIdFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple));
+
+	template <EProgramShaderType ShaderType, typename ShaderIdType>
+	void SetIdToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId);
 
 	class URenderPassProgram
 	{
@@ -35,8 +38,7 @@ namespace MAD
 		static const eastl::string& ConvertShaderTypeToString(EProgramShaderType inShaderType);
 		static EProgramShaderType ConvertStringToShaderType(const eastl::string& inShaderTypeString);
 	public:
-		void SetProgramActive(class UGraphicsDriver& inGraphicsDriver) const;
-		bool SetProgramActive(class UGraphicsDriver& inGraphicsDriver, ProgramId_t inTargetProgramId);
+		bool SetProgramActive(class UGraphicsDriver& inGraphicsDriver, ProgramId_t inTargetProgramId) const;
 	private:
 		friend class UAssetCache;
 		static eastl::shared_ptr<URenderPassProgram> Load(const eastl::string& inPath);
@@ -45,16 +47,18 @@ namespace MAD
 	private:
 		// For now, we're only going to use a program with (potentially) only a vertex shader and pixel shader
 		// Will probably support an additional geometry shader
-		
-		SVertexShaderId m_vertexShader;
-		SPixelShaderId m_pixelShader;
-
 		ProgramPermutations_t m_programPermutations;
 	};
 
 	template <EProgramShaderType ShaderType>
-	auto GetIdFromShaderTuple(ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple))
+	auto GetIdFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple))
 	{
 		return eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple);
+	}
+
+	template <EProgramShaderType ShaderType, typename ShaderIdType>
+	void SetIdToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId)
+	{
+		eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple) = inShaderId;
 	}
 }

@@ -49,28 +49,4 @@ namespace MAD
 		inGraphicsDriver.SetInputLayout(m_inputLayout);
 		inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
 	}
-
-	ProgramId_t SDrawItem::DetermineProgramId() const
-	{
-		ProgramId_t outputProgramId = 0;
-
-		for (const auto& currentTextureSlot : m_shaderResources)
-		{
-			switch (currentTextureSlot.first)
-			{
-			case ETextureSlot::DiffuseMap: // Do you have a diffuse map?
-				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Diffuse);
-				break;
-			case ETextureSlot::SpecularMap: // Do you have a specular map?
-				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Specular);
-				break;
-			case ETextureSlot::EmissiveMap: // Do you have a emissive map?
-				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Emissive);
-				break;
-			}
-		}
-
-		return outputProgramId;
-	}
-
 }

@@ -15,7 +15,6 @@ namespace MAD
 		SDrawItem();
 
 		void Draw(class UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties) const;
-		ProgramId_t DetermineProgramId() const;
 
 		eastl::vector<UVertexArray> m_vertexBuffers;
 		UINT m_vertexBufferOffset;

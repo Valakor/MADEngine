@@ -17,19 +17,10 @@ namespace MAD
 		{ "PS", EProgramShaderType::EProgramShaderType_PS }
 	};
 
-	void URenderPassProgram::SetProgramActive(UGraphicsDriver& inGraphicsDriver) const
-	{
-		inGraphicsDriver.SetVertexShader(m_vertexShader);
-		inGraphicsDriver.SetPixelShader(m_pixelShader);
-	}
-
 	// Uses the requested program ID to bind the correct shaders of the program to the pipeline
 	// Returns whether or not the program stores a valid shader entry for the requested target program ID
-	bool URenderPassProgram::SetProgramActive(class UGraphicsDriver& inGraphicsDriver, ProgramId_t inTargetProgramId)
+	bool URenderPassProgram::SetProgramActive(class UGraphicsDriver& inGraphicsDriver, ProgramId_t inTargetProgramId) const
 	{
-		// Before doing anything, we need to reset the shaders that were previously bound so that we aren't getting leakage from previous draw calls
-		
-
 		auto programSetFindIter = m_programPermutations.find(inTargetProgramId);
 
 		if (programSetFindIter != m_programPermutations.cend())
@@ -38,10 +29,10 @@ namespace MAD
 			// Reason why permutation doesn't produce the shader IDs is because that is an engine level construct. If we ever move towards
 			// making shader permutation generation a pre-build operation, the transition will be much smoother if the output of on-the-fly generation
 			// and pre-build generation produces the same result
-			ProgramShaderTuple_t& programShaderTuple = programSetFindIter->second;
+			const ProgramShaderTuple_t& programShaderTuple = programSetFindIter->second;
 			
 			// Vertex Shader
-			SVertexShaderId& vertexShaderId = GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(programShaderTuple);
+			const SVertexShaderId& vertexShaderId = GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(programShaderTuple);
 			if (vertexShaderId.IsValid())
 			{
 				inGraphicsDriver.SetVertexShader(vertexShaderId);
@@ -50,7 +41,7 @@ namespace MAD
 			// Geometry Shader (in the future, do similar for geometry shader when we are using geometry shaders)
 			
 			// Pixel Shader
-			SPixelShaderId& pixelShaderId = GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple);
+			const SPixelShaderId& pixelShaderId = GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple);
 			if (pixelShaderId.IsValid())
 			{
 				inGraphicsDriver.SetPixelShader(pixelShaderId);
