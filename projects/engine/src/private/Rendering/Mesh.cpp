@@ -97,19 +97,23 @@ namespace MAD
 			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerMaterial, { &currentGPUMaterial, static_cast<UINT>(sizeof(SGPUMaterial)) } });
 
 			// Textures
-			if (currentGPUMaterial.m_bHasDiffuseTex)
+			const SShaderResourceId& diffuseTextureResource = currentMaterial.m_diffuseTex.GetTexureResourceId();
+			const SShaderResourceId& specularTextureResource = currentMaterial.m_specularTex.GetTexureResourceId();
+			const SShaderResourceId& emissiveTextureResource = currentMaterial.m_emissiveTex.GetTexureResourceId();
+
+			if (diffuseTextureResource.IsValid())
 			{
-				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::DiffuseMap, currentMaterial.m_diffuseTex.GetTexureResourceId());
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::DiffuseMap, diffuseTextureResource);
 			}
 
-			if (currentGPUMaterial.m_bHasSpecularTex)
+			if (specularTextureResource.IsValid())
 			{
-				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::SpecularMap, currentMaterial.m_specularTex.GetTexureResourceId());
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::SpecularMap, specularTextureResource);
 			}
 
-			if (currentGPUMaterial.m_bHasEmissiveTex)
+			if (emissiveTextureResource.IsValid())
 			{
-				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::EmissiveMap, currentMaterial.m_emissiveTex.GetTexureResourceId());
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::EmissiveMap, emissiveTextureResource);
 			}
 
 			inOutTargetDrawItems.emplace_back(currentDrawItem);
@@ -171,7 +175,6 @@ namespace MAD
 					if (tex)
 					{
 						madMaterial.m_diffuseTex = *tex;
-						madMaterial.m_mat.m_bHasDiffuseTex = TRUE;
 					}
 				}
 				LOG_IMPORT(Log, "\tDiffuse tex = %s\n", diffuse_tex.C_Str());
@@ -200,7 +203,6 @@ namespace MAD
 					if (tex)
 					{
 						madMaterial.m_specularTex = *tex;
-						madMaterial.m_mat.m_bHasSpecularTex = TRUE;
 					}
 				}
 				LOG_IMPORT(Log, "\tSpecular tex = %s\n", specular_tex.C_Str());
@@ -218,7 +220,6 @@ namespace MAD
 					if (tex)
 					{
 						madMaterial.m_emissiveTex = *tex;
-						madMaterial.m_mat.m_bHasEmissiveTex = TRUE;
 					}
 				}
 				LOG_IMPORT(Log, "\tEmissive tex = %s\n", emissive_tex.C_Str());

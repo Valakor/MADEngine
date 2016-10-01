@@ -24,10 +24,10 @@ namespace MAD
 
 		auto meshComps = GetComponentsByType<CMeshComponent>();
 		auto rot = Matrix::Identity;// Matrix::CreateRotationY(ConvertToRadians(45.0f));
-		//meshComps[0].lock()->TEMPInitializeMeshInstance("engine\\meshes\\nanosuit\\nanosuit.obj", Matrix::CreateRotationY(ConvertToRadians(180.0f)) * Matrix::CreateTranslation(Vector3(0, 0, -5.0f)));
-		meshComps[0].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\sphere.obj", Matrix::CreateTranslation(Vector3(0, 0, -5.0f)));
-		meshComps[1].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(3.0f, 0, -5.0f)));
-		meshComps[2].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(-3.0f, 0, -5.0f)));
+		meshComps[0].lock()->TEMPInitializeMeshInstance("engine\\meshes\\nanosuit\\nanosuit.obj", Matrix::CreateRotationY(ConvertToRadians(180.0f)) * Matrix::CreateTranslation(Vector3(0, 0, -5.0f)));
+		//meshComps[0].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\sphere.obj", Matrix::CreateTranslation(Vector3(0, 0, -5.0f)));
+		//meshComps[1].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(3.0f, 0, -5.0f)));
+		//meshComps[2].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(-3.0f, 0, -5.0f)));
 
 		Vector3 dir = Vector3(0.0f, -0.86602540378f, -0.5f);
 		dir.Normalize();
