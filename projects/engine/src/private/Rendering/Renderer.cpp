@@ -219,10 +219,12 @@ namespace MAD
 	{
 		static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-		//g_graphicsDriver.ClearBackBuffer(zero);
 		g_graphicsDriver.ClearDepthStencil(m_gBufferPassDescriptor.m_depthStencilView, true, 1.0f);
 
+		// Clear the light accumulation buffer to the screen clear color
 		g_graphicsDriver.ClearRenderTarget(m_gBufferPassDescriptor.m_renderTargets[0], m_clearColor);
+
+		// Clear other G-buffers to 0
 		for (unsigned i = 1; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
 		{
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
@@ -285,7 +287,7 @@ namespace MAD
 		}
 
 		// Copy the finalized linear lighting buffer to the back buffer
-		// This (will) perform HDR and already performs gamma correction
+		// This (will) perform HDR lighting corrections and already performs gamma correction
 		g_graphicsDriver.SetRenderTargets(&m_backBuffer, 1, nullptr);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::LightingBuffer);
 		g_graphicsDriver.SetBlendState(SBlendStateId::Invalid);
@@ -379,7 +381,7 @@ namespace MAD
 
 	void URenderer::SetWorldAmbientColor(Color inColor)
 	{
-		// Convet from sRGB space to linear color space.
+		// Convert from sRGB space to linear color space.
 		// This is then converted back to sRGB space when rendering to the back buffer
 		// and then back to linear by the monitor...
 		m_perSceneConstants.m_ambientColor.x = powf(inColor.x, 2.2f);
