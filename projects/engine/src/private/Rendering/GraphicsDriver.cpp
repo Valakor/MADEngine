@@ -314,37 +314,15 @@ namespace MAD
 		HRESULT hr;
 		if (extension == ".dds")
 		{
-			hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			//hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			// TODO: Need some way to only load sRGB if specified
+			hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
 		}
 		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tiff")
 		{
 			//hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			// TODO: Need some way to only load sRGB if specified
 			hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
-
-			/*	HRESULT __cdecl CreateWICTextureFromFileEx(
-					_In_ ID3D11Device* d3dDevice,
-					_In_z_ const wchar_t* szFileName,
-					_In_ size_t maxsize,
-					_In_ D3D11_USAGE usage,
-					_In_ unsigned int bindFlags,
-					_In_ unsigned int cpuAccessFlags,
-					_In_ unsigned int miscFlags,
-					_In_ bool forceSRGB,
-					_Outptr_opt_ ID3D11Resource** texture,
-					_Outptr_opt_ ID3D11ShaderResourceView** textureView);*/
-
-			/*	HRESULT __cdecl CreateWICTextureFromFileEx(
-					_In_ ID3D11Device* d3dDevice,
-					_In_opt_ ID3D11DeviceContext* d3dContext,
-					_In_z_ const wchar_t* szFileName,
-					_In_ size_t maxsize,
-					_In_ D3D11_USAGE usage,
-					_In_ unsigned int bindFlags,
-					_In_ unsigned int cpuAccessFlags,
-					_In_ unsigned int miscFlags,
-					_In_ bool forceSRGB,
-					_Outptr_opt_ ID3D11Resource** texture,
-					_Outptr_opt_ ID3D11ShaderResourceView** textureView);*/
 		}
 		else
 		{
