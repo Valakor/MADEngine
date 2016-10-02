@@ -18,12 +18,9 @@ struct DirectionalLight
 struct MeshMaterial
 {
 	float3 m_diffuseColor;
-	bool   m_bHasDiffuseTex;
 	float3 m_specularColor;
 	float  m_specularPower;
 	float3 m_emissiveColor;
-	bool   m_bHasEmissiveTex;
-	bool   m_bHasSpecularTex;
 };
 
 cbuffer CBPerSceneConstants : register(b0)

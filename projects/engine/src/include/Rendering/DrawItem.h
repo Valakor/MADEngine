@@ -6,6 +6,7 @@
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/VertexArray.h"
+#include "Rendering/RenderPassProgram.h"
 
 namespace MAD
 {

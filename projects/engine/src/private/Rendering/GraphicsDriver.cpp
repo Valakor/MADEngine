@@ -383,7 +383,7 @@ namespace MAD
 		return shaderResourceViewId;
 	}
 
-	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode)
+	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines)
 	{
 		HRESULT hr = S_OK;
 
@@ -406,7 +406,7 @@ namespace MAD
 
 		ID3DBlob* pErrorBlob = nullptr;
 		ID3DBlob* pBlobOut = nullptr;
-		hr = D3DCompileFromFile(wc.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
+		hr = D3DCompileFromFile(wc.c_str(), inShaderMacroDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
 			dwShaderFlags, 0, &pBlobOut, &pErrorBlob);
 		if (FAILED(hr))
 		{

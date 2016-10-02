@@ -1,7 +1,8 @@
 #include "Rendering/DrawItem.h"
 #include "Rendering/GraphicsDriver.h"
-#include "Core/GameEngine.h"
 #include "Rendering/Renderer.h"
+#include "Core/GameEngine.h"
+#include "Misc/ProgramPermutor.h"
 
 namespace MAD
 {

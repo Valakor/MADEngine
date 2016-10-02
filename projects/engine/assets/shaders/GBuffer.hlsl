@@ -1,5 +1,11 @@
 #include "Common.hlsl"
 
+//=>:(Usage, VS, vs_5_0)
+//=>:(Usage, PS, ps_5_0)
+//=>:(Permute, DIFFUSE)
+//=>:(Permute, SPECULAR)
+//=>:(Permute, EMISSIVE)
+
 // Input structs for vertex and pixel shader
 struct VS_INPUT
 {
@@ -71,22 +77,19 @@ PS_OUTPUT PS(PS_INPUT input)
 	float3 finalSpecularColor = g_material.m_specularColor;
 	float  finalSpecularPower = g_material.m_specularPower;
 
-	if (g_material.m_bHasEmissiveTex)
-	{
-		finalEmissiveColor *= g_emissiveMap.Sample(g_linearSampler, input.mTex).rgb;
-	}
+#ifdef EMISSIVE
+	finalEmissiveColor *= g_emissiveMap.Sample(g_linearSampler, input.mTex).rgb;
+#endif
 
-	if (g_material.m_bHasDiffuseTex)
-	{
-		finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex).rgb;
-	}
+#ifdef DIFFUSE
+	finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex).rgb;
+#endif
 
-	if (g_material.m_bHasSpecularTex)
-	{
-		float4 specularSample = g_specularMap.Sample(g_linearSampler, input.mTex).rgba;
-		finalSpecularColor *= specularSample.rgb;
-		finalSpecularPower *= specularSample.a;
-	}
+#ifdef SPECULAR
+	float4 specularSample = g_specularMap.Sample(g_linearSampler, input.mTex).rgba;
+	finalSpecularColor *= specularSample.rgb;
+	finalSpecularPower *= specularSample.a;
+#endif
 
 	finalAmbientColor *= finalDiffuseColor;
 	finalLightAccumulation = finalAmbientColor + finalEmissiveColor;
