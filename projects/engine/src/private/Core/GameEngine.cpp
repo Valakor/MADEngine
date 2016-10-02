@@ -152,7 +152,7 @@ namespace MAD
 		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
 
 		mRenderer->SetWorldAmbientColor(Color(0.2f, 0.2f, 0.2f, 1.0f));
-		mRenderer->SetBackBufferClearColor(Color(0.1f, 0.1f, 0.1f, 1.0f));
+		mRenderer->SetBackBufferClearColor(Color(0.2f, 0.2f, 0.2f, 1.0f));
 
 		SControlScheme& renderScheme = SControlScheme("RenderDebug")
 			.RegisterEvent("NormalView", '0')

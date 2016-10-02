@@ -8,6 +8,7 @@
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/GraphicsDriver.h"
+#include "Rendering/InputLayoutCache.h"
 
 #include <EASTL/array.h>
 
@@ -18,6 +19,47 @@ namespace MAD
 	namespace
 	{
 		UGraphicsDriver g_graphicsDriver;
+
+		void DrawFullscreenQuad()
+		{
+			static bool init = false;
+
+			static SBufferId indices;
+			static SBufferId verts;
+			static SInputLayoutId posInputLayout;
+			static SRasterizerStateId rasterState;
+			static SDepthStencilStateId depthState;
+
+			if (!init)
+			{
+				static const eastl::vector<Vector3> verts_raw = { { -1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { -1.0f, -1.0f, 0.0f } };
+				static const eastl::vector<uint16_t> indices_raw = { 0, 3, 1, 1, 3, 2 };
+
+				indices = g_graphicsDriver.CreateIndexBuffer(indices_raw.data(), 6 * sizeof(uint16_t));
+				verts = g_graphicsDriver.CreateVertexBuffer(verts_raw.data(), 4 * sizeof(Vector3));
+
+				posInputLayout = UInputLayoutCache::GetInputLayout(UInputLayoutCache::GetFlagForSemanticName("POSITION"));
+				rasterState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
+				depthState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+
+				init = true;
+			}
+
+			g_graphicsDriver.SetDepthStencilState(depthState, 0);
+			g_graphicsDriver.SetRasterizerState(rasterState);
+			g_graphicsDriver.SetInputLayout(posInputLayout);
+			g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			g_graphicsDriver.SetIndexBuffer(indices, 0);
+			g_graphicsDriver.SetVertexBuffer(verts, EVertexBufferSlot::Position, sizeof(Vector3), 0);
+
+			g_graphicsDriver.DrawIndexed(6, 0, 0);
+
+			// Alternatively use the SV_VertexID semantic in the shader and calculate the coordinates like:
+			//   float2 texCoord = float2(id & 1, id >> 1);
+			//   output.mPos = float4((texCoord.x - 0.5f) * 2.0f, -(texCoord.y - 0.5f) * 2.0f, 0.0f, 1.0f);
+			//g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			//g_graphicsDriver.Draw(4, 0);
+		}
 	}
 
 	URenderer::URenderer(): m_window(nullptr)
@@ -224,12 +266,11 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DepthBuffer);
-		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
 		{
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
-			g_graphicsDriver.Draw(4, 0);
+			DrawFullscreenQuad();
 		}
 	}
 
@@ -247,11 +288,10 @@ namespace MAD
 		// This (will) perform HDR and already performs gamma correction
 		g_graphicsDriver.SetRenderTargets(&m_backBuffer, 1, nullptr);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::LightingBuffer);
-		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		g_graphicsDriver.SetRasterizerState(m_dirLightingPassDescriptor.m_rasterizerState);
 		g_graphicsDriver.SetBlendState(SBlendStateId::Invalid);
 		backBufferProgram->SetProgramActive(g_graphicsDriver, 0);
-		g_graphicsDriver.Draw(4, 0);
+
+		DrawFullscreenQuad();
 
 		g_graphicsDriver.Present();
 	}
@@ -259,7 +299,7 @@ namespace MAD
 	void URenderer::DoVisualizeGBuffer()
 	{
 		static bool loadedCopyTextureProgram = false;
-		 static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
+		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
 
 		if (!loadedCopyTextureProgram)
 		{
@@ -268,11 +308,6 @@ namespace MAD
 		}
 
 		SShaderResourceId target;
-
-		auto backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
-		g_graphicsDriver.SetRenderTargets(&backBuffer, 1, nullptr);
-		copyTextureProgram->SetProgramActive(g_graphicsDriver, 0);
-
 		switch(m_visualizeOption)
 		{
 		case EVisualizeOptions::LightAccumulation:
@@ -296,12 +331,9 @@ namespace MAD
 		auto& renderTarget = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 		g_graphicsDriver.SetRenderTargets(&renderTarget, 1, nullptr);
 		copyTextureProgram->SetProgramActive(g_graphicsDriver, 0);
-
 		g_graphicsDriver.SetPixelShaderResource(target, ETextureSlot::DiffuseBuffer);
-		g_graphicsDriver.SetRasterizerState(m_dirLightingPassDescriptor.m_rasterizerState);
 
-		g_graphicsDriver.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		g_graphicsDriver.Draw(4, 0);
+		DrawFullscreenQuad();
 	}
 
 	ProgramId_t URenderer::DetermineProgramId(const SDrawItem& inTargetDrawItem) const
