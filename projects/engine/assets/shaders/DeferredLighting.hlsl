@@ -4,10 +4,14 @@
 //=>:(Usage, PS, ps_5_0)
 
 // Input structs for vertex and pixel shader
+struct VS_INPUT
+{
+	float3 mPos : POSITION;
+};
+
 struct PS_INPUT
 {
 	float4 mPos : SV_POSITION;
-	float2 mTexCoord : TEXCOORD0;
 };
 
 // Convert clip space coordinates to view space
@@ -60,12 +64,10 @@ float DecodeSpecPower(float inEncodedSpecularPower)
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-PS_INPUT VS(uint id : SV_VertexID)
+PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output;
-
-	output.mTexCoord = float2(id & 1, id >> 1);
-	output.mPos = float4((output.mTexCoord.x - 0.5f) * 2.0f, -(output.mTexCoord.y - 0.5f) * 2.0f, 0.0f, 1.0f);
+	output.mPos = float4(input.mPos, 1.0);
 	return output;
 }
 
@@ -95,7 +97,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 N = DecodeNormal(sampleNormal);
 	float3 L = normalize(-g_directionalLight.m_lightDirection.xyz); // We transform this to VS on the CPU
 	float3 V = normalize(-positionVS);
-	float3 R = normalize(reflect(-L, N));
+	float3 H = normalize(L + V);
 	float  lightIntensity = g_directionalLight.m_lightIntensity;
 	float3 lightColor = g_directionalLight.m_lightColor;
 
@@ -110,10 +112,10 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 diffuse = materialDiffuseColor * lightColor * NdotL;
 
 		// Calculate specular term
-		float RdotV = max(0.0, dot(R, V));
-		float3 specular = materialSpecularColor * lightColor * pow(RdotV, materialSpecularPower);
+		float NdotH = max(0.0, dot(N, H)); // Blinn-Phong
+		float3 specular = materialSpecularColor * lightColor * pow(NdotH, materialSpecularPower);
 
-		phong = saturate(lightIntensity * (diffuse + specular));
+		phong = lightIntensity * (diffuse + specular);
 	}
 
 	return float4(phong, 1.0f);

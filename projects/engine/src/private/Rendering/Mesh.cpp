@@ -132,8 +132,6 @@ namespace MAD
 												 aiProcessPreset_TargetRealtime_MaxQuality);
 
 		auto path = inFilePath.substr(0, inFilePath.find_last_of('\\') + 1);
-		auto ext  = inFilePath.substr(inFilePath.find_last_of('.') + 1);
-		ext.make_lower();
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE)
 		{
@@ -187,12 +185,6 @@ namespace MAD
 
 				float specular_power = 0.0f;
 				aiMaterial->Get(AI_MATKEY_SHININESS, specular_power);
-				if (ext == "obj")
-				{
-					// Assimp arbitrarily multiplies the specular power in .obj files by 4.0...
-					specular_power /= 4.0f;
-				}
-
 				LOG_IMPORT(Log, "\tSpecular power = %f\n", specular_power);
 				madMaterial.m_mat.m_specularPower = specular_power;
 

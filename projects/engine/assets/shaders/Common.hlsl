@@ -68,7 +68,8 @@ Texture2D g_diffuseMap	: register(t0);
 Texture2D g_specularMap	: register(t1);
 Texture2D g_emissiveMap	: register(t2);
 
-Texture2D g_diffuseBuffer	: register(t3);
-Texture2D g_normalBuffer	: register(t4);
-Texture2D g_specularBuffer	: register(t5);
-Texture2D g_depthBuffer		: register(t6);
+Texture2D g_lightingBuffer	: register(t3);
+Texture2D g_diffuseBuffer	: register(t4);
+Texture2D g_normalBuffer	: register(t5);
+Texture2D g_specularBuffer	: register(t6);
+Texture2D g_depthBuffer		: register(t7);
