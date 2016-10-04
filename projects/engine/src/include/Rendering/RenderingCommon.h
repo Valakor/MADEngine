@@ -33,6 +33,7 @@ namespace MAD
 		EmissiveMap,
 
 		// ------------- Defined by renderer -------------------
+		LightingBuffer,
 		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,
@@ -44,7 +45,7 @@ namespace MAD
 
 	enum class ERenderTargetSlot
 	{
-		BackBuffer = 0,
+		LightingBuffer = 0,
 		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,
@@ -103,31 +104,22 @@ namespace MAD
 	// Materials --------------------------------
 	struct SGPUMaterial
 	{
+	public:
 		DirectX::SimpleMath::Vector3 m_diffuseColor;
-		BOOL m_bHasDiffuseTex = FALSE;
-
+	private:
+		float __pad1 = 0.0f;
 		// 16 bytes ---------------------------------
-
+	public:
 		DirectX::SimpleMath::Vector3 m_specularColor;
 		float m_specularPower = 1.0f;
-
 		// 16 bytes ---------------------------------
 
 		DirectX::SimpleMath::Vector3 m_emissiveColor;
-		BOOL m_bHasEmissiveTex = FALSE;
-
-		// 16 bytes ---------------------------------
-
-		BOOL m_bHasSpecularTex = FALSE;
-
 	private:
-		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
-		float __pad3 = 0.0f;
-
 		// 16 bytes ---------------------------------
 	};
-	static_assert(sizeof(SGPUMaterial) == 64, "");
+	static_assert(sizeof(SGPUMaterial) == 48, "");
 
 	// Constant Buffers ----------------------
 	struct SPerFrameConstants

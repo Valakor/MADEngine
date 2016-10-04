@@ -18,12 +18,9 @@ struct DirectionalLight
 struct MeshMaterial
 {
 	float3 m_diffuseColor;
-	bool   m_bHasDiffuseTex;
 	float3 m_specularColor;
 	float  m_specularPower;
 	float3 m_emissiveColor;
-	bool   m_bHasEmissiveTex;
-	bool   m_bHasSpecularTex;
 };
 
 cbuffer CBPerSceneConstants : register(b0)
@@ -74,7 +71,8 @@ Texture2D g_diffuseMap	: register(t0);
 Texture2D g_specularMap	: register(t1);
 Texture2D g_emissiveMap	: register(t2);
 
-Texture2D g_diffuseBuffer	: register(t3);
-Texture2D g_normalBuffer	: register(t4);
-Texture2D g_specularBuffer	: register(t5);
-Texture2D g_depthBuffer		: register(t6);
+Texture2D g_lightingBuffer	: register(t3);
+Texture2D g_diffuseBuffer	: register(t4);
+Texture2D g_normalBuffer	: register(t5);
+Texture2D g_specularBuffer	: register(t6);
+Texture2D g_depthBuffer		: register(t7);

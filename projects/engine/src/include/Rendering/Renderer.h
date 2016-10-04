@@ -68,6 +68,7 @@ namespace MAD
 
 		void DoVisualizeGBuffer();
 
+		ProgramId_t DetermineProgramId(const SDrawItem& inTargetDrawItem) const;
 	private:
 		UGameWindow* m_window;
 		SRenderTargetId m_backBuffer;

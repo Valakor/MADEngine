@@ -6,7 +6,7 @@
 // Input structs for vertex and pixel shader
 struct VS_INPUT
 {
-    float3 mPos : POSITION;
+	float3 mPos : POSITION;
 };
 
 struct PS_INPUT
@@ -20,9 +20,9 @@ struct PS_INPUT
 //--------------------------------------------------------------------------------------
 PS_INPUT VS(VS_INPUT input)
 {
-    PS_INPUT output;
-    output.mPos = float4(input.mPos, 1.0);
-    return output;
+	PS_INPUT output;
+	output.mPos = float4(input.mPos, 1.0);
+	return output;
 }
 
 
@@ -32,10 +32,7 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	int3 texCoord = int3(input.mPos.xy, 0);
-	
-	float depth = g_diffuseBuffer.Load(texCoord).r;
-    float depthLinear = 2.0 * g_cameraNearPlane * g_cameraFarPlane / (g_cameraFarPlane + g_cameraNearPlane - depth * (g_cameraFarPlane - g_cameraNearPlane));
-    float depthLinearNormalized = (depthLinear - g_cameraNearPlane) / g_cameraFarPlane;
 
-    return float4(depthLinearNormalized, depthLinearNormalized, depthLinearNormalized, 1.0);
+	// TODO This is where we would do HDR, tonemapping, etc.
+	return float4(saturate(g_lightingBuffer.Load(texCoord).xyz), 1.0f);
 }

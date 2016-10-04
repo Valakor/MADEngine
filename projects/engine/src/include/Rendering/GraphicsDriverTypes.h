@@ -87,6 +87,7 @@ namespace eastl											\
 }						
 
 DECLARE_GRAPHICS_OBJ_ID(SVertexShaderId, uint8_t)
+DECLARE_GRAPHICS_OBJ_ID(SGeometryShaderId, uint8_t)
 DECLARE_GRAPHICS_OBJ_ID(SPixelShaderId, uint8_t)
 DECLARE_GRAPHICS_OBJ_ID(SInputLayoutId, uint8_t)
 DECLARE_GRAPHICS_OBJ_ID(SRenderTargetId, uint16_t)

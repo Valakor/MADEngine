@@ -71,7 +71,6 @@ namespace MAD
 
 		// Constant configuration
 		const UINT g_swapChainBufferCount = 3;
-		const DXGI_FORMAT g_swapChainFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		// Graphics driver object stores
 #define DECLARE_OBJECT_STORE(IdType, D3DType, storeName) eastl::hash_map<IdType, ComPtr<D3DType>> storeName;
@@ -141,7 +140,7 @@ namespace MAD
 			MEM_ZERO(scd);
 			scd.Width = 0;
 			scd.Height = 0;
-			scd.Format = g_swapChainFormat;
+			scd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			scd.Stereo = FALSE;
 			scd.SampleDesc.Count = 1;
 			scd.SampleDesc.Quality = 0;
@@ -190,7 +189,13 @@ namespace MAD
 
 		ComPtr<ID3D11RenderTargetView>& backBufferRTV = g_renderTargetStore[m_backBuffer];
 
-		hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, backBufferRTV.GetAddressOf());
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetDesc;
+		MEM_ZERO(renderTargetDesc);
+		renderTargetDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		renderTargetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetDesc.Texture2D.MipSlice = 0;
+
+		hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), &renderTargetDesc, backBufferRTV.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed to create render target view from back buffer");
 	}
 
@@ -309,11 +314,15 @@ namespace MAD
 		HRESULT hr;
 		if (extension == ".dds")
 		{
-			hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			//hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			// TODO: Need some way to only load sRGB if specified
+			hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
 		}
 		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tiff")
 		{
-			hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			//hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			// TODO: Need some way to only load sRGB if specified
+			hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
 		}
 		else
 		{
@@ -352,7 +361,7 @@ namespace MAD
 		return shaderResourceViewId;
 	}
 
-	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode)
+	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines)
 	{
 		HRESULT hr = S_OK;
 
@@ -375,7 +384,7 @@ namespace MAD
 
 		ID3DBlob* pErrorBlob = nullptr;
 		ID3DBlob* pBlobOut = nullptr;
-		hr = D3DCompileFromFile(wc.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
+		hr = D3DCompileFromFile(wc.c_str(), inShaderMacroDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
 			dwShaderFlags, 0, &pBlobOut, &pErrorBlob);
 		if (FAILED(hr))
 		{
