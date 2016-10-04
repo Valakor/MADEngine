@@ -31,9 +31,9 @@ PS_INPUT VS(VS_INPUT input)
 //--------------------------------------------------------------------------------------
 float4 PS(PS_INPUT input) : SV_Target
 {
-	int3 texCoord = int3(input.mPos.xy, 0);
+    int3 texCoord = int3(input.mPos.xy, 0);
 	
-	float depth = g_diffuseBuffer.Load(texCoord).r;
+    float depth = g_diffuseBuffer.Load(texCoord).r;
     float depthLinear = 2.0 * g_cameraNearPlane * g_cameraFarPlane / (g_cameraFarPlane + g_cameraNearPlane - depth * (g_cameraFarPlane - g_cameraNearPlane));
     float depthLinearNormalized = (depthLinear - g_cameraNearPlane) / g_cameraFarPlane;
 

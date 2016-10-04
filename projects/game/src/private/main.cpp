@@ -3,7 +3,7 @@
 int main()
 {
 	MAD::UGameEngine gameEngine;
-	if (!gameEngine.Init("A MAD Game", 2400, 1350))
+	if (!gameEngine.Init("A MAD Game", 1600, 900))
 	{
 		return 1;
 	}
