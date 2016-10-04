@@ -195,6 +195,7 @@ namespace MAD
 		m_dirLightingPassDescriptor.m_depthStencilView = SDepthStencilId::Invalid;
 		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
 
+		m_dirLightingPassDescriptor.m_renderTargets.clear();
 		m_dirLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
 		m_dirLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
@@ -209,6 +210,7 @@ namespace MAD
 		m_pointLightingPassDescriptor.m_depthStencilView = SDepthStencilId::Invalid;
 		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
 
+		m_pointLightingPassDescriptor.m_renderTargets.clear();
 		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
 		m_pointLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);

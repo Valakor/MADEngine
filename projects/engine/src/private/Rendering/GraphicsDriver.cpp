@@ -293,9 +293,6 @@ namespace MAD
 		ID_ASSERT_VALID(m_backBuffer, g_renderTargetStore, "Back buffer should be valid if the device has been created");
 		g_renderTargetStore[m_backBuffer].Reset();
 		
-		g_d3dDeviceContext->Flush();
-		g_d3dDeviceContext->ClearState();
-
 		HRESULT hr = g_dxgiSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 		HR_ASSERT_SUCCESS(hr, "Failed to resize swap chain");
 
