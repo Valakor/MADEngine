@@ -183,7 +183,12 @@ namespace MAD
 				LOG_IMPORT(Log, "\tSpecular = { %.2f, %.2f, %.2f }\n", specular_color.r, specular_color.g, specular_color.b);
 				madMaterial.m_mat.m_specularColor = Vector3(specular_color.r, specular_color.g, specular_color.b);
 
-				float specular_power = 0.0f;
+				float specular_strength = 1.0f;
+				aiMaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular_strength);
+				LOG_IMPORT(Log, "\tSpecular strength = %f\n", specular_strength);
+				madMaterial.m_mat.m_specularColor *= specular_strength;
+
+				float specular_power = 1.0f;
 				aiMaterial->Get(AI_MATKEY_SHININESS, specular_power);
 				LOG_IMPORT(Log, "\tSpecular power = %f\n", specular_power);
 				madMaterial.m_mat.m_specularPower = specular_power;

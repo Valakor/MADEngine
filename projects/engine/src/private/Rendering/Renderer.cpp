@@ -362,13 +362,13 @@ namespace MAD
 			switch (currentTextureSlot.first)
 			{
 			case ETextureSlot::DiffuseMap: // Do you have a diffuse map?
-				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Diffuse);
+				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::GBuffer_Diffuse);
 				break;
 			case ETextureSlot::SpecularMap: // Do you have a specular map?
-				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Specular);
+				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::GBuffer_Specular);
 				break;
 			case ETextureSlot::EmissiveMap: // Do you have a emissive map?
-				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::EProgramIdMask_Emissive);
+				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::GBuffer_Emissive);
 				break;
 			}
 		}

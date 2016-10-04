@@ -318,7 +318,7 @@ namespace MAD
 			// TODO: Need some way to only load sRGB if specified
 			hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
 		}
-		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tiff")
+		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif")
 		{
 			//hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
 			// TODO: Need some way to only load sRGB if specified

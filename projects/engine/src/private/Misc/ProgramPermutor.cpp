@@ -24,10 +24,12 @@ namespace MAD
 	
 	const eastl::hash_map<eastl::string, UProgramPermutor::EProgramIdMask> UProgramPermutor::s_programIdMaskToStringMap =
 	{
-		{ "DIFFUSE", EProgramIdMask::EProgramIdMask_Diffuse },
-		{ "SPECULAR", EProgramIdMask::EProgramIdMask_Specular },
-		{ "EMISSIVE", EProgramIdMask::EProgramIdMask_Emissive },
-		{ "NORMAL_MAP", EProgramIdMask::EProgramIdMask_NormalMap }
+		{ "DIFFUSE", EProgramIdMask::GBuffer_Diffuse },
+		{ "SPECULAR", EProgramIdMask::GBuffer_Specular },
+		{ "EMISSIVE", EProgramIdMask::GBuffer_Emissive },
+		{ "NORMAL_MAP", EProgramIdMask::GBuffer_NormalMap },
+
+		{ "POINT_LIGHT", EProgramIdMask::Lighting_PointLight },
 	};
 
 	const eastl::hash_map<eastl::string, UProgramPermutor::EMetaFlagType> UProgramPermutor::s_metaFlagStringToTypeMap =
@@ -75,7 +77,7 @@ namespace MAD
 					{
 						EProgramIdMask permuteIdMask = UProgramPermutor::ConvertStringToPIDMask(currentMetaFlagInst.MetaFlagValues[0]);
 
-						if (permuteIdMask != EProgramIdMask::EProgramIdMask_Invalid)
+						if (permuteIdMask != EProgramIdMask::INVALID)
 						{
 							LOG(LogProgramPermutor, Log, "Adding meta permute flag with define: %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str());
 							programPermutationDescriptions.push_back({ permuteIdMask });
@@ -330,7 +332,7 @@ namespace MAD
 		}
 		else
 		{
-			return EProgramIdMask::EProgramIdMask_Invalid;
+			return EProgramIdMask::INVALID;
 		}
 	}
 

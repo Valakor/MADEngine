@@ -81,15 +81,15 @@ namespace MAD
 	// Lights -------------------------------
 	struct SGPUPointLight
 	{
-		DirectX::SimpleMath::Vector3 m_lightPosition;
-		float m_lightRadius;
-		DirectX::SimpleMath::Color m_lightColor;
+		Vector3 m_lightPosition;
 		float m_lightIntensity;
+		Color m_lightColor;
+		float m_lightInnerRadius;
+		float m_lightOuterRadius;
 
 	private:
 		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
-		float __pad3 = 0.0f;
 	};
 	static_assert(sizeof(SGPUPointLight) == 48, "");
 

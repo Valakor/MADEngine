@@ -25,7 +25,7 @@ namespace MAD
 		cameraScheme.BindEvent<CCameraComponent, &CCameraComponent::OnReset>("Reset", EInputEvent::IE_KeyDown, this);
 
 		m_mouseRightClickDown = false;
-		m_cameraMoveSpeed = 3.0f;
+		m_cameraMoveSpeed = 250.0f;
 		m_cameraLookSpeed = 1.0f;
 	}
 

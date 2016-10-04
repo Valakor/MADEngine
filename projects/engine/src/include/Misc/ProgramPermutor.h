@@ -13,11 +13,14 @@ namespace MAD
 	public:
 		enum class EProgramIdMask : ProgramId_t
 		{
-			EProgramIdMask_Diffuse = 1 << 0,
-			EProgramIdMask_Specular = 1 << 1,
-			EProgramIdMask_Emissive = 1 << 2,
-			EProgramIdMask_NormalMap = 1 << 3,
-			EProgramIdMask_Invalid
+			GBuffer_Diffuse = 1 << 0,
+			GBuffer_Specular = 1 << 1,
+			GBuffer_Emissive = 1 << 2,
+			GBuffer_NormalMap = 1 << 3,
+
+			Lighting_PointLight = 1 << 0,
+
+			INVALID = eastl::numeric_limits<ProgramId_t>::max()
 		};
 	public:
 		// Generates all the permutations of a shader based on the permutation flags that are specified within the shader file

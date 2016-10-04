@@ -3,9 +3,10 @@
 struct PointLight
 {
 	float3 m_lightPosition;
-	float  m_lightRadius;
+	float m_lightIntensity;
 	float4 m_lightColor;
-	float  m_lightIntensity;
+	float m_lightInnerRadius;
+	float m_lightOuterRadius;
 };
 
 struct DirectionalLight

@@ -2,6 +2,7 @@
 
 //=>:(Usage, VS, vs_5_0)
 //=>:(Usage, PS, ps_5_0)
+//=>:(Permute, POINT_LIGHT)
 
 // Input structs for vertex and pixel shader
 struct VS_INPUT
@@ -60,6 +61,31 @@ float DecodeSpecPower(float inEncodedSpecularPower)
 	return exp2(inEncodedSpecularPower * 10.5);
 }
 
+// Calculate L based upon what type of light we're using
+float3 CalculateL(float3 positionVS)
+{
+#ifdef POINT_LIGHT
+	return normalize(g_pointLight.m_lightPosition - positionVS); // We transform this to VS on the CPU
+#else
+	return normalize(-g_directionalLight.m_lightDirection.xyz); // We transform this to VS on the CPU
+#endif
+}
+
+// Calculate light attenuation based upon what type of light we're using
+void GetLightIrradianceProperties(float3 positionVS, out float attenuation, out float3 lightColor, out float lightIntensity)
+{
+#ifdef POINT_LIGHT
+	float d = distance(positionVS, g_pointLight.m_lightPosition);
+	attenuation = smoothstep(g_pointLight.m_lightInnerRadius, g_pointLight.m_lightOuterRadius, d);
+	lightColor = g_pointLight.m_lightColor;
+	lightIntensity = g_pointLight.m_lightIntensity;
+#else
+	attenuation = 1.0;
+	lightColor = g_directionalLight.m_lightColor;
+	lightIntensity = g_directionalLight.m_lightIntensity;
+#endif
+}
+
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -95,27 +121,30 @@ float4 PS(PS_INPUT input) : SV_Target
 	// Calculate our lighting information
 	float3 positionVS = ScreenToView(float4(texCoord.xy, depth, 1.0)).xyz;
 	float3 N = DecodeNormal(sampleNormal);
-	float3 L = normalize(-g_directionalLight.m_lightDirection.xyz); // We transform this to VS on the CPU
+	float3 L = CalculateL(positionVS);
 	float3 V = normalize(-positionVS);
 	float3 H = normalize(L + V);
-	float  lightIntensity = g_directionalLight.m_lightIntensity;
-	float3 lightColor = g_directionalLight.m_lightColor;
 
 	// Directional Phong shading
 	float3 phong = float3(0.0f, 0.0, 0.0);
 
-	//float NdotL = pow(NdotL * 0.5 + 0.5, 2.0); // Valve half-Lambert scales to [0, 1]
 	float NdotL = dot(N, L); // Normal Phong
+	//float NdotL = pow(dot(N, L) * 0.5 + 0.5, 2.0); // Valve half-Lambert scales to [0, 1]
 	if (NdotL > 0)
 	{
+		float3 lightColor;
+		float  lightIntensity;
+		float  attenuation;
+		GetLightIrradianceProperties(positionVS, attenuation, lightColor, lightIntensity);
+
 		// Calculate diffuse term
-		float3 diffuse = materialDiffuseColor * lightColor * NdotL;
+		float3 diffuse = materialDiffuseColor * NdotL;
 
 		// Calculate specular term
 		float NdotH = max(0.0, dot(N, H)); // Blinn-Phong
-		float3 specular = materialSpecularColor * lightColor * pow(NdotH, materialSpecularPower);
+		float3 specular = materialSpecularColor * pow(NdotH, materialSpecularPower);
 
-		phong = lightIntensity * (diffuse + specular);
+		phong = lightIntensity * lightColor * attenuation * (diffuse + specular);
 	}
 
 	return float4(phong, 1.0f);
