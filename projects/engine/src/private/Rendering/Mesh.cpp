@@ -133,7 +133,7 @@ namespace MAD
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE)
 		{
-			LOG_IMPORT(Error, "Failed to load mesh '%s': %s\n", inFilePath.c_str(), importer.GetErrorString());
+			LOG(LogMeshImport, Error, "Failed to load mesh '%s': %s\n", inFilePath.c_str(), importer.GetErrorString());
 			return nullptr;
 		}
 

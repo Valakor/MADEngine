@@ -225,18 +225,21 @@ namespace MAD
 	{
 		static bool loadedCopyTextureProgram = false;
 		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
-
 		if (!loadedCopyTextureProgram)
 		{
 			copyTextureProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\CopyTexture.hlsl");
 			loadedCopyTextureProgram = true;
 		}
 
-		SShaderResourceId target;
+		static bool loadedDepthProgram = false;
+		static eastl::shared_ptr<URenderPassProgram> depthProgram;
+		if (!loadedDepthProgram)
+		{
+			depthProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\RenderDepth.hlsl");
+			loadedDepthProgram = true;
+		}
 
-		auto backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
-		g_graphicsDriver.SetRenderTargets(&backBuffer, 1, nullptr);
-		copyTextureProgram->SetProgramActive(g_graphicsDriver);
+		SShaderResourceId target;
 
 		switch(m_visualizeOption)
 		{
@@ -256,6 +259,18 @@ namespace MAD
 			target = m_gBufferShaderResources[3];
 			break;
 		default: return;
+		}
+
+		auto backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
+		g_graphicsDriver.SetRenderTargets(&backBuffer, 1, nullptr);
+
+		if (m_visualizeOption == EVisualizeOptions::Depth)
+		{
+			depthProgram->SetProgramActive(g_graphicsDriver);
+		}
+		else
+		{
+			copyTextureProgram->SetProgramActive(g_graphicsDriver);
 		}
 
 		g_graphicsDriver.SetPixelShaderResource(target, ETextureSlot::DiffuseBuffer);
@@ -281,6 +296,8 @@ namespace MAD
 		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
 		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
 		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
+		m_perFrameConstants.m_cameraNearPlane = inCameraInstance.m_nearPlaneDistance;
+		m_perFrameConstants.m_cameraFarPlane = inCameraInstance.m_farPlaneDistance;
 	}
 
 	void URenderer::SetWorldAmbientColor(DirectX::SimpleMath::Color inColor)

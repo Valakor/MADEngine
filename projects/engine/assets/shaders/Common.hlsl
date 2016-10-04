@@ -38,6 +38,9 @@ cbuffer CBPerFrameConstants : register(b1)
 	float4x4 g_cameraProjectionMatrix;
 	float4x4 g_cameraViewProjectionMatrix;
 	float4x4 g_cameraInverseProjectionMatrix;
+
+	float g_cameraNearPlane;
+	float g_cameraFarPlane;
 };
 
 cbuffer CBPerPointLightConstants : register(b2)
