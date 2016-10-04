@@ -52,15 +52,18 @@ namespace MAD
 		renderer.UpdateCameraConstants(m_cameraInstance);
 	}
 
-	void CCameraComponent::TEMPInitializeCameraInstance(float inFOV, float inNearPlane, float inFarPlane, const DirectX::SimpleMath::Matrix& inViewMatrix)
+	void CCameraComponent::TEMPInitializeCameraInstance(float inFOV, float inNearPlane, float inFarPlane, const Vector3& inPosition, const Quaternion& inRotation)
 	{
 		auto clientWindow = gEngine->GetWindow().GetClientSize();
 		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
 
+		m_cameraPos = m_cameraPosInitial = inPosition;
+		m_cameraRot = m_cameraRotInitial = inRotation;
+
 		m_cameraInstance.m_verticalFOV = inFOV;
 		m_cameraInstance.m_nearPlaneDistance = inNearPlane;
 		m_cameraInstance.m_farPlaneDistance = inFarPlane;
-		m_cameraInstance.m_viewMatrix = inViewMatrix;
+		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRot) * Matrix::CreateTranslation(m_cameraPos);
 		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(inFOV, aspectRatio, inNearPlane, inFarPlane);
 		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
 	}
@@ -118,7 +121,7 @@ namespace MAD
 
 	void CCameraComponent::OnReset()
 	{
-		m_cameraPos = Vector3::Zero;
-		m_cameraRot = Quaternion::Identity;
+		m_cameraPos = m_cameraPosInitial;
+		m_cameraRot = m_cameraRotInitial;
 	}
 }

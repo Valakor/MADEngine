@@ -19,7 +19,7 @@ namespace MAD
 	
 		// TODO: Eventually change so that the camera uses it's owners transform to update the view matrix.
 		// For now, the camera is stationary so we can just set the camera's view matrix
-		void TEMPInitializeCameraInstance(float inFOV, float inNearPlane, float inFarPlane, const DirectX::SimpleMath::Matrix& inViewMatrix);
+		void TEMPInitializeCameraInstance(float inFOV, float inNearPlane, float inFarPlane, const Vector3& inPosition, const Quaternion& inRotation);
 	private:
 		void MoveRight(float inVal);
 		void MoveForward(float inVal);
@@ -34,8 +34,12 @@ namespace MAD
 		void OnReset();
 
 		SCameraInstance m_cameraInstance;
+
 		Vector3 m_cameraPos;
-		Quaternion m_cameraRot; // pitch, yaw, roll
+		Quaternion m_cameraRot;
+
+		Vector3 m_cameraPosInitial;
+		Quaternion m_cameraRotInitial;
 
 		float m_cameraMoveSpeed;
 		float m_cameraLookSpeed;

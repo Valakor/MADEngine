@@ -99,11 +99,18 @@ namespace MAD
 		m_queuedDrawItems.emplace_back(inDrawItem);
 	}
 
-	void URenderer::QueueDirectionLight(const SGPUDirectionalLight& inDirectionalLight)
+	void URenderer::QueueDirectionalLight(const SGPUDirectionalLight& inDirectionalLight)
 	{
-		using namespace DirectX::SimpleMath;
 		m_queuedDirLights.push_back(inDirectionalLight);
 		m_queuedDirLights.back().m_lightDirection = Vector3::TransformNormal(inDirectionalLight.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
+	}
+
+	void URenderer::QueuePointLight(const SGPUPointLight& inPointLight)
+	{
+		m_queuedPointLights.push_back(inPointLight);
+
+		auto& newLight = m_queuedPointLights.back();
+		newLight.m_lightPosition = Vector3::Transform(newLight.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
 	}
 
 	void URenderer::OnScreenSizeChanged()
@@ -197,6 +204,20 @@ namespace MAD
 		m_dirLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
 	}
 
+	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
+	{
+		m_pointLightingPassDescriptor.m_depthStencilView = SDepthStencilId::Invalid;
+		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+
+		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+
+		m_pointLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+
+		m_pointLightingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inLightingPassProgramPath);
+
+		m_pointLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
+	}
+
 	void URenderer::BindPerFrameConstants()
 	{
 		// Update the per frame constant buffer
@@ -272,6 +293,14 @@ namespace MAD
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
 		{
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
+			DrawFullscreenQuad();
+		}
+
+		// Do point lighting
+		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::Lighting_PointLight));
+		for (const SGPUPointLight& currentPointLight : m_queuedPointLights)
+		{
+			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &currentPointLight, sizeof(SGPUPointLight));
 			DrawFullscreenQuad();
 		}
 	}

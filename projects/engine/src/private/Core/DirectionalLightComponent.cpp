@@ -23,7 +23,7 @@ namespace MAD
 		if (m_directionalLight.m_isLightEnabled)
 		{
 			URenderer& targetRenderer = gEngine->GetRenderer();
-			targetRenderer.QueueDirectionLight(m_directionalLight.m_gpuDirectionalLight);
+			targetRenderer.QueueDirectionalLight(m_directionalLight.m_gpuDirectionalLight);
 		}
 	}
 }

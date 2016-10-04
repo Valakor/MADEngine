@@ -18,7 +18,7 @@ namespace MAD
 			GBuffer_Emissive = 1 << 2,
 			GBuffer_NormalMap = 1 << 3,
 
-			Lighting_PointLight = 1 << 0,
+			Lighting_PointLight = 1 << 4,
 
 			INVALID = eastl::numeric_limits<ProgramId_t>::max()
 		};

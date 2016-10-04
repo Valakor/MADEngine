@@ -10,5 +10,9 @@ namespace MAD
 		bool m_isLightEnabled;
 	};
 
-	
+	struct SPointLight
+	{
+		SGPUPointLight m_gpuPointLight;
+		bool m_isLightEnabled;
+	};
 }

@@ -2,7 +2,7 @@
 
 #include "Core/LightComponent.h"
 #include "Core/SimpleMath.h"
-#include "Rendering/DirectionalLightInstance.h"
+#include "Rendering/LightInstances.h"
 
 namespace MAD
 {

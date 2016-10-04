@@ -32,9 +32,10 @@ namespace MAD
 		void Shutdown();
 
 		void QueueDrawItem(const SDrawItem& inDrawItem);
-		void QueueDirectionLight(const SGPUDirectionalLight& inDirectionalLight);
+		void QueueDirectionalLight(const SGPUDirectionalLight& inDirectionalLight);
+		void QueuePointLight(const SGPUPointLight& inPointLight);
 
-		void ClearRenderItems() { m_queuedDrawItems.clear(); m_queuedDirLights.clear(); }
+		void ClearRenderItems() { m_queuedDrawItems.clear(); m_queuedDirLights.clear(); m_queuedPointLights.clear(); }
 
 		void Frame(float framePercent);
 
@@ -58,6 +59,7 @@ namespace MAD
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
+		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
 
 		void BindPerFrameConstants();
 		void SetViewport(LONG inWidth, LONG inHeight);
@@ -74,13 +76,15 @@ namespace MAD
 		SRenderTargetId m_backBuffer;
 		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
-		DirectX::SimpleMath::Color m_clearColor;
+		Color m_clearColor;
 
 		eastl::vector<SDrawItem> m_queuedDrawItems;
 		eastl::vector<SGPUDirectionalLight> m_queuedDirLights;
+		eastl::vector<SGPUPointLight> m_queuedPointLights;
 		
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_dirLightingPassDescriptor;
+		SRenderPassDescriptor m_pointLightingPassDescriptor;
 
 		eastl::vector<SShaderResourceId> m_gBufferShaderResources;
 
