@@ -20,7 +20,7 @@ namespace MAD
 	{
 		using namespace DirectX::SimpleMath;
 
-		GetFirstComponentByType<CCameraComponent>().lock()->TEMPInitializeCameraInstance(ConvertToRadians(60.0f), 0.1f, 10000.0f, Matrix::Identity);
+		GetFirstComponentByType<CCameraComponent>().lock()->TEMPInitializeCameraInstance(ConvertToRadians(60.0f), 3.0f, 50.0f, Matrix::Identity);
 
 		auto meshComps = GetComponentsByType<CMeshComponent>();
 		auto rot = Matrix::Identity;// Matrix::CreateRotationY(ConvertToRadians(45.0f));

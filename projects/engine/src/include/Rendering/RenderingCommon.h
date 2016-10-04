@@ -124,12 +124,19 @@ namespace MAD
 	// Constant Buffers ----------------------
 	struct SPerFrameConstants
 	{
-		DirectX::SimpleMath::Matrix m_cameraViewMatrix;
-		DirectX::SimpleMath::Matrix m_cameraProjectionMatrix;
-		DirectX::SimpleMath::Matrix m_cameraViewProjectionMatrix;
-		DirectX::SimpleMath::Matrix m_cameraInverseProjectionMatrix;
+		Matrix m_cameraViewMatrix;
+		Matrix m_cameraProjectionMatrix;
+		Matrix m_cameraViewProjectionMatrix;
+		Matrix m_cameraInverseProjectionMatrix;
+
+		float m_cameraNearPlane;
+		float m_cameraFarPlane;
+
+	private:
+		float __pad1 = 0.0f;
+		float __pad2 = 0.0f;
 	};
-	static_assert(sizeof(SPerFrameConstants) == 256, "");
+	static_assert(sizeof(SPerFrameConstants) == 272, "");
 
 	struct SPerSceneConstants
 	{

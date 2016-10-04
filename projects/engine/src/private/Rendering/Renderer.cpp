@@ -302,11 +302,18 @@ namespace MAD
 	{
 		static bool loadedCopyTextureProgram = false;
 		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
-
 		if (!loadedCopyTextureProgram)
 		{
 			copyTextureProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\CopyTexture.hlsl");
 			loadedCopyTextureProgram = true;
+		}
+
+		static bool loadedDepthProgram = false;
+		static eastl::shared_ptr<URenderPassProgram> depthProgram;
+		if (!loadedDepthProgram)
+		{
+			depthProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\RenderDepth.hlsl");
+			loadedDepthProgram = true;
 		}
 
 		SShaderResourceId target;
@@ -330,9 +337,17 @@ namespace MAD
 		default: return;
 		}
 
+		if (m_visualizeOption == EVisualizeOptions::Depth)
+		{
+			depthProgram->SetProgramActive(g_graphicsDriver, 0);
+		}
+		else
+		{
+			copyTextureProgram->SetProgramActive(g_graphicsDriver, 0);
+		}
+
 		auto& renderTarget = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 		g_graphicsDriver.SetRenderTargets(&renderTarget, 1, nullptr);
-		copyTextureProgram->SetProgramActive(g_graphicsDriver, 0);
 		g_graphicsDriver.SetPixelShaderResource(target, ETextureSlot::DiffuseBuffer);
 
 		DrawFullscreenQuad();
@@ -377,6 +392,8 @@ namespace MAD
 		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
 		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
 		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
+		m_perFrameConstants.m_cameraNearPlane = inCameraInstance.m_nearPlaneDistance;
+		m_perFrameConstants.m_cameraFarPlane = inCameraInstance.m_farPlaneDistance;
 	}
 
 	void URenderer::SetWorldAmbientColor(Color inColor)
