@@ -74,6 +74,11 @@ namespace MAD
 			// Topology
 			currentDrawItem.m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
+			// Two-sided materials will render without backface culling
+			currentDrawItem.m_rasterizerState = gEngine->GetRenderer().GetRasterizerState(
+				D3D11_FILL_SOLID,
+				currentMaterial.m_isTwoSided ? D3D11_CULL_NONE : D3D11_CULL_BACK);
+
 			// Vertices / indices
 			currentDrawItem.m_vertexBufferOffset = m_subMeshes[i].m_vertexStart;
 			currentDrawItem.m_vertexBuffers.push_back(m_gpuPositions);
@@ -100,6 +105,7 @@ namespace MAD
 			const SShaderResourceId& diffuseTextureResource = currentMaterial.m_diffuseTex.GetTexureResourceId();
 			const SShaderResourceId& specularTextureResource = currentMaterial.m_specularTex.GetTexureResourceId();
 			const SShaderResourceId& emissiveTextureResource = currentMaterial.m_emissiveTex.GetTexureResourceId();
+			const SShaderResourceId& opacityMaskTextureResource = currentMaterial.m_opacityMask.GetTexureResourceId();
 
 			if (diffuseTextureResource.IsValid())
 			{
@@ -114,6 +120,11 @@ namespace MAD
 			if (emissiveTextureResource.IsValid())
 			{
 				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::EmissiveMap, emissiveTextureResource);
+			}
+
+			if (opacityMaskTextureResource.IsValid())
+			{
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::OpacityMask, opacityMaskTextureResource);
 			}
 
 			inOutTargetDrawItems.emplace_back(currentDrawItem);
@@ -220,6 +231,31 @@ namespace MAD
 					}
 				}
 				LOG_IMPORT(Log, "\tEmissive tex = %s\n", emissive_tex.C_Str());
+			}
+			{
+				float opacity = 1.0f;
+				aiMaterial->Get(AI_MATKEY_OPACITY, opacity);
+				LOG_IMPORT(Log, "\tOpacity = %f\n", opacity);
+				madMaterial.m_mat.m_opacity = opacity;
+
+				aiString opacity_tex;
+				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_OPACITY(0), opacity_tex))
+				{
+					auto tex = UAssetCache::Load<UTexture>(path + opacity_tex.C_Str(), false);
+					if (tex)
+					{
+						madMaterial.m_opacityMask = *tex;
+					}
+				}
+				LOG_IMPORT(Log, "\tOpacity tex = %s\n", opacity_tex.C_Str());
+
+				int two_sided = 0;
+				aiMaterial->Get(AI_MATKEY_TWOSIDED, two_sided);
+				if (opacity < 1.0f || two_sided != 0 || madMaterial.m_opacityMask.GetTexureResourceId().IsValid())
+				{
+					madMaterial.m_isTwoSided = true;
+				}
+				LOG_IMPORT(Log, "\tTwo-sided = %s\n", madMaterial.m_isTwoSided ? "true" : "false");
 			}
 		}
 

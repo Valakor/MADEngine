@@ -29,5 +29,7 @@ namespace MAD
 		SInputLayoutId m_inputLayout;
 
 		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology;
+
+		SRasterizerStateId m_rasterizerState;
 	};
 }

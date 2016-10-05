@@ -5,6 +5,7 @@
 //=>:(Permute, DIFFUSE)
 //=>:(Permute, SPECULAR)
 //=>:(Permute, EMISSIVE)
+//=>:(Permute, OPACITY_MASK)
 
 // Input structs for vertex and pixel shader
 struct VS_INPUT
@@ -67,6 +68,15 @@ PS_INPUT VS(VS_INPUT input)
 //--------------------------------------------------------------------------------------
 PS_OUTPUT PS(PS_INPUT input)
 {
+#ifdef OPACITY_MASK
+	float opacityMask = g_opacityMask.Sample(g_linearSampler, input.mTex).r;
+	if (opacityMask < 0.75)
+	{
+		// If this pixel is masked out by the mask texture, just throw it out
+		discard;
+	}
+#endif
+
 	input.mVSNormal = normalize(input.mVSNormal);
 
 	float3 finalLightAccumulation;

@@ -27,6 +27,7 @@ namespace MAD
 		{ "DIFFUSE", EProgramIdMask::GBuffer_Diffuse },
 		{ "SPECULAR", EProgramIdMask::GBuffer_Specular },
 		{ "EMISSIVE", EProgramIdMask::GBuffer_Emissive },
+		{ "OPACITY_MASK", EProgramIdMask::GBuffer_OpacityMask },
 		{ "NORMAL_MAP", EProgramIdMask::GBuffer_NormalMap },
 
 		{ "POINT_LIGHT", EProgramIdMask::Lighting_PointLight },

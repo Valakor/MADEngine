@@ -49,6 +49,7 @@ namespace MAD
 		void SetBackBufferClearColor(DirectX::SimpleMath::Color inColor);
 
 		class UGraphicsDriver& GetGraphicsDriver();
+		SRasterizerStateId GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 
 		// Don't use this API to make a Texture, use UAssetCache<UTexture> instead
 		SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const;

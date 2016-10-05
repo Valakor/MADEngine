@@ -13,12 +13,13 @@ namespace MAD
 	public:
 		enum class EProgramIdMask : ProgramId_t
 		{
-			GBuffer_Diffuse = 1 << 0,
-			GBuffer_Specular = 1 << 1,
-			GBuffer_Emissive = 1 << 2,
-			GBuffer_NormalMap = 1 << 3,
+			GBuffer_Diffuse     = 1 << 0,
+			GBuffer_Specular    = 1 << 1,
+			GBuffer_Emissive    = 1 << 2,
+			GBuffer_OpacityMask = 1 << 3,
+			GBuffer_NormalMap   = 1 << 4,
 
-			Lighting_PointLight = 1 << 4,
+			Lighting_PointLight = 1 << 5,
 
 			INVALID = eastl::numeric_limits<ProgramId_t>::max()
 		};

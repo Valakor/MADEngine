@@ -183,8 +183,6 @@ namespace MAD
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)], "Specular Buffer");
 #endif
 
-		m_gBufferPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
-
 		m_gBufferPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inGBufferProgramPath);
 
 		m_gBufferPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
@@ -198,7 +196,7 @@ namespace MAD
 		m_dirLightingPassDescriptor.m_renderTargets.clear();
 		m_dirLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
-		m_dirLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+		m_dirLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
 
 		m_dirLightingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inDirLightingPassProgramPath);
 
@@ -213,7 +211,7 @@ namespace MAD
 		m_pointLightingPassDescriptor.m_renderTargets.clear();
 		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
-		m_pointLightingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
 
 		m_pointLightingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inLightingPassProgramPath);
 
@@ -401,6 +399,9 @@ namespace MAD
 			case ETextureSlot::EmissiveMap: // Do you have a emissive map?
 				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::GBuffer_Emissive);
 				break;
+			case ETextureSlot::OpacityMask: // Do you have an opacity mask?
+				outputProgramId |= static_cast<ProgramId_t>(UProgramPermutor::EProgramIdMask::GBuffer_OpacityMask);
+				break;
 			}
 		}
 
@@ -451,5 +452,21 @@ namespace MAD
 	class UGraphicsDriver& URenderer::GetGraphicsDriver()
 	{
 		return g_graphicsDriver;
+	}
+
+	SRasterizerStateId URenderer::GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const
+	{
+		static eastl::hash_map<uint32_t, SRasterizerStateId> s_stateCache;
+
+		uint32_t hash = inFillMode + inCullMode * 17;
+		auto iter = s_stateCache.find(hash);
+		if (iter != s_stateCache.end())
+		{
+			return iter->second;
+		}
+
+		auto state = g_graphicsDriver.CreateRasterizerState(inFillMode, inCullMode);
+		s_stateCache.insert({ hash, state });
+		return state;
 	}
 }

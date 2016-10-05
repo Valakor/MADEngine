@@ -15,5 +15,8 @@ namespace MAD
 		UTexture m_diffuseTex;
 		UTexture m_specularTex;
 		UTexture m_emissiveTex;
+		UTexture m_opacityMask;
+
+		bool m_isTwoSided = false;
 	};
 }

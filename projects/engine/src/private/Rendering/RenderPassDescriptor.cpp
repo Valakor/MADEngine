@@ -17,6 +17,6 @@ namespace MAD
 		
 		inGraphicsDriver.SetBlendState(m_blendState);
 
-		inGraphicsDriver.SetRasterizerState(m_rasterizerState);
+		if (m_rasterizerState.IsValid()) inGraphicsDriver.SetRasterizerState(m_rasterizerState);
 	}
 }

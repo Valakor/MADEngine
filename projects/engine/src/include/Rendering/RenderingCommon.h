@@ -31,6 +31,7 @@ namespace MAD
 		DiffuseMap = 0,
 		SpecularMap,
 		EmissiveMap,
+		OpacityMask,
 
 		// ------------- Defined by renderer -------------------
 		LightingBuffer,
@@ -105,16 +106,15 @@ namespace MAD
 	struct SGPUMaterial
 	{
 	public:
-		DirectX::SimpleMath::Vector3 m_diffuseColor;
-	private:
-		float __pad1 = 0.0f;
+		Vector3 m_diffuseColor;
+		float m_opacity = 1.0f;
 		// 16 bytes ---------------------------------
-	public:
-		DirectX::SimpleMath::Vector3 m_specularColor;
+
+		Vector3 m_specularColor;
 		float m_specularPower = 1.0f;
 		// 16 bytes ---------------------------------
 
-		DirectX::SimpleMath::Vector3 m_emissiveColor;
+		Vector3 m_emissiveColor;
 	private:
 		float __pad2 = 0.0f;
 		// 16 bytes ---------------------------------

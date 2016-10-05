@@ -45,6 +45,7 @@ namespace MAD
 			}
 		}
 
+		inGraphicsDriver.SetRasterizerState(m_rasterizerState);
 		inGraphicsDriver.SetPrimitiveTopology(m_primitiveTopology);
 		inGraphicsDriver.SetInputLayout(m_inputLayout);
 		inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
