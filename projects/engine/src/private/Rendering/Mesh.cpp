@@ -205,7 +205,7 @@ namespace MAD
 				madMaterial.m_mat.m_specularPower = specular_power;
 
 				aiString specular_tex;
-				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_SPECULAR(0), specular_tex))
+				if (specular_strength > 0.0f && specular_power >= 1.0f && AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_SPECULAR(0), specular_tex))
 				{
 					auto tex = UAssetCache::Load<UTexture>(path + specular_tex.C_Str(), false);
 					if (tex)
