@@ -22,7 +22,7 @@ namespace MAD
 	/** Program Permutation Constants -------------------------- */
 	const eastl::string UProgramPermutor::s_shaderMetaFlagString = "//=>:(";
 	
-	const eastl::hash_map<eastl::string, UProgramPermutor::EProgramIdMask> UProgramPermutor::s_programIdMaskToStringMap =
+	const eastl::hash_map<eastl::string, EProgramIdMask> UProgramPermutor::s_programIdMaskToStringMap =
 	{
 		{ "DIFFUSE", EProgramIdMask::GBuffer_Diffuse },
 		{ "SPECULAR", EProgramIdMask::GBuffer_Specular },
@@ -33,10 +33,10 @@ namespace MAD
 		{ "POINT_LIGHT", EProgramIdMask::Lighting_PointLight },
 	};
 
-	const eastl::hash_map<eastl::string, UProgramPermutor::EMetaFlagType> UProgramPermutor::s_metaFlagStringToTypeMap =
+	const eastl::hash_map<eastl::string, EMetaFlagType> UProgramPermutor::s_metaFlagStringToTypeMap =
 	{
-		{ "Usage", UProgramPermutor::EMetaFlagType::EMetaFlagType_Usage },
-		{ "Permute", UProgramPermutor::EMetaFlagType::EMetaFlagType_Permute },
+		{ "Usage", EMetaFlagType::EMetaFlagType_Usage },
+		{ "Permute", EMetaFlagType::EMetaFlagType_Permute },
 	};
 
 	void UProgramPermutor::PermuteProgram(const eastl::string& inProgramFilePath, ProgramPermutations_t& outProgramPermutations, bool inShouldGenPermutationFiles)
@@ -47,9 +47,9 @@ namespace MAD
 		{
 			std::string stdProgramStringBuffer;
 
-			eastl::vector<UProgramPermutor::SShaderMetaFlagInstance>						programMetaFlagInstances;
-			eastl::vector<UProgramPermutor::SShaderUsageDescription>						programUsageDescriptions;
-			eastl::vector<UProgramPermutor::SShaderPermuteDescription>						programPermutationDescriptions;
+			eastl::vector<SShaderMetaFlagInstance>						programMetaFlagInstances;
+			eastl::vector<SShaderUsageDescription>						programUsageDescriptions;
+			eastl::vector<SShaderPermuteDescription>						programPermutationDescriptions;
 
 			stdProgramStringBuffer.resize(programInputStream.tellg());
 
@@ -323,7 +323,7 @@ namespace MAD
 	}
 
 	// Utility functions to convert between meta flag type and string
-	UProgramPermutor::EProgramIdMask UProgramPermutor::ConvertStringToPIDMask(const eastl::string& inMaskString)
+	EProgramIdMask UProgramPermutor::ConvertStringToPIDMask(const eastl::string& inMaskString)
 	{
 		auto pidMaskStringFindIter = UProgramPermutor::s_programIdMaskToStringMap.find(inMaskString.c_str());
 
@@ -357,7 +357,7 @@ namespace MAD
 		return s_invalidMaskString;
 	}
 
-	UProgramPermutor::EMetaFlagType UProgramPermutor::ConvertStringToFlagType(const eastl::string& inMetaFlagString)
+	EMetaFlagType UProgramPermutor::ConvertStringToFlagType(const eastl::string& inMetaFlagString)
 	{
 		// TODO: Transform input meta flag string to lower case so we can be case insensitive (we probably want this? maybe not)
 		auto metaFlagFindIter = UProgramPermutor::s_metaFlagStringToTypeMap.find(inMetaFlagString);
