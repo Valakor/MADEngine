@@ -76,7 +76,10 @@ void GetLightIrradianceProperties(float3 positionVS, out float attenuation, out 
 {
 #ifdef POINT_LIGHT
 	float d = distance(positionVS, g_pointLight.m_lightPosition);
-	attenuation = 1.0 - smoothstep(g_pointLight.m_lightInnerRadius, g_pointLight.m_lightOuterRadius, d);
+	d = max(d - g_pointLight.m_lightInnerRadius, 0.0);
+	attenuation = clamp(1.0 - d / g_pointLight.m_lightOuterRadius, 0.0, 1.0);
+	attenuation *= attenuation;
+
 	lightColor = g_pointLight.m_lightColor;
 	lightIntensity = g_pointLight.m_lightIntensity;
 #else

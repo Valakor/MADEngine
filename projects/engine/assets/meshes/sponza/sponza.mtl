@@ -144,7 +144,7 @@ newmtl column_a
 	bump textures\sponza_column_a_ddn.png
 
 newmtl floor
-	Ns 10.0000
+	Ns 64.0000
 	Ni 1.5000
 	d 1.0000
 	Tr 0.0000
