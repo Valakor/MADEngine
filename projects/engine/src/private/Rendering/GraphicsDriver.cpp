@@ -253,6 +253,12 @@ namespace MAD
 			SetVertexConstantBuffer(m_constantBuffers[i], i);
 			SetPixelConstantBuffer(m_constantBuffers[i], i);
 		}
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerScene");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerFrame");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 13, "PerPointLight");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 19, "PerDirectionalLight");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 11, "PerMaterial");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 7, "PerDraw");
 
 		// Initialize our samplers
 		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
@@ -871,7 +877,7 @@ namespace MAD
 
 	void UGraphicsDriver::SetPixelShader(SPixelShaderId inPixelShader) const
 	{
-		ID_GET_SAFE(shader, inPixelShader, g_pixelShaderStore, "Invalid pixel shader");
+		ID_TRY_GET(shader, inPixelShader, g_pixelShaderStore, "Invalid pixel shader");
 		g_d3dDeviceContext->PSSetShader(shader.Get(), nullptr, 0);
 	}
 

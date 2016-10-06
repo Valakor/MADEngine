@@ -39,6 +39,7 @@ namespace MAD
 		NormalBuffer,
 		SpecularBuffer,
 		DepthBuffer,
+		ShadowMap,
 
 		MAX
 	};

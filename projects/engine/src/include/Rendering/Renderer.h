@@ -60,6 +60,7 @@ namespace MAD
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
+		void InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
 
 		void BindPerFrameConstants();
@@ -85,7 +86,10 @@ namespace MAD
 		
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_dirLightingPassDescriptor;
+		SRenderPassDescriptor m_dirShadowMappingPassDescriptor;
 		SRenderPassDescriptor m_pointLightingPassDescriptor;
+
+		SShaderResourceId m_shadowMapSRV;
 
 		eastl::vector<SShaderResourceId> m_gBufferShaderResources;
 
