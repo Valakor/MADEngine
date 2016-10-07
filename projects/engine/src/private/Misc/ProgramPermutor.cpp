@@ -21,22 +21,24 @@ namespace MAD
 
 	/** Program Permutation Constants -------------------------- */
 	const eastl::string UProgramPermutor::s_shaderMetaFlagString = "//=>:(";
-	
-	const eastl::hash_map<eastl::string, EProgramIdMask> UProgramPermutor::s_programIdMaskToStringMap =
-	{
-		{ "DIFFUSE", EProgramIdMask::GBuffer_Diffuse },
-		{ "SPECULAR", EProgramIdMask::GBuffer_Specular },
-		{ "EMISSIVE", EProgramIdMask::GBuffer_Emissive },
-		{ "OPACITY_MASK", EProgramIdMask::GBuffer_OpacityMask },
-		{ "NORMAL_MAP", EProgramIdMask::GBuffer_NormalMap },
 
-		{ "POINT_LIGHT", EProgramIdMask::Lighting_PointLight },
+	const eastl::hash_map<eastl::string, ProgramIdMask_t> UProgramPermutor::s_programIdMaskToStringMap =
+	{
+		{ "DIFFUSE", EIdMask::GBuffer_Diffuse },
+		{ "SPECULAR", EIdMask::GBuffer_Specular },
+		{ "EMISSIVE", EIdMask::GBuffer_Emissive },
+		{ "OPACITY_MASK", EIdMask::GBuffer_OpacityMask },
+		{ "NORMAL_MAP", EIdMask::GBuffer_NormalMap },
+
+		{ "POINT_LIGHT", EIdMask::Lighting_PointLight },
+		{ "DIRECTIONAL_LIGHT", EIdMask::Lighting_DirectionalLight },
+		{ "SPOT_LIGHT", EIdMask::Lighting_SpotLight }
 	};
 
 	const eastl::hash_map<eastl::string, EMetaFlagType> UProgramPermutor::s_metaFlagStringToTypeMap =
 	{
-		{ "Usage", EMetaFlagType::EMetaFlagType_Usage },
-		{ "Permute", EMetaFlagType::EMetaFlagType_Permute },
+		{ "Usage", EMetaFlagType::Usage },
+		{ "Permute", EMetaFlagType::Permute },
 	};
 
 	void UProgramPermutor::PermuteProgram(const eastl::string& inProgramFilePath, ProgramPermutations_t& outProgramPermutations, bool inShouldGenPermutationFiles)
@@ -67,21 +69,22 @@ namespace MAD
 			{
 				switch (currentMetaFlagInst.MetaFlagType)
 				{
-					case EMetaFlagType::EMetaFlagType_Usage:
+					case EMetaFlagType::Usage:
 					{
 						LOG(LogProgramPermutor, Log, "Adding meta usage flag with values: %s - %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str(), currentMetaFlagInst.MetaFlagValues[1].c_str());
 
 						programUsageDescriptions.push_back({ currentMetaFlagInst.MetaFlagValues[0], currentMetaFlagInst.MetaFlagValues[1] });
 						break;
 					}
-					case EMetaFlagType::EMetaFlagType_Permute:
+					case EMetaFlagType::Permute:
 					{
-						EProgramIdMask permuteIdMask = UProgramPermutor::ConvertStringToPIDMask(currentMetaFlagInst.MetaFlagValues[0]);
+						ProgramIdMask_t currentPermuteIdMask = UProgramPermutor::ConvertStringToPIDMask(currentMetaFlagInst.MetaFlagValues[0]);
 
-						if (permuteIdMask != EProgramIdMask::INVALID)
+						// Make sure they're using a valid permute name
+						if (currentPermuteIdMask != EIdMask::INVALID_MASK_ID)
 						{
 							LOG(LogProgramPermutor, Log, "Adding meta permute flag with define: %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str());
-							programPermutationDescriptions.push_back({ permuteIdMask });
+							programPermutationDescriptions.push_back({ currentPermuteIdMask, currentMetaFlagInst.MetaFlagValues[0] });
 						}
 						else
 						{
@@ -126,29 +129,27 @@ namespace MAD
 				eastl::vector<char> compiledProgramByteCode;
 				eastl::string currentProgramIdString;
 
-				programMacroDefines.reserve(inPermuteOptions.size());
+				programMacroDefines.reserve(numPermuteOptions);
 
 				// Find the bits that are set and mask the associated bit mask with the program ID
 				if (numPermuteOptions > 0)
 				{
 					for (size_t j = 0; j < numPermuteOptions; ++j)
 					{
-						const eastl::string& permuteIdString = UProgramPermutor::ConvertPIDMaskToString(inPermuteOptions[j].PermuteIdMask);
-
 						currentProgramIdString += '[';
 
-						if ((currentProgramId & (0x1ULL << j)) != 0)
+						if ((currentProgramId & inPermuteOptions[j].PermuteIdMask) != 0)
 						{
 							currentProgramIdString += '+';
 
-							programMacroDefines.push_back({ permuteIdString.c_str(), "1" });
+							programMacroDefines.push_back({ inPermuteOptions[j].PermuteIdMaskName.c_str(), "1" });
 						}
 						else
 						{
 							currentProgramIdString += "-";
 						}
 
-						currentProgramIdString += permuteIdString;
+						currentProgramIdString += inPermuteOptions[j].PermuteIdMaskName.c_str();
 						currentProgramIdString += ']';
 					}
 				}
@@ -159,15 +160,12 @@ namespace MAD
 
 				programMacroDefines.push_back({ nullptr, nullptr }); // Sentinel value necessary to determine when we are at end of macro define list
 
-																	 // For each set of usage descriptions, we need to create a new entry within the output shader permutations
-
 				for (const auto& currentUsageDescription : inUsageDescriptions)
 				{
 					compiledProgramByteCode.clear();
 
 					// To limit EProgramShaderType to string conversions, we convert at the very last moment
 					// Draw back, we potentially do more than we should to find out its invalid at the end, but that's okay since this will be a pre-build step eventually
-					//auto shaderTypeFindIter = URenderPassProgram::s_entryPointToShaderTypeMap.find(currentUsageDescription.ShaderEntryName);
 					EProgramShaderType usageShaderType = URenderPassProgram::ConvertStringToShaderType(currentUsageDescription.ShaderEntryName);
 
 					if (usageShaderType != EProgramShaderType::EProgramShaderType_Invalid)
@@ -190,7 +188,7 @@ namespace MAD
 								break;
 							}
 
-							LOG(LogProgramPermutor, Log, "Log: Size of compiled byte code: %d\n", compiledProgramByteCode.size());
+							LOG(LogProgramPermutor, Log, "Log: [%s] Size of compiled byte code: %d\n", currentUsageDescription.ShaderEntryName.c_str(), compiledProgramByteCode.size());
 
 							if (inShouldGenPermutationFiles)
 							{
@@ -312,7 +310,7 @@ namespace MAD
 			// First substring is the flag type
 			currentMetaFlagInstance.MetaFlagType = ConvertStringToFlagType(metaFlagSubstrings.front());
 
-			if (currentMetaFlagInstance.MetaFlagType == EMetaFlagType::EMetaFlagType_Invalid)
+			if (currentMetaFlagInstance.MetaFlagType == EMetaFlagType::INVALID)
 			{
 				LOG(LogProgramPermutor, Warning, "Warning: Shader usage instance #%d has an invalid meta flag type!", outMetaFlagInstances.size());
 				return;
@@ -332,7 +330,7 @@ namespace MAD
 	}
 
 	// Utility functions to convert between meta flag type and string
-	EProgramIdMask UProgramPermutor::ConvertStringToPIDMask(const eastl::string& inMaskString)
+	ProgramIdMask_t UProgramPermutor::ConvertStringToPIDMask(const eastl::string& inMaskString)
 	{
 		auto pidMaskStringFindIter = UProgramPermutor::s_programIdMaskToStringMap.find(inMaskString.c_str());
 
@@ -342,11 +340,11 @@ namespace MAD
 		}
 		else
 		{
-			return EProgramIdMask::INVALID;
+			return EIdMask::INVALID_MASK_ID;
 		}
 	}
 
-	const eastl::string& UProgramPermutor::ConvertPIDMaskToString(EProgramIdMask inMaskId)
+	const eastl::string& UProgramPermutor::ConvertPIDMaskToString(ProgramIdMask_t inMaskId)
 	{
 		static const eastl::string s_invalidMaskString = "INVALID";
 
@@ -377,7 +375,7 @@ namespace MAD
 		}
 		else
 		{
-			return EMetaFlagType::EMetaFlagType_Invalid;
+			return EMetaFlagType::INVALID;
 		}
 	}
 

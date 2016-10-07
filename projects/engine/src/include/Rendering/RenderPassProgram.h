@@ -22,6 +22,7 @@ namespace MAD
 	};
 
 	using ProgramId_t = uint64_t;
+	using ProgramIdMask_t = ProgramId_t;
 	using ProgramShaderTuple_t = eastl::tuple<SVertexShaderId, SGeometryShaderId, SPixelShaderId>;
 	using ProgramPermutations_t = eastl::hash_map<ProgramId_t, ProgramShaderTuple_t>;
 

@@ -297,7 +297,7 @@ namespace MAD
 		}
 
 		// Do point lighting
-		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
+		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EIdMask::Lighting_PointLight));
 		for (const SGPUPointLight& currentPointLight : m_queuedPointLights)
 		{
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &currentPointLight, sizeof(SGPUPointLight));
@@ -391,16 +391,16 @@ namespace MAD
 			switch (currentTextureSlot.first)
 			{
 			case ETextureSlot::DiffuseMap: // Do you have a diffuse map?
-				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_Diffuse);
+				outputProgramId |= static_cast<ProgramId_t>(EIdMask::GBuffer_Diffuse);
 				break;
 			case ETextureSlot::SpecularMap: // Do you have a specular map?
-				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_Specular);
+				outputProgramId |= static_cast<ProgramId_t>(EIdMask::GBuffer_Specular);
 				break;
 			case ETextureSlot::EmissiveMap: // Do you have a emissive map?
-				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_Emissive);
+				outputProgramId |= static_cast<ProgramId_t>(EIdMask::GBuffer_Emissive);
 				break;
 			case ETextureSlot::OpacityMask: // Do you have an opacity mask?
-				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_OpacityMask);
+				outputProgramId |= static_cast<ProgramId_t>(EIdMask::GBuffer_OpacityMask);
 				break;
 			}
 		}

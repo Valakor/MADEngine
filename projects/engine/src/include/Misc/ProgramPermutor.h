@@ -15,7 +15,7 @@ namespace MAD
 	private:
 		static const eastl::string s_shaderMetaFlagString;
 		static const eastl::hash_map<eastl::string, EMetaFlagType> s_metaFlagStringToTypeMap;
-		static const eastl::hash_map<eastl::string, EProgramIdMask> s_programIdMaskToStringMap;
+		static const eastl::hash_map<eastl::string, ProgramIdMask_t> s_programIdMaskToStringMap;
 	private:
 		// Parsing and generation functions
 		static void ParseProgramMetaFlags(const eastl::string& inShaderBufferString, eastl::vector<SShaderMetaFlagInstance>& outMetaFlagInstances);
@@ -23,8 +23,8 @@ namespace MAD
 		static void GenerateProgramPermutationFile(const eastl::string& inOutputFilePath, const eastl::string& inProgramFileName, const eastl::vector<char>& inCompiledByteCode, const SShaderUsageDescription& inTargetUsage, ProgramId_t inTargetProgramID, const eastl::string& inTargetProgramStringDesc);
 		
 		// Utility functions
-		static EProgramIdMask ConvertStringToPIDMask(const eastl::string& inMaskString);
-		static const eastl::string& ConvertPIDMaskToString(EProgramIdMask inMaskId);
+		static ProgramIdMask_t ConvertStringToPIDMask(const eastl::string& inMaskString);
+		static const eastl::string& ConvertPIDMaskToString(ProgramIdMask_t inMaskId);
 		static EMetaFlagType ConvertStringToFlagType(const eastl::string& inMetaFlagString);
 		static const eastl::string& ConvertFlagTypeToString(EMetaFlagType inMetaFlagType);
 	};
