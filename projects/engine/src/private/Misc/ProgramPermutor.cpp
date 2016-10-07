@@ -6,6 +6,7 @@
 
 #include <EASTL/tuple.h>
 #include <EASTL/algorithm.h>
+#include <EASTL/sort.h>
 #include <EASTL/functional.h>
 
 #include "Rendering/Renderer.h"
@@ -22,7 +23,7 @@ namespace MAD
 	/** Program Permutation Constants -------------------------- */
 	const eastl::string UProgramPermutor::s_shaderMetaFlagString = "//=>:(";
 
-	const eastl::hash_map<eastl::string, ProgramIdMask_t> UProgramPermutor::s_programIdMaskToStringMap =
+	const eastl::hash_map<eastl::string, ProgramIdMask_t> UProgramPermutor::s_stringToProgramIdMaskMap =
 	{
 		{ "DIFFUSE", EIdMask::GBuffer_Diffuse },
 		{ "SPECULAR", EIdMask::GBuffer_Specular },
@@ -49,9 +50,10 @@ namespace MAD
 		{
 			std::string stdProgramStringBuffer;
 
-			eastl::vector<SShaderMetaFlagInstance>						programMetaFlagInstances;
-			eastl::vector<SShaderUsageDescription>						programUsageDescriptions;
-			eastl::vector<SShaderPermuteDescription>						programPermutationDescriptions;
+			eastl::vector<SShaderMetaFlagInstance>				programMetaFlagInstances;
+			eastl::vector<SShaderUsageDescription>				programUsageDescriptions;
+			eastl::vector<SShaderPermuteDescription>			programPermutationDescriptions;
+			eastl::vector<SShaderPermuteGroupDescription>		programPermutationGroupDescs; // Permutation groups
 
 			stdProgramStringBuffer.resize(programInputStream.tellg());
 
@@ -64,6 +66,12 @@ namespace MAD
 			// Accumulate all of the meta flag instances in the program file
 			ParseProgramMetaFlags(programStringBuffer, programMetaFlagInstances);
 
+			// The value of the meta flag type encodes the priority in which the meta flag instance will be processed (sort by meta flag type value)
+			eastl::insertion_sort(programMetaFlagInstances.begin(), programMetaFlagInstances.end(), [](const SShaderMetaFlagInstance& inLeftFlagInst, const SShaderMetaFlagInstance& inRightFlagInst)
+			{
+				return inLeftFlagInst.MetaFlagType < inRightFlagInst.MetaFlagType;
+			});
+
 			// Go through all meta flags and retrieve the Usage and Permute meta flag instances
 			for (const auto& currentMetaFlagInst : programMetaFlagInstances)
 			{
@@ -74,6 +82,7 @@ namespace MAD
 						LOG(LogProgramPermutor, Log, "Adding meta usage flag with values: %s - %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str(), currentMetaFlagInst.MetaFlagValues[1].c_str());
 
 						programUsageDescriptions.push_back({ currentMetaFlagInst.MetaFlagValues[0], currentMetaFlagInst.MetaFlagValues[1] });
+						
 						break;
 					}
 					case EMetaFlagType::Permute:
@@ -83,32 +92,50 @@ namespace MAD
 						// Make sure they're using a valid permute name
 						if (currentPermuteIdMask != EIdMask::INVALID_MASK_ID)
 						{
-							LOG(LogProgramPermutor, Log, "Adding meta permute flag with define: %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str());
-							programPermutationDescriptions.push_back({ currentPermuteIdMask, currentMetaFlagInst.MetaFlagValues[0] });
+							// Parses the parameters (options and values) of the current permute group, along with creating the list of permute options for everything
+							ParsePermuteGroupParameters(currentMetaFlagInst, programPermutationDescriptions, programPermutationGroupDescs);
 						}
 						else
 						{
 							LOG(LogProgramPermutor, Error, "Error: Invalid permute flag: %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str());
-
 						}
+
 						break;
-					}	
+					}
 				}
 			}
 
 			// TEMP: Create a list of program Ids from 0 to 0x1ULL << num permute options
-			const size_t maxNumPermutations = 0x1ULL << programPermutationDescriptions.size();
 			eastl::vector<ProgramId_t> targetProgramIds;
 
-			targetProgramIds.reserve(maxNumPermutations);
-
-			for (size_t i = 0; i < maxNumPermutations; ++i)
-			{
-				targetProgramIds.push_back(i);
-			}
+			// Generate the ProgramId set to create permutations for
+			GenerateProgramIdSet(programPermutationGroupDescs, targetProgramIds);
 
 			// The usage descriptions tell us which parts of the program to include in the shader permutation sets
 			GeneratePermutations(inProgramFilePath, programUsageDescriptions, programPermutationDescriptions, targetProgramIds, inShouldGenPermutationFiles, outProgramPermutations);
+		}
+	}
+
+	void UProgramPermutor::GenerateProgramIdSet(const eastl::vector<SShaderPermuteGroupDescription>& inPermuteGroups, eastl::vector<ProgramId_t>& outPermutedProgramIds)
+	{
+		// Go through each of the permute groups and generate program Ids for them
+
+		for (const auto& currentPermuteGroup : inPermuteGroups)
+		{
+			GenerateProgramIdsForGroup(currentPermuteGroup, outPermutedProgramIds);
+		}
+	}
+
+	void UProgramPermutor::GenerateProgramIdsForGroup(const SShaderPermuteGroupDescription& inPermuteGroupDesc, eastl::vector<ProgramId_t>& outPermutedProgramIds)
+	{
+		// For the current input permute group, we need to check the group flags to see if we need to perform any special actions
+		const size_t maxNumPermutations = 0x1ULL << inPermuteGroupDesc.GroupPermuteOptions.size();
+
+		outPermutedProgramIds.reserve(maxNumPermutations);
+
+		for (size_t i = 0; i < maxNumPermutations; ++i)
+		{
+			outPermutedProgramIds.push_back(i);
 		}
 	}
 
@@ -243,6 +270,49 @@ namespace MAD
 		}
 	}
 
+	uint32_t UProgramPermutor::ParsePermuteGroupFlags(const SShaderMetaFlagInstance& inCurrentFlagInst, size_t& outNumGroupFlags)
+	{
+		uint32_t outputGroupFlags = 0;
+
+		// TODO: For now, we only support the "Mutual" option
+		if (inCurrentFlagInst.MetaFlagValues[1] == "Mutual")
+		{
+			outputGroupFlags |= static_cast<uint32_t>(EPermuteGroupFlags::EPermuteGroupFlags_Mutual);
+			++outNumGroupFlags;
+		}
+
+		return outputGroupFlags;
+	}
+
+	void UProgramPermutor::ParsePermuteGroupParameters(const SShaderMetaFlagInstance& inCurrentMetaFlagInst, eastl::vector<SShaderPermuteDescription>& inOutPermuteOptions, eastl::vector<SShaderPermuteGroupDescription>& inOutPermuteGroups)
+	{
+		const size_t numMetaFlagValues = inCurrentMetaFlagInst.MetaFlagValues.size();
+		SShaderPermuteGroupDescription currentGroupDesc;
+		size_t numGroupFlags = 0;
+
+		// Before checking the permute options of the group, we need to check if there are any flags to set for the group
+		currentGroupDesc.GroupFlags = ParsePermuteGroupFlags(inCurrentMetaFlagInst, numGroupFlags);
+
+		// After checking the flags, we can use the rest of the arguments as permute options for the group (starting at numGroupFlags + 1 until end of the meta flag values)
+		for (size_t i = numGroupFlags + 1; i < numMetaFlagValues; ++i)
+		{
+			ProgramIdMask_t currentMetaFlagValueMask = UProgramPermutor::ConvertStringToPIDMask(inCurrentMetaFlagInst.MetaFlagValues[i]);
+
+			if (currentMetaFlagValueMask != EIdMask::INVALID_MASK_ID)
+			{
+				LOG(LogProgramPermutor, Log, "Adding meta permute flag with define: %s\n", inCurrentMetaFlagInst.MetaFlagValues[i].c_str());
+				currentGroupDesc.GroupPermuteOptions.push_back({ currentMetaFlagValueMask, inCurrentMetaFlagInst.MetaFlagValues[i] });
+			}
+			else
+			{
+				LOG(LogProgramPermutor, Error, "Error: Invalid permute option (%s) at index %d\n", inCurrentMetaFlagInst.MetaFlagValues[i].c_str(), i);
+			}
+		}
+
+		inOutPermuteGroups.emplace_back(currentGroupDesc);
+		inOutPermuteOptions.insert(inOutPermuteOptions.end(), currentGroupDesc.GroupPermuteOptions.cbegin(), currentGroupDesc.GroupPermuteOptions.cend());
+	}
+
 	// Parses the entire shader string buffer to match instances of the program meta flag
 	// Format of the shader usage flags: "!!>:(Flag Type, <Values, sep. by comma>)"
 	// Flag Type can be either Usage or Permute
@@ -332,9 +402,9 @@ namespace MAD
 	// Utility functions to convert between meta flag type and string
 	ProgramIdMask_t UProgramPermutor::ConvertStringToPIDMask(const eastl::string& inMaskString)
 	{
-		auto pidMaskStringFindIter = UProgramPermutor::s_programIdMaskToStringMap.find(inMaskString.c_str());
+		auto pidMaskStringFindIter = UProgramPermutor::s_stringToProgramIdMaskMap.find(inMaskString.c_str());
 
-		if (pidMaskStringFindIter != UProgramPermutor::s_programIdMaskToStringMap.cend())
+		if (pidMaskStringFindIter != UProgramPermutor::s_stringToProgramIdMaskMap.cend())
 		{
 			return pidMaskStringFindIter->second;
 		}
@@ -348,8 +418,8 @@ namespace MAD
 	{
 		static const eastl::string s_invalidMaskString = "INVALID";
 
-		auto pidMaskFindIter = UProgramPermutor::s_programIdMaskToStringMap.cbegin();
-		auto pidMaskFindEndIter = UProgramPermutor::s_programIdMaskToStringMap.cend();
+		auto pidMaskFindIter = UProgramPermutor::s_stringToProgramIdMaskMap.cbegin();
+		auto pidMaskFindEndIter = UProgramPermutor::s_stringToProgramIdMaskMap.cend();
 
 		while (pidMaskFindIter != pidMaskFindEndIter)
 		{

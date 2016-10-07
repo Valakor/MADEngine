@@ -36,7 +36,6 @@ namespace MAD
 	{
 		Usage = 0,
 		Permute,
-
 		INVALID
 	};
 
@@ -56,7 +55,16 @@ namespace MAD
 	{
 		ProgramIdMask_t PermuteIdMask;
 		eastl::string PermuteIdMaskName;
+	};
 
-		// ...potentially more later
+	enum EPermuteGroupFlags : uint32_t
+	{
+		EPermuteGroupFlags_Mutual = 1 << 0,
+	};
+
+	struct SShaderPermuteGroupDescription
+	{
+		eastl::vector<SShaderPermuteDescription> GroupPermuteOptions;
+		uint32_t GroupFlags;
 	};
 }
