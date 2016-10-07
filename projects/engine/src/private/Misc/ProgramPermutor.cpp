@@ -93,30 +93,41 @@ namespace MAD
 				}
 			}
 
+			// TEMP: Create a list of program Ids from 0 to 0x1ULL << num permute options
+			const size_t maxNumPermutations = 0x1ULL << programPermutationDescriptions.size();
+			eastl::vector<ProgramId_t> targetProgramIds;
+
+			targetProgramIds.reserve(maxNumPermutations);
+
+			for (size_t i = 0; i < maxNumPermutations; ++i)
+			{
+				targetProgramIds.push_back(i);
+			}
+
 			// The usage descriptions tell us which parts of the program to include in the shader permutation sets
-			GeneratePermutations(inProgramFilePath, programUsageDescriptions, programPermutationDescriptions, outProgramPermutations, inShouldGenPermutationFiles);
+			GeneratePermutations(inProgramFilePath, programUsageDescriptions, programPermutationDescriptions, targetProgramIds, inShouldGenPermutationFiles, outProgramPermutations);
 		}
 	}
 
-	void UProgramPermutor::GeneratePermutations(const eastl::string& inShaderFilePath, const eastl::vector<SShaderUsageDescription>& inUsageDescriptions, const eastl::vector<SShaderPermuteDescription>& inPermuteOptions, ProgramPermutations_t& outPermutations, bool inShouldGenPermutationFiles)
+	void UProgramPermutor::GeneratePermutations(const eastl::string& inShaderFilePath, const eastl::vector<SShaderUsageDescription>& inUsageDescriptions, const eastl::vector<SShaderPermuteDescription>& inPermuteOptions, const eastl::vector<ProgramId_t>& inTargetProgramIds, bool inShouldGenPermutationFiles, ProgramPermutations_t& outPermutations)
 	{
 		UGraphicsDriver& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
-		
+
 		const size_t numPermuteOptions = inPermuteOptions.size();
-		
+
 		if (numPermuteOptions >= 0)
 		{
-			const size_t totalNumPermutations = 0x1ULL << numPermuteOptions;
-			
-			for (size_t i = 0; i < totalNumPermutations; ++i)
+			const size_t totalNumProgramIds = inTargetProgramIds.size();
+
+			for (size_t i = 0; i < totalNumProgramIds; ++i)
 			{
-				ProgramId_t currentProgramId = 0;
+				ProgramId_t currentProgramId = inTargetProgramIds[i];
 				eastl::vector<D3D_SHADER_MACRO> programMacroDefines;
 				eastl::vector<char> compiledProgramByteCode;
 				eastl::string currentProgramIdString;
 
 				programMacroDefines.reserve(inPermuteOptions.size());
-				
+
 				// Find the bits that are set and mask the associated bit mask with the program ID
 				if (numPermuteOptions > 0)
 				{
@@ -126,10 +137,8 @@ namespace MAD
 
 						currentProgramIdString += '[';
 
-						if ((i & (0x1ULL << j)) != 0)
+						if ((currentProgramId & (0x1ULL << j)) != 0)
 						{
-							currentProgramId |= static_cast<ProgramId_t>(inPermuteOptions[j].PermuteIdMask);
-
 							currentProgramIdString += '+';
 
 							programMacroDefines.push_back({ permuteIdString.c_str(), "1" });
@@ -147,15 +156,15 @@ namespace MAD
 				{
 					currentProgramIdString += "[NO PERMUTE OPTIONS]";
 				}
-				 
+
 				programMacroDefines.push_back({ nullptr, nullptr }); // Sentinel value necessary to determine when we are at end of macro define list
-				
-				// For each set of usage descriptions, we need to create a new entry within the output shader permutations
+
+																	 // For each set of usage descriptions, we need to create a new entry within the output shader permutations
 
 				for (const auto& currentUsageDescription : inUsageDescriptions)
 				{
 					compiledProgramByteCode.clear();
-					
+
 					// To limit EProgramShaderType to string conversions, we convert at the very last moment
 					// Draw back, we potentially do more than we should to find out its invalid at the end, but that's okay since this will be a pre-build step eventually
 					//auto shaderTypeFindIter = URenderPassProgram::s_entryPointToShaderTypeMap.find(currentUsageDescription.ShaderEntryName);
@@ -182,7 +191,7 @@ namespace MAD
 							}
 
 							LOG(LogProgramPermutor, Log, "Log: Size of compiled byte code: %d\n", compiledProgramByteCode.size());
-							
+
 							if (inShouldGenPermutationFiles)
 							{
 								// Stores the generated shader permutation file in the same directory as the shader file that it is permuting
