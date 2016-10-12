@@ -8,6 +8,8 @@ Within the Game Networking domain, MAD Engine does not try to reinvent the wheel
 We hope to use as few 3rd party dependencies as possible. Current dependencies include:
 
 + DirectX 11
++ DirectXTK (SimpleMath, [WIC/DDS]TextureLoader
 + Premake (binary included in the repository)
++ assimp (model importing)
 
-We have a [Trello](https://trello.com/b/pOoAXZ8c) if you'd like to know what we're currently working on; things aren't yet sorted by priority, but we're getting to that soon. Upcoming work and priorities are of course subject to change as we come across things we're more/less interested in getting done.
+We have a [Trello](https://trello.com/b/pOoAXZ8c) if you'd like to know what we're currently working on (it's totally out of date at the moment); things aren't yet sorted by priority, but we're getting to that soon. Upcoming work and priorities are of course subject to change as we come across things we're more/less interested in getting done.
