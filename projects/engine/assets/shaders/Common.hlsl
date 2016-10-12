@@ -7,6 +7,8 @@ struct PointLight
 	float4 m_lightColor;
 	float m_lightInnerRadius;
 	float m_lightOuterRadius;
+	float m_linearCoefficient;
+	float m_quadraticCoefficient;
 };
 
 struct DirectionalLight

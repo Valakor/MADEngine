@@ -87,10 +87,8 @@ namespace MAD
 		Color m_lightColor;
 		float m_lightInnerRadius;
 		float m_lightOuterRadius;
-
-	private:
-		float __pad1 = 0.0f;
-		float __pad2 = 0.0f;
+		float m_linearCoefficient;
+		float m_quadraticCoefficient;
 	};
 	static_assert(sizeof(SGPUPointLight) == 48, "");
 
