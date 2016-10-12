@@ -295,6 +295,7 @@ namespace MAD
 		}
 
 		// Do directional lighting
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
 		m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::NormalBuffer);
@@ -304,14 +305,14 @@ namespace MAD
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
 		{
 			// Render shadow map
+			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
-			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
 
 			SCameraInstance lightCamera;
 			lightCamera.m_nearPlaneDistance = -3000.0f;
 			lightCamera.m_farPlaneDistance = 3000.0f;
-			lightCamera.m_viewMatrix = Matrix::CreateLookAt(Vector3::Zero, Vector3(0,-1,0), Vector3::Forward);
+			lightCamera.m_viewMatrix = Matrix::CreateLookAt(-currentDirLight.m_lightDirection, Vector3::Zero, Vector3::Up).Invert();
 			lightCamera.m_projectionMatrix = Matrix::CreateOrthographic(6000.0f, 6000.0f, lightCamera.m_nearPlaneDistance, lightCamera.m_farPlaneDistance);
 			lightCamera.m_viewProjectionMatrix = lightCamera.m_viewMatrix * lightCamera.m_projectionMatrix;
 			UpdateCameraConstants(lightCamera);
@@ -325,8 +326,8 @@ namespace MAD
 			}
 
 			// Shading + lighting
-			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::ShadowMap);
 			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
+			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::ShadowMap);
 			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
