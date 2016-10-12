@@ -269,7 +269,7 @@ namespace MAD
 		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR);
 		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState(D3D11_FILTER_ANISOTROPIC, 16);
-		m_samplers[AsIntegral(ESamplerSlot::ShadowMap)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT, 0, D3D11_TEXTURE_ADDRESS_BORDER, Color(0, 0, 0, 0));
+		m_samplers[AsIntegral(ESamplerSlot::ShadowMap)] = CreateSamplerState(D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, 0, D3D11_TEXTURE_ADDRESS_BORDER, Color(0, 0, 0, 0));
 		for (unsigned i = 0; i < m_samplers.size(); ++i)
 		{
 			SetPixelSamplerState(m_samplers[i], i);
@@ -560,6 +560,11 @@ namespace MAD
 		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		samplerDesc.MinLOD = 0;
 		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		if (D3D11_DECODE_IS_COMPARISON_FILTER(inFilterMode))
+		{
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+		}
 
 		if (inAddressMode == D3D11_TEXTURE_ADDRESS_BORDER)
 		{

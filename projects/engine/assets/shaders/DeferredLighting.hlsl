@@ -80,7 +80,9 @@ float CalculateShadowFactor(float3 positionVS)
 	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
 	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);
 	positionLS.xyz /= positionLS.w;
-	//positionLS.xy = float2(positionLS.x, 1.0 - positionLS.y) * 0.5 + 0.5;
+
+	positionLS.x = positionLS.x * 0.5 + 0.5;
+	positionLS.y = 0.5 - positionLS.y * 0.5;
 
 	float shadowFactor = g_shadowMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy, positionLS.z).r;
 	return shadowFactor;

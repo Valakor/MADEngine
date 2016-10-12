@@ -70,7 +70,8 @@ SamplerState g_pointSampler			: register(s0);
 SamplerState g_linearSampler		: register(s1);
 SamplerState g_trilinearSampler		: register(s2);
 SamplerState g_anisotropicSampler	: register(s3);
-SamplerState g_shadowMapSampler		: register(s4);
+
+SamplerComparisonState g_shadowMapSampler : register(s4);
 
 Texture2D g_diffuseMap	: register(t0);
 Texture2D g_specularMap	: register(t1);
