@@ -253,12 +253,15 @@ namespace MAD
 			SetVertexConstantBuffer(m_constantBuffers[i], i);
 			SetPixelConstantBuffer(m_constantBuffers[i], i);
 		}
+
+#ifdef _DEBUG
 		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerScene");
 		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerFrame");
 		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 13, "PerPointLight");
 		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 19, "PerDirectionalLight");
 		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 11, "PerMaterial");
 		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 7, "PerDraw");
+#endif
 
 		// Initialize our samplers
 		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
@@ -266,6 +269,7 @@ namespace MAD
 		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR);
 		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState(D3D11_FILTER_ANISOTROPIC, 16);
+		m_samplers[AsIntegral(ESamplerSlot::ShadowMap)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT, 0, D3D11_TEXTURE_ADDRESS_BORDER, Color(0, 0, 0, 0));
 		for (unsigned i = 0; i < m_samplers.size(); ++i)
 		{
 			SetPixelSamplerState(m_samplers[i], i);
@@ -543,19 +547,27 @@ namespace MAD
 		return inputLayoutId;
 	}
 
-	SSamplerStateId UGraphicsDriver::CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy) const
+	SSamplerStateId UGraphicsDriver::CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy, D3D11_TEXTURE_ADDRESS_MODE inAddressMode, Color inBorderColor) const
 	{
 		D3D11_SAMPLER_DESC samplerDesc;
 		MEM_ZERO(samplerDesc);
 		samplerDesc.Filter = inFilterMode;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressU = inAddressMode;
+		samplerDesc.AddressV = inAddressMode;
+		samplerDesc.AddressW = inAddressMode;
 		samplerDesc.MipLODBias = 0;
 		samplerDesc.MaxAnisotropy = inMaxAnisotropy;
 		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		samplerDesc.MinLOD = 0;
 		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		if (inAddressMode == D3D11_TEXTURE_ADDRESS_BORDER)
+		{
+			samplerDesc.BorderColor[0] = inBorderColor.x;
+			samplerDesc.BorderColor[1] = inBorderColor.y;
+			samplerDesc.BorderColor[2] = inBorderColor.z;
+			samplerDesc.BorderColor[3] = inBorderColor.w;
+		}
 		
 		ComPtr<ID3D11SamplerState> samplerState;
 		HRESULT hr = g_d3dDevice->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());

@@ -15,7 +15,7 @@ namespace MAD
 		AddComponent<CMeshComponent>();
 		AddComponent<CMeshComponent>();
 		AddComponent<CDirectionalLightComponent>();
-		AddComponent<CPointLightComponent>();
+		//AddComponent<CPointLightComponent>();
 	}
 
 	void ACharacter::OnBeginPlay()

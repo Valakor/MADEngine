@@ -37,6 +37,7 @@ cbuffer CBPerFrameConstants : register(b1)
 	float4x4 g_cameraViewMatrix;
 	float4x4 g_cameraProjectionMatrix;
 	float4x4 g_cameraViewProjectionMatrix;
+	float4x4 g_cameraInverseViewMatrix;
 	float4x4 g_cameraInverseProjectionMatrix;
 
 	float g_cameraNearPlane;
@@ -69,6 +70,7 @@ SamplerState g_pointSampler			: register(s0);
 SamplerState g_linearSampler		: register(s1);
 SamplerState g_trilinearSampler		: register(s2);
 SamplerState g_anisotropicSampler	: register(s3);
+SamplerState g_shadowMapSampler		: register(s4);
 
 Texture2D g_diffuseMap	: register(t0);
 Texture2D g_specularMap	: register(t1);

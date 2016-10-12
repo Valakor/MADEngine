@@ -62,6 +62,7 @@ namespace MAD
 		Linear,
 		Trilinear,
 		Anisotropic,
+		ShadowMap,
 
 		MAX
 	};
@@ -130,6 +131,7 @@ namespace MAD
 		Matrix m_cameraViewMatrix;
 		Matrix m_cameraProjectionMatrix;
 		Matrix m_cameraViewProjectionMatrix;
+		Matrix m_cameraInverseViewMatrix;
 		Matrix m_cameraInverseProjectionMatrix;
 
 		float m_cameraNearPlane;
@@ -139,7 +141,7 @@ namespace MAD
 		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
 	};
-	static_assert(sizeof(SPerFrameConstants) == 272, "");
+	static_assert(sizeof(SPerFrameConstants) == 336, "");
 
 	struct SPerSceneConstants
 	{

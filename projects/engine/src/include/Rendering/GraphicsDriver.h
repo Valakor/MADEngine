@@ -76,7 +76,7 @@ namespace MAD
 		void CreateBackBufferRenderTargetView();
 		void RegisterInputLayout(ID3DBlob* inTargetBlob);
 
-		SSamplerStateId CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy = 0) const;
+		SSamplerStateId CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy = 0, D3D11_TEXTURE_ADDRESS_MODE inAddressMode = D3D11_TEXTURE_ADDRESS_WRAP, Color inBorderColor = Color()) const;
 		void SetPixelSamplerState(SSamplerStateId inSamplerState, UINT inSlot) const;
 
 		SBufferId CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const;

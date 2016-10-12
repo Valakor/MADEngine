@@ -461,6 +461,7 @@ namespace MAD
 		m_perFrameConstants.m_cameraViewMatrix = inCameraInstance.m_viewMatrix;
 		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
 		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
+		m_perFrameConstants.m_cameraInverseViewMatrix = inCameraInstance.m_viewMatrix.Invert();
 		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
 		m_perFrameConstants.m_cameraNearPlane = inCameraInstance.m_nearPlaneDistance;
 		m_perFrameConstants.m_cameraFarPlane = inCameraInstance.m_farPlaneDistance;
