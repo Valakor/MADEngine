@@ -217,8 +217,12 @@ namespace MAD
 		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(2048, 2048, &m_shadowMapSRV);
 		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
 
-		m_dirShadowMappingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
 		m_dirShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+
+		if (!m_dirShadowMappingPassDescriptor.m_rasterizerState.IsValid())
+		{
+			m_dirShadowMappingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateDepthRasterizerState();
+		}
 
 		m_dirShadowMappingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inProgramPath);
 	}
@@ -323,7 +327,7 @@ namespace MAD
 			g_graphicsDriver.SetViewport(0, 0, 2048, 2048);
 			for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
 			{
-				currentDrawItem.Draw(g_graphicsDriver, true, EInputLayoutSemantic::Position);
+				currentDrawItem.Draw(g_graphicsDriver, true, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
 
 			// Shading + lighting

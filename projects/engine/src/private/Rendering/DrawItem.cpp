@@ -11,7 +11,7 @@ namespace MAD
 	                      , m_indexCount(0)
 	                      , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED) { }
 
-	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride) const
+	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, SRasterizerStateId inRasterStateOverride) const
 	{
 		InputLayoutFlags_t inputLayout = 0;
 		for (const auto& vertexBuffer : m_vertexBuffers)
@@ -51,7 +51,15 @@ namespace MAD
 			}
 		}
 
-		inGraphicsDriver.SetRasterizerState(m_rasterizerState);
+		if (inRasterStateOverride.IsValid())
+		{
+			inGraphicsDriver.SetRasterizerState(inRasterStateOverride);
+		}
+		else
+		{
+			inGraphicsDriver.SetRasterizerState(m_rasterizerState);
+		}
+
 		inGraphicsDriver.SetPrimitiveTopology(m_primitiveTopology);
 		inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
 	}

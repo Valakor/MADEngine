@@ -35,6 +35,7 @@ namespace MAD
 		SDepthStencilId CreateDepthStencil(int inWidth, int inHeight, SShaderResourceId* outOptionalShaderResource = nullptr) const;
 		SDepthStencilStateId CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc) const;
 		SRasterizerStateId CreateRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		SRasterizerStateId CreateDepthRasterizerState() const;
 		SBlendStateId CreateBlendState(bool inEnableBlend) const;
 
 		SBufferId CreateVertexBuffer(const void* inData, UINT inDataSize) const;

@@ -269,7 +269,7 @@ namespace MAD
 		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR);
 		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState(D3D11_FILTER_ANISOTROPIC, 16);
-		m_samplers[AsIntegral(ESamplerSlot::ShadowMap)] = CreateSamplerState(D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, 0, D3D11_TEXTURE_ADDRESS_BORDER, Color(0, 0, 0, 0));
+		m_samplers[AsIntegral(ESamplerSlot::ShadowMap)] = CreateSamplerState(D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, 0, D3D11_TEXTURE_ADDRESS_BORDER, Color(1, 1, 1, 1));
 		for (unsigned i = 0; i < m_samplers.size(); ++i)
 		{
 			SetPixelSamplerState(m_samplers[i], i);
@@ -684,6 +684,28 @@ namespace MAD
 		rasterDesc.FillMode = inFillMode;
 		rasterDesc.CullMode = inCullMode;
 		rasterDesc.FrontCounterClockwise = true;
+		rasterDesc.DepthClipEnable = true;
+
+		ComPtr<ID3D11RasterizerState1> raster;
+		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
+		HR_ASSERT_SUCCESS(hr, "Failed to create rasterizer state");
+
+		auto rasterId = SRasterizerStateId::Next();
+		g_rasterizerStateStore.insert({ rasterId, raster });
+		return rasterId;
+	}
+
+	SRasterizerStateId UGraphicsDriver::CreateDepthRasterizerState() const
+	{
+		D3D11_RASTERIZER_DESC1 rasterDesc;
+		MEM_ZERO(rasterDesc);
+		rasterDesc.FillMode = D3D11_FILL_SOLID;
+		rasterDesc.CullMode = D3D11_CULL_BACK;
+		rasterDesc.FrontCounterClockwise = true;
+		rasterDesc.DepthClipEnable = true;
+		rasterDesc.DepthBias = 10000;
+		rasterDesc.DepthBiasClamp = 0.0f;
+		rasterDesc.SlopeScaledDepthBias = 1.0f;
 
 		ComPtr<ID3D11RasterizerState1> raster;
 		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());

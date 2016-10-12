@@ -15,7 +15,7 @@ namespace MAD
 	{
 		SDrawItem();
 
-		void Draw(class UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max()) const;
+		void Draw(class UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), SRasterizerStateId inRasterStateOverride = SRasterizerStateId()) const;
 
 		eastl::vector<UVertexArray> m_vertexBuffers;
 		UINT m_vertexBufferOffset;

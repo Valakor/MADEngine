@@ -81,6 +81,11 @@ float CalculateShadowFactor(float3 positionVS)
 	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);
 	positionLS.xyz /= positionLS.w;
 
+	if (positionLS.z > 1.0)
+	{
+		return 1.0;
+	}
+
 	positionLS.x = positionLS.x * 0.5 + 0.5;
 	positionLS.y = 0.5 - positionLS.y * 0.5;
 
