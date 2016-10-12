@@ -105,7 +105,7 @@ namespace MAD
 
 		SGPUDirectionalLight& newLight = m_queuedDirLights.back();
 
-		const float sceneRadius = 3000.0f;
+		const float sceneRadius = 2500.0f;
 		const Matrix view = Matrix::CreateLookAt(-newLight.m_lightDirection, Vector3::Zero, Vector3::Up);
 		const Matrix proj = Matrix::CreateOrthographic(2 * sceneRadius, 2 * sceneRadius, -sceneRadius, sceneRadius);
 

@@ -89,8 +89,25 @@ float CalculateShadowFactor(float3 positionVS)
 	positionLS.x = positionLS.x * 0.5 + 0.5;
 	positionLS.y = 0.5 - positionLS.y * 0.5;
 
-	float shadowFactor = g_shadowMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy, positionLS.z).r;
-	return shadowFactor;
+	float w, h;
+	g_shadowMap.GetDimensions(w, h);
+	const float dx = 1.0 / w;
+	const float2 offsets[5] =
+	{
+		                   float2(0.0f,  -dx),
+		float2(-dx, 0.0f), float2(0.0f, 0.0f), float2(dx, 0.0f),
+		                   float2(0.0f,   dx)
+	};
+
+	float shadowFactor = 0.0;
+
+	[unroll]
+	for (int i = 0; i < 5; ++i)
+	{
+		shadowFactor += g_shadowMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy + offsets[i], positionLS.z).r;
+	}
+
+	return shadowFactor / 5.0;
 #endif
 }
 
