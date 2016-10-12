@@ -14,6 +14,8 @@ struct DirectionalLight
 	float3 m_lightDirection;
 	float  m_lightIntensity;
 	float4 m_lightColor;
+
+	float4x4 m_viewProjectionMatrix;
 };
 
 struct MeshMaterial

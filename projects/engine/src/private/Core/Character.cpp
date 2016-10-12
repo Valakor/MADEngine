@@ -30,8 +30,7 @@ namespace MAD
 		//meshComps[1].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(3.0f, 0, -5.0f)));
 		//meshComps[2].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(-3.0f, 0, -5.0f)));
 
-		//Vector3 dir = Vector3(0.0f, -0.86602540378f, -0.5f);
-		Vector3 dir = Vector3(0.0f, -1.0f, 0.0f);
+		Vector3 dir = Vector3(0.0f, -0.86602540378f, -0.5f);
 		dir.Normalize();
 		GetFirstComponentByType<CDirectionalLightComponent>().lock()->TEMPInitializeDirectionalLight(dir, Color(1.0f, 1.0f, 1.0f, 1.0f), 1.0f);
 

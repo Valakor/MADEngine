@@ -102,7 +102,15 @@ namespace MAD
 	void URenderer::QueueDirectionalLight(const SGPUDirectionalLight& inDirectionalLight)
 	{
 		m_queuedDirLights.push_back(inDirectionalLight);
-		m_queuedDirLights.back().m_lightDirection = Vector3::TransformNormal(inDirectionalLight.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
+
+		SGPUDirectionalLight& newLight = m_queuedDirLights.back();
+
+		const float sceneRadius = 3000.0f;
+		const Matrix view = Matrix::CreateLookAt(-newLight.m_lightDirection, Vector3::Zero, Vector3::Up);
+		const Matrix proj = Matrix::CreateOrthographic(2 * sceneRadius, 2 * sceneRadius, -sceneRadius, sceneRadius);
+
+		newLight.m_viewProjectionMatrix = view * proj;
+		newLight.m_lightDirection = Vector3::TransformNormal(inDirectionalLight.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
 	}
 
 	void URenderer::QueuePointLight(const SGPUPointLight& inPointLight)
@@ -304,19 +312,12 @@ namespace MAD
 
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
 		{
+			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
+
 			// Render shadow map
 			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
-
-			SCameraInstance lightCamera;
-			lightCamera.m_nearPlaneDistance = -3000.0f;
-			lightCamera.m_farPlaneDistance = 3000.0f;
-			lightCamera.m_viewMatrix = Matrix::CreateLookAt(-currentDirLight.m_lightDirection, Vector3::Zero, Vector3::Up).Invert();
-			lightCamera.m_projectionMatrix = Matrix::CreateOrthographic(6000.0f, 6000.0f, lightCamera.m_nearPlaneDistance, lightCamera.m_farPlaneDistance);
-			lightCamera.m_viewProjectionMatrix = lightCamera.m_viewMatrix * lightCamera.m_projectionMatrix;
-			UpdateCameraConstants(lightCamera);
-			BindPerFrameConstants();
 
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
 			g_graphicsDriver.SetViewport(0, 0, 2048, 2048);
@@ -329,7 +330,6 @@ namespace MAD
 			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::ShadowMap);
 			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
-			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 			DrawFullscreenQuad();
 		}

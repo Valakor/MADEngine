@@ -97,11 +97,13 @@ namespace MAD
 
 	struct SGPUDirectionalLight
 	{
-		DirectX::SimpleMath::Vector3 m_lightDirection;
+		Vector3 m_lightDirection;
 		float m_lightIntensity;
-		DirectX::SimpleMath::Color m_lightColor;
+		Color m_lightColor;
+
+		Matrix m_viewProjectionMatrix;
 	};
-	static_assert(sizeof(SGPUDirectionalLight) == 32, "");
+	static_assert(sizeof(SGPUDirectionalLight) == 96, "");
 
 	// Materials --------------------------------
 	struct SGPUMaterial

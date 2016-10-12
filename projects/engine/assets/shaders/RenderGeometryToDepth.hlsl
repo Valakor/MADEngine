@@ -14,5 +14,5 @@ struct VS_INPUT
 //--------------------------------------------------------------------------------------
 float4 VS(VS_INPUT input) : SV_POSITION
 {
-	return mul(float4(input.mModelPos, 1.0f), g_objectToProjectionMatrix);
+	return mul(mul(float4(input.mModelPos, 1.0f), g_objectToWorldMatrix), g_directionalLight.m_viewProjectionMatrix);
 }
