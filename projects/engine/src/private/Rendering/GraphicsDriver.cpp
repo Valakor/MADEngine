@@ -99,7 +99,7 @@ namespace MAD
 			// To make it easy on us, we're only going to support D3D 11.2 (Windows 8.1 and above)
 			D3D_FEATURE_LEVEL featureLevels[] =
 			{
-				D3D_FEATURE_LEVEL_11_1,
+				D3D_FEATURE_LEVEL_11_0,
 			};
 			UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
