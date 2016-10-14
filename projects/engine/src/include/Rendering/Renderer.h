@@ -51,9 +51,6 @@ namespace MAD
 		class UGraphicsDriver& GetGraphicsDriver();
 		SRasterizerStateId GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 
-		// Don't use this API to make a Texture, use UAssetCache<UTexture> instead
-		SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const;
-
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 
 	private:

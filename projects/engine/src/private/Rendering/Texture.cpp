@@ -2,6 +2,7 @@
 
 #include "Core/GameEngine.h"
 #include "Misc/Logging.h"
+#include "Rendering/GraphicsDriver.h"
 #include "Rendering/Renderer.h"
 
 namespace MAD
@@ -9,11 +10,11 @@ namespace MAD
 	eastl::shared_ptr<UTexture> UTexture::Load(const eastl::string& inPath)
 	{
 		uint64_t width, height;
-		auto tex = gEngine->GetRenderer().CreateTextureFromFile(inPath, width, height);
+		auto tex = gEngine->GetRenderer().GetGraphicsDriver().CreateTextureFromFile(inPath, width, height);
 		if (!tex)
 		{
 			LOG(LogDefault, Warning, "Failed to load texture: `%s`. Falling back to default checker.png", inPath.c_str());
-			tex = gEngine->GetRenderer().CreateTextureFromFile(".\\assets\\engine\\meshes\\primitives\\checker.png", width, height);
+			tex = gEngine->GetRenderer().GetGraphicsDriver().CreateTextureFromFile(".\\assets\\engine\\meshes\\primitives\\checker.png", width, height);
 		}
 
 		auto ret = eastl::make_shared<UTexture>();

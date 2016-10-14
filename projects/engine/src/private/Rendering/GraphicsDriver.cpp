@@ -49,15 +49,15 @@ namespace MAD
 	}
 
 #define ID_DESTROY(id, cache)					\
-		if (id.IsValid())						\
+	if (id.IsValid())							\
+	{											\
+		auto iter = cache.find(id);				\
+		if (iter != cache.end())				\
 		{										\
-			auto iter = cache.find(id);			\
-			if (iter != cache.end())			\
-			{									\
-				cache.erase(iter);				\
-			}									\
+			cache.erase(iter);					\
 		}										\
-		id.Invalidate()
+	}											\
+	id.Invalidate()
 
 #define MEM_ZERO(s) memset(&s, 0, sizeof(s))
 
@@ -96,7 +96,7 @@ namespace MAD
 			createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-			// To make it easy on us, we're only going to support D3D 11.2 (Windows 8.1 and above)
+			// To make it easy on us, we're only going to support D3D 11.0 and above
 			D3D_FEATURE_LEVEL featureLevels[] =
 			{
 				D3D_FEATURE_LEVEL_11_0,
@@ -309,7 +309,7 @@ namespace MAD
 		CreateBackBufferRenderTargetView();
 	}
 
-	SShaderResourceId UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const
+	SShaderResourceId UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const
 	{
 		auto widePath = utf8util::UTF16FromUTF8(inPath);
 		auto extension = inPath.substr(inPath.find_last_of('.'));
@@ -321,15 +321,25 @@ namespace MAD
 		HRESULT hr;
 		if (extension == ".dds")
 		{
-			//hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
-			// TODO: Need some way to only load sRGB if specified
-			hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
+			if (inGenerateMips)
+			{
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
+			else
+			{
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
 		}
 		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif")
 		{
-			//hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
-			// TODO: Need some way to only load sRGB if specified
-			hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
+			if (inGenerateMips)
+			{
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
+			else
+			{
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
 		}
 		else
 		{

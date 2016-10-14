@@ -450,11 +450,6 @@ namespace MAD
 		return outputProgramId;
 	}
 
-	SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const
-	{
-		return g_graphicsDriver.CreateTextureFromFile(inPath, outWidth, outHeight);
-	}
-
 	void URenderer::SetFullScreen(bool inIsFullscreen) const
 	{
 		g_graphicsDriver.SetFullScreen(inIsFullscreen);
