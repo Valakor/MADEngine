@@ -105,9 +105,9 @@ namespace MAD
 
 		SGPUDirectionalLight& newLight = m_queuedDirLights.back();
 
-		const float sceneRadius = 2500.0f;
+		const float sceneRadius = 2000.0f;
 		const Matrix view = Matrix::CreateLookAt(-newLight.m_lightDirection, Vector3::Zero, Vector3::Up);
-		const Matrix proj = Matrix::CreateOrthographic(2 * sceneRadius, 2 * sceneRadius, -sceneRadius, sceneRadius);
+		const Matrix proj = Matrix::CreateOrthographic(2 * sceneRadius, 2 * sceneRadius, -1750.0f, 500.0f);
 
 		newLight.m_viewProjectionMatrix = view * proj;
 		newLight.m_lightDirection = Vector3::TransformNormal(inDirectionalLight.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
@@ -214,7 +214,7 @@ namespace MAD
 	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
 	{
 		g_graphicsDriver.DestroyDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView);
-		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(2048, 2048, &m_shadowMapSRV);
+		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(4096, 4096, &m_shadowMapSRV);
 		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
 
 		m_dirShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
@@ -324,7 +324,7 @@ namespace MAD
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
-			g_graphicsDriver.SetViewport(0, 0, 2048, 2048);
+			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
 			for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
 			{
 				currentDrawItem.Draw(g_graphicsDriver, true, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);

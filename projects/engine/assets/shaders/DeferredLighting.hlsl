@@ -89,9 +89,9 @@ float CalculateShadowFactor(float3 positionVS)
 	positionLS.x = positionLS.x * 0.5 + 0.5;
 	positionLS.y = 0.5 - positionLS.y * 0.5;
 
-	float w, h;
-	g_shadowMap.GetDimensions(w, h);
-	const float dx = 1.0 / w;
+	//float w, h;
+	//g_shadowMap.GetDimensions(w, h);
+	const float dx = 1.0 / 4096;
 	const float2 offsets[5] =
 	{
 		                   float2(0.0f,  -dx),

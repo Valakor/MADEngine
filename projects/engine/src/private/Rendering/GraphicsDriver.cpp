@@ -715,7 +715,7 @@ namespace MAD
 		rasterDesc.DepthClipEnable = true;
 		rasterDesc.DepthBias = 10000;
 		rasterDesc.DepthBiasClamp = 0.0f;
-		rasterDesc.SlopeScaledDepthBias = 1.0f;
+		rasterDesc.SlopeScaledDepthBias = 1.5f;
 
 		ComPtr<ID3D11RasterizerState1> raster;
 		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
