@@ -330,15 +330,16 @@ namespace MAD
 				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 		}
-		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif")
+		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif" || extension == ".tiff")
 		{
+			DirectX::WIC_LOADER_FLAGS flags = inForceSRGB ? DirectX::WIC_LOADER_FORCE_SRGB : DirectX::WIC_LOADER_DEFAULT;
 			if (inGenerateMips)
 			{
-				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, flags, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 			else
 			{
-				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, flags, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 		}
 		else
