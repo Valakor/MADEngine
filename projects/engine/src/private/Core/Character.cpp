@@ -15,7 +15,7 @@ namespace MAD
 		AddComponent<CMeshComponent>();
 		AddComponent<CMeshComponent>();
 		AddComponent<CDirectionalLightComponent>();
-		AddComponent<CPointLightComponent>();
+		//AddComponent<CPointLightComponent>();
 	}
 
 	void ACharacter::OnBeginPlay()
@@ -30,10 +30,10 @@ namespace MAD
 		//meshComps[1].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(3.0f, 0, -5.0f)));
 		//meshComps[2].lock()->TEMPInitializeMeshInstance("engine\\meshes\\primitives\\cube.obj", rot * Matrix::CreateTranslation(Vector3(-3.0f, 0, -5.0f)));
 
-		Vector3 dir = Vector3(0.0f, -0.86602540378f, -0.5f);
+		Vector3 dir = Vector3(0.0f, -0.86602540378f, -0.17f);
 		dir.Normalize();
-		GetFirstComponentByType<CDirectionalLightComponent>().lock()->TEMPInitializeDirectionalLight(dir, Color(1.0f, 1.0f, 1.0f, 1.0f), 0.75f);
+		GetFirstComponentByType<CDirectionalLightComponent>().lock()->TEMPInitializeDirectionalLight(dir, Color(1.0f, 1.0f, 1.0f, 1.0f), 1.0f);
 
-		GetFirstComponentByType<CPointLightComponent>().lock()->TEMPInitializePointLight(Vector3(1100.0f, 150.0f, 50.0f), Color(1.0f, 1.0f, 1.0f, 1.0f), 1.5f, 0.0f, 500.0f);
+		//GetFirstComponentByType<CPointLightComponent>().lock()->TEMPInitializePointLight(Vector3(1100.0f, 150.0f, 50.0f), Color(1.0f, 1.0f, 1.0f, 1.0f), 1.5f, 0.0f, 500.0f);
 	}
 }

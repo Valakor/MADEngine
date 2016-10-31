@@ -82,8 +82,8 @@ namespace MAD
 		SetViewport(clientSize.x, clientSize.y);
 
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
@@ -102,7 +102,15 @@ namespace MAD
 	void URenderer::QueueDirectionalLight(const SGPUDirectionalLight& inDirectionalLight)
 	{
 		m_queuedDirLights.push_back(inDirectionalLight);
-		m_queuedDirLights.back().m_lightDirection = Vector3::TransformNormal(inDirectionalLight.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
+
+		SGPUDirectionalLight& newLight = m_queuedDirLights.back();
+
+		const float sceneRadius = 2000.0f;
+		const Matrix view = Matrix::CreateLookAt(-newLight.m_lightDirection, Vector3::Zero, Vector3::Up);
+		const Matrix proj = Matrix::CreateOrthographic(2 * sceneRadius, 2 * sceneRadius, -1750.0f, 500.0f);
+
+		newLight.m_viewProjectionMatrix = view * proj;
+		newLight.m_lightDirection = Vector3::TransformNormal(inDirectionalLight.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
 	}
 
 	void URenderer::QueuePointLight(const SGPUPointLight& inPointLight)
@@ -121,8 +129,8 @@ namespace MAD
 		g_graphicsDriver.OnScreenSizeChanged();
 
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
 		auto clientSize = m_window->GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
@@ -201,6 +209,22 @@ namespace MAD
 		m_dirLightingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inDirLightingPassProgramPath);
 
 		m_dirLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
+	}
+
+	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
+	{
+		g_graphicsDriver.DestroyDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView);
+		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(4096, 4096, &m_shadowMapSRV);
+		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+
+		m_dirShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+
+		if (!m_dirShadowMappingPassDescriptor.m_rasterizerState.IsValid())
+		{
+			m_dirShadowMappingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateDepthRasterizerState();
+		}
+
+		m_dirShadowMappingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inProgramPath);
 	}
 
 	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
@@ -283,8 +307,8 @@ namespace MAD
 		}
 
 		// Do directional lighting
-		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
-		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
+		m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
@@ -293,6 +317,24 @@ namespace MAD
 		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
 		{
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
+
+			// Render shadow map
+			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
+			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
+			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+
+			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
+			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
+			for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
+			{
+				currentDrawItem.Draw(g_graphicsDriver, true, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+			}
+
+			// Shading + lighting
+			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
+			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::ShadowMap);
+			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 			DrawFullscreenQuad();
 		}
 
@@ -408,11 +450,6 @@ namespace MAD
 		return outputProgramId;
 	}
 
-	SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const
-	{
-		return g_graphicsDriver.CreateTextureFromFile(inPath, outWidth, outHeight);
-	}
-
 	void URenderer::SetFullScreen(bool inIsFullscreen) const
 	{
 		g_graphicsDriver.SetFullScreen(inIsFullscreen);
@@ -423,6 +460,7 @@ namespace MAD
 		m_perFrameConstants.m_cameraViewMatrix = inCameraInstance.m_viewMatrix;
 		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
 		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
+		m_perFrameConstants.m_cameraInverseViewMatrix = inCameraInstance.m_viewMatrix.Invert();
 		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
 		m_perFrameConstants.m_cameraNearPlane = inCameraInstance.m_nearPlaneDistance;
 		m_perFrameConstants.m_cameraFarPlane = inCameraInstance.m_farPlaneDistance;

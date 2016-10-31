@@ -72,8 +72,50 @@ float3 CalculateL(float3 positionVS)
 }
 
 // Calculate light attenuation based upon what type of light we're using
+float CalculateShadowFactor(float3 positionVS)
+{
+#ifdef POINT_LIGHT
+	return 1.0;
+#else
+	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
+	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);
+	positionLS.xyz /= positionLS.w;
+
+	if (positionLS.z > 1.0)
+	{
+		return 1.0;
+	}
+
+	positionLS.x = positionLS.x * 0.5 + 0.5;
+	positionLS.y = 0.5 - positionLS.y * 0.5;
+
+	//float w, h;
+	//g_shadowMap.GetDimensions(w, h);
+	const float dx = 1.0 / 4096;
+	const float2 offsets[5] =
+	{
+		                   float2(0.0f,  -dx),
+		float2(-dx, 0.0f), float2(0.0f, 0.0f), float2(dx, 0.0f),
+		                   float2(0.0f,   dx)
+	};
+
+	float shadowFactor = 0.0;
+
+	[unroll]
+	for (int i = 0; i < 5; ++i)
+	{
+		shadowFactor += g_shadowMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy + offsets[i], positionLS.z).r;
+	}
+
+	return shadowFactor / 5.0;
+#endif
+}
+
+// Calculate light attenuation based upon what type of light we're using
 void GetLightIrradianceProperties(float3 positionVS, out float attenuation, out float3 lightColor, out float lightIntensity)
 {
+	float shadowFactor = CalculateShadowFactor(positionVS);
+
 #ifdef POINT_LIGHT
 	float d = distance(positionVS, g_pointLight.m_lightPosition);
 	d = max(d - g_pointLight.m_lightInnerRadius, 0.0);
@@ -87,6 +129,8 @@ void GetLightIrradianceProperties(float3 positionVS, out float attenuation, out 
 	lightColor = g_directionalLight.m_lightColor;
 	lightIntensity = g_directionalLight.m_lightIntensity;
 #endif
+
+	attenuation *= shadowFactor;
 }
 
 

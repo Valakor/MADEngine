@@ -49,15 +49,15 @@ namespace MAD
 	}
 
 #define ID_DESTROY(id, cache)					\
-		if (id.IsValid())						\
+	if (id.IsValid())							\
+	{											\
+		auto iter = cache.find(id);				\
+		if (iter != cache.end())				\
 		{										\
-			auto iter = cache.find(id);			\
-			if (iter != cache.end())			\
-			{									\
-				cache.erase(iter);				\
-			}									\
+			cache.erase(iter);					\
 		}										\
-		id.Invalidate()
+	}											\
+	id.Invalidate()
 
 #define MEM_ZERO(s) memset(&s, 0, sizeof(s))
 
@@ -96,10 +96,10 @@ namespace MAD
 			createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-			// To make it easy on us, we're only going to support D3D 11.2 (Windows 8.1 and above)
+			// To make it easy on us, we're only going to support D3D 11.0 and above
 			D3D_FEATURE_LEVEL featureLevels[] =
 			{
-				D3D_FEATURE_LEVEL_11_1,
+				D3D_FEATURE_LEVEL_11_0,
 			};
 			UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
@@ -254,12 +254,22 @@ namespace MAD
 			SetPixelConstantBuffer(m_constantBuffers[i], i);
 		}
 
+#ifdef _DEBUG
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerScene");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerFrame");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 13, "PerPointLight");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 19, "PerDirectionalLight");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 11, "PerMaterial");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 7, "PerDraw");
+#endif
+
 		// Initialize our samplers
 		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
 		m_samplers[AsIntegral(ESamplerSlot::Point)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_POINT);
 		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR);
 		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState(D3D11_FILTER_ANISOTROPIC, 16);
+		m_samplers[AsIntegral(ESamplerSlot::ShadowMap)] = CreateSamplerState(D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, 0, D3D11_TEXTURE_ADDRESS_BORDER, Color(1, 1, 1, 1));
 		for (unsigned i = 0; i < m_samplers.size(); ++i)
 		{
 			SetPixelSamplerState(m_samplers[i], i);
@@ -299,7 +309,7 @@ namespace MAD
 		CreateBackBufferRenderTargetView();
 	}
 
-	SShaderResourceId UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const
+	SShaderResourceId UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const
 	{
 		auto widePath = utf8util::UTF16FromUTF8(inPath);
 		auto extension = inPath.substr(inPath.find_last_of('.'));
@@ -311,15 +321,25 @@ namespace MAD
 		HRESULT hr;
 		if (extension == ".dds")
 		{
-			//hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
-			// TODO: Need some way to only load sRGB if specified
-			hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
+			if (inGenerateMips)
+			{
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
+			else
+			{
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
 		}
 		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif")
 		{
-			//hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
-			// TODO: Need some way to only load sRGB if specified
-			hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, true, texture.GetAddressOf(), srv.GetAddressOf());
+			if (inGenerateMips)
+			{
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
+			else
+			{
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
 		}
 		else
 		{
@@ -537,19 +557,32 @@ namespace MAD
 		return inputLayoutId;
 	}
 
-	SSamplerStateId UGraphicsDriver::CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy) const
+	SSamplerStateId UGraphicsDriver::CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy, D3D11_TEXTURE_ADDRESS_MODE inAddressMode, Color inBorderColor) const
 	{
 		D3D11_SAMPLER_DESC samplerDesc;
 		MEM_ZERO(samplerDesc);
 		samplerDesc.Filter = inFilterMode;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressU = inAddressMode;
+		samplerDesc.AddressV = inAddressMode;
+		samplerDesc.AddressW = inAddressMode;
 		samplerDesc.MipLODBias = 0;
 		samplerDesc.MaxAnisotropy = inMaxAnisotropy;
 		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		samplerDesc.MinLOD = 0;
 		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		if (D3D11_DECODE_IS_COMPARISON_FILTER(inFilterMode))
+		{
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+		}
+
+		if (inAddressMode == D3D11_TEXTURE_ADDRESS_BORDER)
+		{
+			samplerDesc.BorderColor[0] = inBorderColor.x;
+			samplerDesc.BorderColor[1] = inBorderColor.y;
+			samplerDesc.BorderColor[2] = inBorderColor.z;
+			samplerDesc.BorderColor[3] = inBorderColor.w;
+		}
 		
 		ComPtr<ID3D11SamplerState> samplerState;
 		HRESULT hr = g_d3dDevice->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
@@ -661,6 +694,28 @@ namespace MAD
 		rasterDesc.FillMode = inFillMode;
 		rasterDesc.CullMode = inCullMode;
 		rasterDesc.FrontCounterClockwise = true;
+		rasterDesc.DepthClipEnable = true;
+
+		ComPtr<ID3D11RasterizerState1> raster;
+		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
+		HR_ASSERT_SUCCESS(hr, "Failed to create rasterizer state");
+
+		auto rasterId = SRasterizerStateId::Next();
+		g_rasterizerStateStore.insert({ rasterId, raster });
+		return rasterId;
+	}
+
+	SRasterizerStateId UGraphicsDriver::CreateDepthRasterizerState() const
+	{
+		D3D11_RASTERIZER_DESC1 rasterDesc;
+		MEM_ZERO(rasterDesc);
+		rasterDesc.FillMode = D3D11_FILL_SOLID;
+		rasterDesc.CullMode = D3D11_CULL_BACK;
+		rasterDesc.FrontCounterClockwise = true;
+		rasterDesc.DepthClipEnable = true;
+		rasterDesc.DepthBias = 10000;
+		rasterDesc.DepthBiasClamp = 0.0f;
+		rasterDesc.SlopeScaledDepthBias = 1.5f;
 
 		ComPtr<ID3D11RasterizerState1> raster;
 		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
@@ -871,7 +926,7 @@ namespace MAD
 
 	void UGraphicsDriver::SetPixelShader(SPixelShaderId inPixelShader) const
 	{
-		ID_GET_SAFE(shader, inPixelShader, g_pixelShaderStore, "Invalid pixel shader");
+		ID_TRY_GET(shader, inPixelShader, g_pixelShaderStore, "Invalid pixel shader");
 		g_d3dDeviceContext->PSSetShader(shader.Get(), nullptr, 0);
 	}
 

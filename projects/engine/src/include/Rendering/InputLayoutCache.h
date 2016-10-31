@@ -12,7 +12,7 @@ namespace MAD
 
 	namespace EInputLayoutSemantic
 	{
-		enum Type : uint8_t
+		enum Type : InputLayoutFlags_t
 		{
 			Position	= 1 << 0,
 			Normal		= 1 << 1,

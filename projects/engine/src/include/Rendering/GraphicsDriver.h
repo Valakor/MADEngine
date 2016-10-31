@@ -22,7 +22,7 @@ namespace MAD
 
 		// Don't use this directly, use the AssetCache interface, e.g.
 		//     AssetCache.Load<UTexture>(...);
-		SShaderResourceId CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const;
+		SShaderResourceId CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB = true, bool inGenerateMips = true) const;
 		
 		bool CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines = nullptr);
 
@@ -35,6 +35,7 @@ namespace MAD
 		SDepthStencilId CreateDepthStencil(int inWidth, int inHeight, SShaderResourceId* outOptionalShaderResource = nullptr) const;
 		SDepthStencilStateId CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc) const;
 		SRasterizerStateId CreateRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		SRasterizerStateId CreateDepthRasterizerState() const;
 		SBlendStateId CreateBlendState(bool inEnableBlend) const;
 
 		SBufferId CreateVertexBuffer(const void* inData, UINT inDataSize) const;
@@ -76,7 +77,7 @@ namespace MAD
 		void CreateBackBufferRenderTargetView();
 		void RegisterInputLayout(ID3DBlob* inTargetBlob);
 
-		SSamplerStateId CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy = 0) const;
+		SSamplerStateId CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy = 0, D3D11_TEXTURE_ADDRESS_MODE inAddressMode = D3D11_TEXTURE_ADDRESS_WRAP, Color inBorderColor = Color()) const;
 		void SetPixelSamplerState(SSamplerStateId inSamplerState, UINT inSlot) const;
 
 		SBufferId CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const;

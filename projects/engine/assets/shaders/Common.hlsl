@@ -14,6 +14,8 @@ struct DirectionalLight
 	float3 m_lightDirection;
 	float  m_lightIntensity;
 	float4 m_lightColor;
+
+	float4x4 m_viewProjectionMatrix;
 };
 
 struct MeshMaterial
@@ -35,6 +37,7 @@ cbuffer CBPerFrameConstants : register(b1)
 	float4x4 g_cameraViewMatrix;
 	float4x4 g_cameraProjectionMatrix;
 	float4x4 g_cameraViewProjectionMatrix;
+	float4x4 g_cameraInverseViewMatrix;
 	float4x4 g_cameraInverseProjectionMatrix;
 
 	float g_cameraNearPlane;
@@ -68,6 +71,8 @@ SamplerState g_linearSampler		: register(s1);
 SamplerState g_trilinearSampler		: register(s2);
 SamplerState g_anisotropicSampler	: register(s3);
 
+SamplerComparisonState g_shadowMapSampler : register(s4);
+
 Texture2D g_diffuseMap	: register(t0);
 Texture2D g_specularMap	: register(t1);
 Texture2D g_emissiveMap	: register(t2);
@@ -78,3 +83,4 @@ Texture2D g_diffuseBuffer	: register(t5);
 Texture2D g_normalBuffer	: register(t6);
 Texture2D g_specularBuffer	: register(t7);
 Texture2D g_depthBuffer		: register(t8);
+Texture2D g_shadowMap		: register(t9);

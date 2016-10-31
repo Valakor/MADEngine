@@ -7,6 +7,7 @@
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/VertexArray.h"
 #include "Rendering/RenderPassProgram.h"
+#include "Rendering/InputLayoutCache.h"
 
 namespace MAD
 {
@@ -14,7 +15,7 @@ namespace MAD
 	{
 		SDrawItem();
 
-		void Draw(class UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties) const;
+		void Draw(class UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), SRasterizerStateId inRasterStateOverride = SRasterizerStateId()) const;
 
 		eastl::vector<UVertexArray> m_vertexBuffers;
 		UINT m_vertexBufferOffset;

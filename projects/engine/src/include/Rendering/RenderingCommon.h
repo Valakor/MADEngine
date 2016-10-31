@@ -39,6 +39,7 @@ namespace MAD
 		NormalBuffer,
 		SpecularBuffer,
 		DepthBuffer,
+		ShadowMap,
 
 		MAX
 	};
@@ -61,6 +62,7 @@ namespace MAD
 		Linear,
 		Trilinear,
 		Anisotropic,
+		ShadowMap,
 
 		MAX
 	};
@@ -96,11 +98,13 @@ namespace MAD
 
 	struct SGPUDirectionalLight
 	{
-		DirectX::SimpleMath::Vector3 m_lightDirection;
+		Vector3 m_lightDirection;
 		float m_lightIntensity;
-		DirectX::SimpleMath::Color m_lightColor;
+		Color m_lightColor;
+
+		Matrix m_viewProjectionMatrix;
 	};
-	static_assert(sizeof(SGPUDirectionalLight) == 32, "");
+	static_assert(sizeof(SGPUDirectionalLight) == 96, "");
 
 	// Materials --------------------------------
 	struct SGPUMaterial
@@ -127,6 +131,7 @@ namespace MAD
 		Matrix m_cameraViewMatrix;
 		Matrix m_cameraProjectionMatrix;
 		Matrix m_cameraViewProjectionMatrix;
+		Matrix m_cameraInverseViewMatrix;
 		Matrix m_cameraInverseProjectionMatrix;
 
 		float m_cameraNearPlane;
@@ -136,7 +141,7 @@ namespace MAD
 		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
 	};
-	static_assert(sizeof(SPerFrameConstants) == 272, "");
+	static_assert(sizeof(SPerFrameConstants) == 336, "");
 
 	struct SPerSceneConstants
 	{

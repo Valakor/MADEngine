@@ -69,7 +69,7 @@ PS_INPUT VS(VS_INPUT input)
 PS_OUTPUT PS(PS_INPUT input)
 {
 #ifdef OPACITY_MASK
-	float opacityMask = g_opacityMask.Sample(g_linearSampler, input.mTex).r;
+	float opacityMask = g_opacityMask.Sample(g_anisotropicSampler, input.mTex).r;
 	if (opacityMask < 0.75)
 	{
 		// If this pixel is masked out by the mask texture, just throw it out
@@ -88,15 +88,15 @@ PS_OUTPUT PS(PS_INPUT input)
 	float  finalSpecularPower = g_material.m_specularPower;
 
 #ifdef EMISSIVE
-	finalEmissiveColor *= g_emissiveMap.Sample(g_linearSampler, input.mTex).rgb;
+	finalEmissiveColor *= g_emissiveMap.Sample(g_anisotropicSampler, input.mTex).rgb;
 #endif
 
 #ifdef DIFFUSE
-	finalDiffuseColor *= g_diffuseMap.Sample(g_linearSampler, input.mTex).rgb;
+	finalDiffuseColor *= g_diffuseMap.Sample(g_anisotropicSampler, input.mTex).rgb;
 #endif
 
 #ifdef SPECULAR
-	float4 specularSample = g_specularMap.Sample(g_linearSampler, input.mTex).rgba;
+	float4 specularSample = g_specularMap.Sample(g_anisotropicSampler, input.mTex).rgba;
 	finalSpecularColor *= specularSample.rgb;
 	finalSpecularPower *= specularSample.a;
 #endif

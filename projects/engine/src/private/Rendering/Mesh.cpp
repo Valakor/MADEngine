@@ -49,7 +49,7 @@ namespace MAD
 		using namespace DirectX::SimpleMath;
 		const Vector3 verts[] = { Vector3(1.0f, 1.0f, 0.0f), Vector3(-1.0f, 1.0f, 0.0f), Vector3(-1.0f, -1.0f, 0.0f), Vector3(1.0f, -1.0f, 0.0f) };
 		const Index_t indices[] = { 0, 1, 2, 2, 3, 0 };
-		planeMesh->m_gpuPositions = UVertexArray(graphicsDriver, EVertexBufferSlot::Position, verts, sizeof(Vector3), 4);
+		planeMesh->m_gpuPositions = UVertexArray(graphicsDriver, EVertexBufferSlot::Position, EInputLayoutSemantic::Position, verts, sizeof(Vector3), 4);
 		planeMesh->m_gpuIndexBuffer = graphicsDriver.CreateIndexBuffer(indices, 6 * sizeof(Index_t));
 
 		retInstance.m_mesh = planeMesh;
@@ -339,18 +339,18 @@ namespace MAD
 		InputLayoutFlags_t inputLayout = EInputLayoutSemantic::Position;
 		const UINT vertexCount = static_cast<UINT>(mesh->m_positions.size());
 
-		mesh->m_gpuPositions = UVertexArray(graphicsDriver, EVertexBufferSlot::Position, mesh->m_positions.data(), sizeof(mesh->m_positions[0]), vertexCount);
+		mesh->m_gpuPositions = UVertexArray(graphicsDriver, EVertexBufferSlot::Position, EInputLayoutSemantic::Position, mesh->m_positions.data(), sizeof(mesh->m_positions[0]), vertexCount);
 		
 		if (mesh->m_normals.size() > 0)
 		{
 			inputLayout |= EInputLayoutSemantic::Normal;
-			mesh->m_gpuNormals = UVertexArray(graphicsDriver, EVertexBufferSlot::Normal, mesh->m_normals.data(), sizeof(mesh->m_normals[0]), vertexCount);
+			mesh->m_gpuNormals = UVertexArray(graphicsDriver, EVertexBufferSlot::Normal, EInputLayoutSemantic::Normal, mesh->m_normals.data(), sizeof(mesh->m_normals[0]), vertexCount);
 		}
 
 		if (mesh->m_texCoords.size() > 0)
 		{
 			inputLayout |= EInputLayoutSemantic::UV;
-			mesh->m_gpuTexCoords = UVertexArray(graphicsDriver, EVertexBufferSlot::UV, mesh->m_texCoords.data(), sizeof(mesh->m_texCoords[0]), vertexCount);
+			mesh->m_gpuTexCoords = UVertexArray(graphicsDriver, EVertexBufferSlot::UV, EInputLayoutSemantic::UV, mesh->m_texCoords.data(), sizeof(mesh->m_texCoords[0]), vertexCount);
 		}
 
 		UINT indexDataSize = static_cast<UINT>(mesh->m_indexBuffer.size() * sizeof(Index_t));

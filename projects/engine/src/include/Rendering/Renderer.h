@@ -51,15 +51,13 @@ namespace MAD
 		class UGraphicsDriver& GetGraphicsDriver();
 		SRasterizerStateId GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 
-		// Don't use this API to make a Texture, use UAssetCache<UTexture> instead
-		SShaderResourceId URenderer::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const;
-
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 
 	private:
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
+		void InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
 
 		void BindPerFrameConstants();
@@ -85,7 +83,10 @@ namespace MAD
 		
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_dirLightingPassDescriptor;
+		SRenderPassDescriptor m_dirShadowMappingPassDescriptor;
 		SRenderPassDescriptor m_pointLightingPassDescriptor;
+
+		SShaderResourceId m_shadowMapSRV;
 
 		eastl::vector<SShaderResourceId> m_gBufferShaderResources;
 

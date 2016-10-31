@@ -42,10 +42,7 @@ namespace MAD
 			
 			// Pixel Shader
 			const SPixelShaderId& pixelShaderId = GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple);
-			if (pixelShaderId.IsValid())
-			{
-				inGraphicsDriver.SetPixelShader(pixelShaderId);
-			}
+			inGraphicsDriver.SetPixelShader(pixelShaderId);
 
 			return true;
 		}
