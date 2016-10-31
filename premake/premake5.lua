@@ -69,6 +69,10 @@ function useDirectXTK()
 	filter { }
 end
 
+function useRapidjson()
+	includedirs { "../ThirdParty/rapidjson/include" }
+end
+
 function useYojimbo()
 	libdirs { "../ThirdParty/yojimbo/lib" }
 	includedirs { "../ThirdParty/yojimbo/include" }
@@ -91,6 +95,7 @@ function commonSetup()
 	useAssimp()
 	useDirectX()
 	useDirectXTK()
+	useRapidjson()
 	useYojimbo()
 end
 
