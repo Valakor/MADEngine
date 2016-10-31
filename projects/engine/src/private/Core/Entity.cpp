@@ -7,7 +7,10 @@ namespace MAD
 	AEntity::AEntity(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 		, m_isPendingForKill(false)
-		, m_owningWorldLayer(nullptr) {}
+		, m_owningWorldLayer(nullptr)
+		, m_isTransformDirty(true)
+		, m_entityParent(nullptr)
+	{}
 
 	void AEntity::Destroy()
 	{
@@ -43,5 +46,34 @@ namespace MAD
 		{
 			inOutEntityComponents.emplace_back(currentComponent);
 		}
+	}
+
+	void AEntity::UpdateEntityWorldTransform()
+	{
+		// Walk the parent hierarchy
+		ULinearTransform finalWorldTransform = m_localTransform;
+		
+		if (m_entityParent)
+		{
+			finalWorldTransform *= m_entityParent->GetWorldTransform();
+		}
+
+		m_worldTransform = finalWorldTransform;
+	}
+
+	void AEntity::SetScale(float inScale)
+	{
+		m_entityScale = inScale;
+		
+	}
+
+	void AEntity::SetRotation(const Quaternion& inRotation)
+	{
+		
+	}
+
+	void AEntity::SetPosition(const Vector3& inPosition)
+	{
+		
 	}
 }

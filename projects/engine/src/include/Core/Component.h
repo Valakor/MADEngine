@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Object.h"
+#include "Core/SimpleMath.h"
 
 namespace MAD
 {
@@ -17,10 +18,23 @@ namespace MAD
 		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };
 
 		bool IsOwnerValid() const;
-		inline void SetOwner(AEntity& inOwner) { m_ownerPtr = &inOwner; }
-		inline AEntity& GetOwner() { return *m_ownerPtr; }
-		inline const AEntity& GetOwner() const { return *m_ownerPtr; }
+		void SetOwner(AEntity& inOwner) { m_ownerPtr = &inOwner; }
+		void SetScale(float inScale);
+		void SetRotation(const Quaternion& inRotation);
+		void SetTranslation(const Vector3& inTranslation);
+
+		AEntity& GetOwner() { return *m_ownerPtr; }
+		const AEntity& GetOwner() const { return *m_ownerPtr; }
+		ULinearTransform GetWorldTransform() const { return m_worldTransform; }
+	private:
+		void UpdateComponentTransform();
 	private:
 		AEntity* m_ownerPtr;
+
+		ULinearTransform m_worldTransform;
+
+		float m_componentScale;
+		Quaternion m_componentRotation;
+		Vector3 m_componentTranslation;
 	};
 }
