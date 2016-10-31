@@ -14,7 +14,7 @@ namespace MAD
 
 	void OGameWorld::CleanupEntities()
 	{
-		LOG(LogDefault, Log, "Cleaning up entites from %s\n", m_worldName.c_str());
+		//LOG(LogDefault, Log, "Cleaning up entites from %s\n", m_worldName.c_str());
 
 		// Cleans up the entities that are pending for kill
 		for (auto& currentWorldLayer : m_worldLayers)

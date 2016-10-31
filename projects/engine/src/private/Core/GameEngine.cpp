@@ -1,23 +1,19 @@
 #include "Core/GameEngine.h"
 
-
-#include "Core/FrameTimer.h"
-#include "Core/GameInstance.h"
-#include "Core/GameInput.h"
-#include "Core/GameWindow.h"
-#include "Core/GameWorld.h"
-#include "Misc/AssetCache.h"
-#include "Core/PhysicsWorld.h"
-#include "Misc/ErrorHandling.h"
-#include "Misc/utf8conv.h"
-#include "Rendering/Renderer.h"
-
 #include <EASTL/algorithm.h>
 
+#include "Core/FrameTimer.h"
+#include "Core/GameInput.h"
+#include "Core/GameInstance.h"
+#include "Core/GameWindow.h"
+#include "Core/GameWorld.h"
+#include "Core/PhysicsWorld.h"
+#include "Misc/AssetCache.h"
+#include "Rendering/Renderer.h"
+
 // TESTING
-#include "Rendering/Mesh.h"
 #include "Core/Character.h"
-#include "Core/TestCharacters.h"
+#include "Rendering/Mesh.h"
 
 using eastl::string;
 
@@ -26,6 +22,40 @@ namespace MAD
 	string SCmdLine::mCmdLine;
 
 	DECLARE_LOG_CATEGORY(LogGameEngine);
+
+	namespace
+	{
+		// Temp testing to change render target output for GBuffer
+		void OnDisableGBufferVisualization()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::None);
+		}
+
+		void OnEnableLightAccumulation()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::LightAccumulation);
+		}
+
+		void OnEnableDiffuse()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Diffuse);
+		}
+
+		void OnEnableSpecular()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Specular);
+		}
+
+		void OnEnableNormals()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Normals);
+		}
+
+		void OnEnableDepth()
+		{
+			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Depth);
+		}
+	}
 
 	UGameEngine* gEngine = nullptr;
 
@@ -54,6 +84,9 @@ namespace MAD
 			return false;
 		}
 
+		// Set global engine ptr
+		gEngine = this;
+
 		// Init renderer
 		mRenderer = eastl::make_shared<URenderer>();
 		if (!mRenderer->Init(*mGameWindow))
@@ -61,14 +94,8 @@ namespace MAD
 			return false;
 		}
 
-		// Set global engine ptr
-		gEngine = this;
-
-		// TODO testing
-		auto cube2 = UAssetCache::Load<UMesh>("engine\\meshes\\primitives\\cube.obj");
 		// Init the physics world
 		m_physicsWorld = eastl::make_shared<UPhysicsWorld>(nullptr);
-
 		if (!m_physicsWorld)
 		{
 			return false;
@@ -89,7 +116,7 @@ namespace MAD
 	void UGameEngine::Run()
 	{
 		// In the future, update defaults by configuration file
-		//TEMPInitializeGameContext();
+		TEMPInitializeGameContext();
 
 		while (bContinue)
 		{
@@ -124,11 +151,36 @@ namespace MAD
 	{
 		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
 
+		mRenderer->SetWorldAmbientColor(Color(0.2f, 0.2f, 0.2f, 1.0f));
+		mRenderer->SetBackBufferClearColor(Color(0.529f, 0.808f, 0.922f, 1.0f));
+
+		SControlScheme& renderScheme = SControlScheme("RenderDebug")
+			.RegisterEvent("NormalView", '0')
+			.RegisterEvent("LightAccumulationView", '1')
+			.RegisterEvent("DiffuseView", '2')
+			.RegisterEvent("SpecularView", '3')
+			.RegisterEvent("NormalsView", '4')
+			.RegisterEvent("DepthView", '5')
+			.Finalize(true);
+
+		SControlScheme("CameraDebug")
+			.RegisterAxis("Vertical", VK_SPACE, VK_SHIFT)
+			.RegisterAxis("Horizontal", 'D', 'A')
+			.RegisterAxis("Forward", 'W', 'S')
+			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
+			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
+			.RegisterEvent("RightClick", VK_RBUTTON)
+			.RegisterEvent("Reset", 'R')
+			.Finalize(true);
+
+		renderScheme.BindEvent<&OnDisableGBufferVisualization>("NormalView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableLightAccumulation>("LightAccumulationView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableDiffuse>("DiffuseView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableSpecular>("SpecularView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
+
 		initialGameWorld.lock()->SpawnEntity<ACharacter>();
-		initialGameWorld.lock()->SpawnEntity<ACharacter>();
-		initialGameWorld.lock()->SpawnEntity<Test::AMattCharacter>();
-		initialGameWorld.lock()->SpawnEntity<Test::ADerekCharacter>();
-		initialGameWorld.lock()->SpawnEntity<Test::ADerekCharacter>();
 	}
 
 	void UGameEngine::Tick()
@@ -144,6 +196,9 @@ namespace MAD
 
 		while (steps > 0)
 		{
+			// Clear the old draw items
+			mRenderer->ClearRenderItems();
+
 			// Tick native message queue
 			UGameWindow::PumpMessageQueue();
 
@@ -155,28 +210,28 @@ namespace MAD
 			m_isSimulating = true;
 
 			// Tick the pre-physics components of all Worlds
-			//for (auto& currentWorld : m_worlds)
-			//{
-			//	currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
-			//}
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
 
 			//// Update the physics world
-			//m_physicsWorld->SimulatePhysics();
+			m_physicsWorld->SimulatePhysics();
 
 
 			//// Tick the post-physics components of all Worlds
-			//for (auto& currentWorld : m_worlds)
-			//{
-			//	currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
-			//}
+			for (auto& currentWorld : m_worlds)
+			{
+				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+			}
 
 			m_isSimulating = false;
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
-			/*for (auto& currentWorld : m_worlds)
+			for (auto& currentWorld : m_worlds)
 			{
 				currentWorld->CleanupEntities();
-			}*/
+			}
 
 			steps--;
 		}

@@ -1,15 +1,21 @@
 #include "Rendering/GraphicsDriver.h"
 
+#include <INITGUID.H>
+#include <D3DCompiler.h>
+
 #include <DirectXTK/DDSTextureLoader.h>
 #include <DirectXTK/WICTextureLoader.h>
 #include <wrl/client.h>
 
 #include <EASTL/hash_map.h>
+#include <EASTL/string.h>
+#include <EASTL/algorithm.h>
 
 #include "Core/GameWindow.h"
 #include "Misc/Assert.h"
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
+#include "Rendering/InputLayoutCache.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -34,6 +40,25 @@ namespace MAD
 #define ID_GET_SAFE(outVar, id, cache, desc) auto outVar = cache[id]
 #endif
 
+#define ID_TRY_GET(outVar, id, cache, desc)		\
+	eastl::remove_reference<decltype(cache[id])>::type outVar = nullptr;	\
+	if ((id).IsValid())							\
+	{											\
+		ID_ASSERT_VALID(id, cache, desc);		\
+		outVar = cache[id];						\
+	}
+
+#define ID_DESTROY(id, cache)					\
+	if (id.IsValid())							\
+	{											\
+		auto iter = cache.find(id);				\
+		if (iter != cache.end())				\
+		{										\
+			cache.erase(iter);					\
+		}										\
+	}											\
+	id.Invalidate()
+
 #define MEM_ZERO(s) memset(&s, 0, sizeof(s))
 
 	namespace
@@ -46,7 +71,6 @@ namespace MAD
 
 		// Constant configuration
 		const UINT g_swapChainBufferCount = 3;
-		const DXGI_FORMAT g_swapChainFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		// Graphics driver object stores
 #define DECLARE_OBJECT_STORE(IdType, D3DType, storeName) eastl::hash_map<IdType, ComPtr<D3DType>> storeName;
@@ -72,10 +96,10 @@ namespace MAD
 			createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-			// To make it easy on us, we're only going to support D3D 11.2 (Windows 8.1 and above)
+			// To make it easy on us, we're only going to support D3D 11.0 and above
 			D3D_FEATURE_LEVEL featureLevels[] =
 			{
-				D3D_FEATURE_LEVEL_11_1,
+				D3D_FEATURE_LEVEL_11_0,
 			};
 			UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
@@ -116,7 +140,7 @@ namespace MAD
 			MEM_ZERO(scd);
 			scd.Width = 0;
 			scd.Height = 0;
-			scd.Format = g_swapChainFormat;
+			scd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			scd.Stereo = FALSE;
 			scd.SampleDesc.Count = 1;
 			scd.SampleDesc.Quality = 0;
@@ -165,8 +189,45 @@ namespace MAD
 
 		ComPtr<ID3D11RenderTargetView>& backBufferRTV = g_renderTargetStore[m_backBuffer];
 
-		hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, backBufferRTV.GetAddressOf());
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetDesc;
+		MEM_ZERO(renderTargetDesc);
+		renderTargetDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		renderTargetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetDesc.Texture2D.MipSlice = 0;
+
+		hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), &renderTargetDesc, backBufferRTV.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed to create render target view from back buffer");
+	}
+
+	void UGraphicsDriver::RegisterInputLayout(ID3DBlob* inTargetBlob)
+	{
+		// Reflect shader info
+		ID3D11ShaderReflection* pVertexShaderReflection = nullptr;
+
+		HRESULT hr = D3DReflect(inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pVertexShaderReflection);
+		HR_ASSERT_SUCCESS(hr, "Failed to reflect on the shader");
+		
+		// Get shader info
+		D3D11_SHADER_DESC shaderDesc;
+		pVertexShaderReflection->GetDesc(&shaderDesc);
+
+		// Read input layout description from shader info
+		InputLayoutFlags_t inputLayoutFlags = 0;
+		for (uint32_t i = 0; i < shaderDesc.InputParameters; i++)
+		{
+			D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
+			pVertexShaderReflection->GetInputParameterDesc(i, &paramDesc);
+			inputLayoutFlags |= UInputLayoutCache::GetFlagForSemanticName(paramDesc.SemanticName);
+		}
+
+		//Free allocation shader reflection memory
+		pVertexShaderReflection->Release();
+
+		// Register new Input Layout
+		if (inputLayoutFlags != 0 && !UInputLayoutCache::RegisterInputLayout(*this, inputLayoutFlags, inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize()))
+		{
+			MAD_ASSERT_DESC(false, "Failed to register input layout reflected from VS shader");
+		}
 	}
 
 	bool UGraphicsDriver::Init(UGameWindow& inWindow)
@@ -178,6 +239,41 @@ namespace MAD
 		CreateDevice();
 		CreateSwapChain(g_nativeWindowHandle);
 		CreateBackBufferRenderTargetView();
+
+		// Initialize our constant buffers
+		m_constantBuffers.resize(AsIntegral(EConstantBufferSlot::MAX));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)] = CreateConstantBuffer(nullptr, sizeof(SPerSceneConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)] = CreateConstantBuffer(nullptr, sizeof(SPerFrameConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)] = CreateConstantBuffer(nullptr, sizeof(SPerPointLightConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)] = CreateConstantBuffer(nullptr, sizeof(SPerDirectionalLightConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)] = CreateConstantBuffer(nullptr, sizeof(SPerMaterialConstants));
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)] = CreateConstantBuffer(nullptr, sizeof(SPerDrawConstants));
+		for (unsigned i = 0; i < m_constantBuffers.size(); ++i)
+		{
+			SetVertexConstantBuffer(m_constantBuffers[i], i);
+			SetPixelConstantBuffer(m_constantBuffers[i], i);
+		}
+
+#ifdef _DEBUG
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerScene");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerFrame");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 13, "PerPointLight");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 19, "PerDirectionalLight");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 11, "PerMaterial");
+		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 7, "PerDraw");
+#endif
+
+		// Initialize our samplers
+		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
+		m_samplers[AsIntegral(ESamplerSlot::Point)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_POINT);
+		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
+		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR);
+		m_samplers[AsIntegral(ESamplerSlot::Anisotropic)] = CreateSamplerState(D3D11_FILTER_ANISOTROPIC, 16);
+		m_samplers[AsIntegral(ESamplerSlot::ShadowMap)] = CreateSamplerState(D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, 0, D3D11_TEXTURE_ADDRESS_BORDER, Color(1, 1, 1, 1));
+		for (unsigned i = 0; i < m_samplers.size(); ++i)
+		{
+			SetPixelSamplerState(m_samplers[i], i);
+		}
 
 		LOG(LogGraphicsDevice, Log, "Graphics driver initialization successful\n");
 		return true;
@@ -207,16 +303,13 @@ namespace MAD
 		ID_ASSERT_VALID(m_backBuffer, g_renderTargetStore, "Back buffer should be valid if the device has been created");
 		g_renderTargetStore[m_backBuffer].Reset();
 		
-		g_d3dDeviceContext->Flush();
-		g_d3dDeviceContext->ClearState();
-
 		HRESULT hr = g_dxgiSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 		HR_ASSERT_SUCCESS(hr, "Failed to resize swap chain");
 
 		CreateBackBufferRenderTargetView();
 	}
 
-	SShaderResourceId UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight) const
+	SShaderResourceId UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const
 	{
 		auto widePath = utf8util::UTF16FromUTF8(inPath);
 		auto extension = inPath.substr(inPath.find_last_of('.'));
@@ -228,15 +321,29 @@ namespace MAD
 		HRESULT hr;
 		if (extension == ".dds")
 		{
-			hr = DirectX::CreateDDSTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			if (inGenerateMips)
+			{
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
+			else
+			{
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
 		}
-		else if (extension == ".png" || extension == ".bmp")
+		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif")
 		{
-			hr = DirectX::CreateWICTextureFromFile(g_d3dDevice.Get(), widePath.c_str(), texture.GetAddressOf(), srv.GetAddressOf());
+			if (inGenerateMips)
+			{
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
+			else
+			{
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+			}
 		}
 		else
 		{
-			LOG(LogTextureImport, Error, "Can only load textures of type DDS, PNG, or BMP\n");
+			LOG(LogTextureImport, Error, "Can only load textures of type DDS, PNG, JPG (JPEG), or BMP\n");
 			return SShaderResourceId::Invalid;
 		}
 
@@ -269,6 +376,111 @@ namespace MAD
 		auto shaderResourceViewId = SShaderResourceId::Next();
 		g_shaderResourceViewStore.insert({ shaderResourceViewId, srv });
 		return shaderResourceViewId;
+	}
+
+	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines)
+	{
+		HRESULT hr = S_OK;
+
+		DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+		// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
+		// Setting this flag improves the shader debugging experience, but still allows 
+		// the shaders to be optimized and to run exactly the way they will run in 
+		// the release configuration of this program.
+		dwShaderFlags |= D3DCOMPILE_DEBUG;
+
+		// Disable optimizations to further improve shader debugging
+		dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+		const size_t cSize = inFileName.length() + 1;
+		size_t retCount;
+		std::wstring wc(cSize, L'#');
+		mbstowcs_s(&retCount, &wc[0], cSize, inFileName.c_str(), _TRUNCATE);
+
+		ID3DBlob* pErrorBlob = nullptr;
+		ID3DBlob* pBlobOut = nullptr;
+		hr = D3DCompileFromFile(wc.c_str(), inShaderMacroDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
+			dwShaderFlags, 0, &pBlobOut, &pErrorBlob);
+		if (FAILED(hr))
+		{
+			if (pErrorBlob)
+			{
+				static wchar_t szBuffer[4096];
+				_snwprintf_s(szBuffer, 4096, _TRUNCATE,
+					L"%hs",
+					(char*)pErrorBlob->GetBufferPointer());
+				OutputDebugString(szBuffer);
+				MessageBox(nullptr, szBuffer, L"Error", MB_OK);
+				pErrorBlob->Release();
+				MAD_ASSERT_DESC(hr == S_OK, "Shader Compilation Failed");
+			}
+			return false;
+		}
+		if (pErrorBlob)
+		{
+			pErrorBlob->Release();
+		}
+
+		//now copy to vector if we like it...
+		if (pBlobOut)
+		{
+			// Before releasing the blob, reflect the input layout from the shader (if vertex shader)
+			if (inShaderModel.substr(0, 2) == "vs")
+			{
+				RegisterInputLayout(pBlobOut);
+			}
+
+			size_t compiledCodeSize = pBlobOut->GetBufferSize();
+			inOutCompileByteCode.resize(compiledCodeSize);
+			std::memcpy(inOutCompileByteCode.data(), pBlobOut->GetBufferPointer(), compiledCodeSize);
+
+			pBlobOut->Release();
+		}
+
+		return hr == S_OK;
+	}
+
+	// TODO: Potentially create macro for this (??)
+	SVertexShaderId UGraphicsDriver::CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode)
+	{
+		ComPtr<ID3D11VertexShader> vertexShaderPtr;
+
+		HRESULT hr = g_d3dDevice->CreateVertexShader(inCompiledVSByteCode.data(), inCompiledVSByteCode.size(), nullptr, vertexShaderPtr.GetAddressOf());
+
+		MAD_ASSERT_DESC(hr == S_OK, "Failure Creating Vertex Shader From Compiled Shader Code");
+
+		SVertexShaderId vertexShaderId;
+
+		if (hr == S_OK)
+		{
+			vertexShaderId = SVertexShaderId::Next();
+
+			g_vertexShaderStore.insert({ vertexShaderId, vertexShaderPtr });
+		}
+		
+		return vertexShaderId;
+	}
+
+	SPixelShaderId UGraphicsDriver::CreatePixelShader(const eastl::vector<char>& inCompiledPSByteCode)
+	{
+		ComPtr<ID3D11PixelShader> pixelShaderPtr;
+
+		HRESULT hr = g_d3dDevice->CreatePixelShader(inCompiledPSByteCode.data(), inCompiledPSByteCode.size(), nullptr, pixelShaderPtr.GetAddressOf());
+
+		MAD_ASSERT_DESC(hr == S_OK, "Failure Creating Pixel Shader from Compiled Shader Code");
+
+		SPixelShaderId pixelShaderId;
+
+		if (hr == S_OK)
+		{
+			pixelShaderId = SPixelShaderId::Next();
+
+			g_pixelShaderStore.insert({ pixelShaderId, pixelShaderPtr });
+		}
+
+		return pixelShaderId;
 	}
 
 	SRenderTargetId UGraphicsDriver::CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, SShaderResourceId* outOptionalShaderResource) const
@@ -329,10 +541,15 @@ namespace MAD
 		return renderTargetId;
 	}
 
-	SInputLayoutId UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, int inNumElements, const eastl::vector<char>& inCompiledVertexShader) const
+	SInputLayoutId UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const
+	{
+		return CreateInputLayout(inElements, inNumElements, inCompiledVertexShader.data(), inCompiledVertexShader.size());
+	}
+
+	SInputLayoutId UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const
 	{
 		ComPtr<ID3D11InputLayout> inputLayout;
-		HRESULT hr = g_d3dDevice->CreateInputLayout(inElements, inNumElements, inCompiledVertexShader.data(), inCompiledVertexShader.size(), inputLayout.GetAddressOf());
+		HRESULT hr = g_d3dDevice->CreateInputLayout(inElements, inNumElements, inCompiledVSByteCode, inByteCodeSize, inputLayout.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed creating input layout");
 
 		auto inputLayoutId = SInputLayoutId::Next();
@@ -340,19 +557,32 @@ namespace MAD
 		return inputLayoutId;
 	}
 
-	SSamplerStateId UGraphicsDriver::CreateSamplerState() const
+	SSamplerStateId UGraphicsDriver::CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy, D3D11_TEXTURE_ADDRESS_MODE inAddressMode, Color inBorderColor) const
 	{
 		D3D11_SAMPLER_DESC samplerDesc;
 		MEM_ZERO(samplerDesc);
-		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.Filter = inFilterMode;
+		samplerDesc.AddressU = inAddressMode;
+		samplerDesc.AddressV = inAddressMode;
+		samplerDesc.AddressW = inAddressMode;
 		samplerDesc.MipLODBias = 0;
-		samplerDesc.MaxAnisotropy = 0;
+		samplerDesc.MaxAnisotropy = inMaxAnisotropy;
 		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		samplerDesc.MinLOD = 0;
 		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		if (D3D11_DECODE_IS_COMPARISON_FILTER(inFilterMode))
+		{
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+		}
+
+		if (inAddressMode == D3D11_TEXTURE_ADDRESS_BORDER)
+		{
+			samplerDesc.BorderColor[0] = inBorderColor.x;
+			samplerDesc.BorderColor[1] = inBorderColor.y;
+			samplerDesc.BorderColor[2] = inBorderColor.z;
+			samplerDesc.BorderColor[3] = inBorderColor.w;
+		}
 		
 		ComPtr<ID3D11SamplerState> samplerState;
 		HRESULT hr = g_d3dDevice->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
@@ -363,7 +593,7 @@ namespace MAD
 		return samplerStateId;
 	}
 
-	SDepthStencilId UGraphicsDriver::CreateDepthStencil(int inWidth, int inHeight) const
+	SDepthStencilId UGraphicsDriver::CreateDepthStencil(int inWidth, int inHeight, SShaderResourceId* outOptionalShaderResource) const
 	{
 		D3D11_TEXTURE2D_DESC backingTexDesc;
 		MEM_ZERO(backingTexDesc);
@@ -371,7 +601,7 @@ namespace MAD
 		backingTexDesc.Height = inHeight;
 		backingTexDesc.MipLevels = 1;
 		backingTexDesc.ArraySize = 1;
-		backingTexDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		backingTexDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 		backingTexDesc.SampleDesc.Count = 1;
 		backingTexDesc.SampleDesc.Quality = 0;
 		backingTexDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -379,19 +609,42 @@ namespace MAD
 		backingTexDesc.CPUAccessFlags = 0;
 		backingTexDesc.MiscFlags = 0;
 
+		if (outOptionalShaderResource)
+		{
+			backingTexDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+		}
+
 		ComPtr<ID3D11Texture2D> backingTex;
 		HRESULT hr = g_d3dDevice->CreateTexture2D(&backingTexDesc, nullptr, backingTex.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed to create backing texture for depth stencil");
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilDesc;
 		MEM_ZERO(depthStencilDesc);
-		depthStencilDesc.Format = backingTexDesc.Format;
+		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		depthStencilDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		depthStencilDesc.Texture2D.MipSlice = 0;
 
 		ComPtr<ID3D11DepthStencilView> depthStencil;
 		hr = g_d3dDevice->CreateDepthStencilView(backingTex.Get(), &depthStencilDesc, depthStencil.GetAddressOf());
 		HR_ASSERT_SUCCESS(hr, "Failed to create depth stencil view from backing texture");
+
+		if (outOptionalShaderResource)
+		{
+			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceDesc;
+			MEM_ZERO(shaderResourceDesc);
+			shaderResourceDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+			shaderResourceDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			shaderResourceDesc.Texture2D.MostDetailedMip = 0;
+			shaderResourceDesc.Texture2D.MipLevels = 1;
+
+			ComPtr<ID3D11ShaderResourceView> shaderResource;
+			hr = g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf());
+			HR_ASSERT_SUCCESS(hr, "Failed to create shader resource view from backing texture");
+
+			auto shaderResourceId = SShaderResourceId::Next();
+			g_shaderResourceViewStore.insert({ shaderResourceId, shaderResource });
+			*outOptionalShaderResource = shaderResourceId;
+		}
 
 		auto depthStencilId = SDepthStencilId::Next();
 		g_depthStencilStore.insert({ depthStencilId, depthStencil });
@@ -440,7 +693,29 @@ namespace MAD
 		MEM_ZERO(rasterDesc);
 		rasterDesc.FillMode = inFillMode;
 		rasterDesc.CullMode = inCullMode;
-		rasterDesc.FrontCounterClockwise = false;
+		rasterDesc.FrontCounterClockwise = true;
+		rasterDesc.DepthClipEnable = true;
+
+		ComPtr<ID3D11RasterizerState1> raster;
+		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
+		HR_ASSERT_SUCCESS(hr, "Failed to create rasterizer state");
+
+		auto rasterId = SRasterizerStateId::Next();
+		g_rasterizerStateStore.insert({ rasterId, raster });
+		return rasterId;
+	}
+
+	SRasterizerStateId UGraphicsDriver::CreateDepthRasterizerState() const
+	{
+		D3D11_RASTERIZER_DESC1 rasterDesc;
+		MEM_ZERO(rasterDesc);
+		rasterDesc.FillMode = D3D11_FILL_SOLID;
+		rasterDesc.CullMode = D3D11_CULL_BACK;
+		rasterDesc.FrontCounterClockwise = true;
+		rasterDesc.DepthClipEnable = true;
+		rasterDesc.DepthBias = 10000;
+		rasterDesc.DepthBiasClamp = 0.0f;
+		rasterDesc.SlopeScaledDepthBias = 1.5f;
 
 		ComPtr<ID3D11RasterizerState1> raster;
 		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
@@ -459,8 +734,8 @@ namespace MAD
 		blendDesc.IndependentBlendEnable = FALSE;
 		blendDesc.RenderTarget[0].BlendEnable = inEnableBlend;
 		blendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
@@ -533,7 +808,6 @@ namespace MAD
 	void UGraphicsDriver::UnmapBuffer(SBufferId inBuffer) const
 	{
 		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid buffer");
-
 		g_d3dDeviceContext->Unmap(buffer.Get(), 0);
 	}
 
@@ -542,6 +816,12 @@ namespace MAD
 		auto data = MapBuffer(inBuffer);
 		memcpy(data, inData, inDataSize);
 		UnmapBuffer(inBuffer);
+	}
+
+	void UGraphicsDriver::UpdateBuffer(EConstantBufferSlot inSlot, const void* inData, size_t inDataSize) const
+	{
+		MAD_ASSERT_DESC(AsIntegral(inSlot) < AsIntegral(EConstantBufferSlot::MAX), "Invalid EConstantBufferSlot");
+		UpdateBuffer(m_constantBuffers[AsIntegral(inSlot)], inData, inDataSize);
 	}
 
 	void UGraphicsDriver::SetViewport(float inX, float inY, float inWidth, float inHeight) const
@@ -557,12 +837,7 @@ namespace MAD
 		g_d3dDeviceContext->RSSetViewports(1, &vp);
 	}
 
-	void UGraphicsDriver::SetViewport(int inX, int inY, int inWidth, int inHeight) const
-	{
-		SetViewport(static_cast<float>(inX), static_cast<float>(inY), static_cast<float>(inWidth), static_cast<float>(inHeight));
-	}
-
-	void UGraphicsDriver::SetRenderTarget(SRenderTargetId** inRenderTargets, int inNumRenderTargets, SDepthStencilId* inOptionalDepthStencil) const
+	void UGraphicsDriver::SetRenderTargets(const SRenderTargetId* inRenderTargets, int inNumRenderTargets, const SDepthStencilId* inOptionalDepthStencil) const
 	{
 		MAD_ASSERT_DESC(inNumRenderTargets <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, "Cannot bind more than 8 render targets at once");
 
@@ -580,7 +855,7 @@ namespace MAD
 
 		for (int i = 0 ; i < inNumRenderTargets; ++i)
 		{
-			auto& renderTargetId = *inRenderTargets[i];
+			const auto& renderTargetId = inRenderTargets[i];
 			ID_GET_SAFE(renderTarget, renderTargetId, g_renderTargetStore, "Invalid render target");
 			renderTargets[i] = renderTarget.Get();
 		}
@@ -603,7 +878,7 @@ namespace MAD
 
 	void UGraphicsDriver::SetInputLayout(SInputLayoutId inInputLayout) const
 	{
-		ID_GET_SAFE(inputLayout, inInputLayout, g_inputLayoutStore, "Invalid input layout");
+		ID_TRY_GET(inputLayout, inInputLayout, g_inputLayoutStore, "Invalid input layout");
 		g_d3dDeviceContext->IASetInputLayout(inputLayout.Get());
 	}
 
@@ -612,16 +887,16 @@ namespace MAD
 		g_d3dDeviceContext->IASetPrimitiveTopology(inPrimitiveTopology);
 	}
 
-	void UGraphicsDriver::SetVertexBuffer(SBufferId inVertexBuffer, UINT inVertexSize, UINT inVertexOffset) const
+	void UGraphicsDriver::SetVertexBuffer(SBufferId inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
 	{
-		ID_GET_SAFE(buffer, inVertexBuffer, g_bufferStore, "Invalid vertex buffer");
+		ID_TRY_GET(buffer, inVertexBuffer, g_bufferStore, "Invalid vertex buffer");
 		UINT byteOffset = inVertexOffset * inVertexSize;
-		g_d3dDeviceContext->IASetVertexBuffers(0, 1, buffer.GetAddressOf(), &inVertexSize, &byteOffset);
+		g_d3dDeviceContext->IASetVertexBuffers(AsIntegral(inVertexSlot), 1, buffer.GetAddressOf(), &inVertexSize, &byteOffset);
 	}
 
 	void UGraphicsDriver::SetIndexBuffer(SBufferId inIndexBuffer, UINT inIndexOffset) const
 	{
-		ID_GET_SAFE(buffer, inIndexBuffer, g_bufferStore, "Invalid index buffer");
+		ID_TRY_GET(buffer, inIndexBuffer, g_bufferStore, "Invalid index buffer");
 		g_d3dDeviceContext->IASetIndexBuffer(buffer.Get(), DXGI_FORMAT_R16_UINT, 2 * inIndexOffset);
 	}
 
@@ -629,6 +904,12 @@ namespace MAD
 	{
 		ID_GET_SAFE(shader, inVertexShader, g_vertexShaderStore, "Invalid vertex shader");
 		g_d3dDeviceContext->VSSetShader(shader.Get(), nullptr, 0);
+	}
+
+	void UGraphicsDriver::SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot) const
+	{
+		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
+		g_d3dDeviceContext->VSSetConstantBuffers(inSlot, 1, buffer.GetAddressOf());
 	}
 
 	void UGraphicsDriver::SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
@@ -645,8 +926,14 @@ namespace MAD
 
 	void UGraphicsDriver::SetPixelShader(SPixelShaderId inPixelShader) const
 	{
-		ID_GET_SAFE(shader, inPixelShader, g_pixelShaderStore, "Invalid pixel shader");
+		ID_TRY_GET(shader, inPixelShader, g_pixelShaderStore, "Invalid pixel shader");
 		g_d3dDeviceContext->PSSetShader(shader.Get(), nullptr, 0);
+	}
+
+	void UGraphicsDriver::SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot) const
+	{
+		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
+		g_d3dDeviceContext->PSSetConstantBuffers(inSlot, 1, buffer.GetAddressOf());
 	}
 
 	void UGraphicsDriver::SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
@@ -669,22 +956,42 @@ namespace MAD
 
 	void UGraphicsDriver::SetPixelShaderResource(SShaderResourceId inShaderResource, UINT inSlot) const
 	{
-		ID_GET_SAFE(shaderResource, inShaderResource, g_shaderResourceViewStore, "Invalid shader resource");
+		ID_TRY_GET(shaderResource, inShaderResource, g_shaderResourceViewStore, "Invalid shader resource");
 		g_d3dDeviceContext->PSSetShaderResources(inSlot, 1, shaderResource.GetAddressOf());
+	}
+
+	void UGraphicsDriver::SetPixelShaderResource(SShaderResourceId inShaderResource, ETextureSlot inSlot) const
+	{
+		MAD_ASSERT_DESC(AsIntegral(inSlot) < AsIntegral(ETextureSlot::MAX), "Invalid ETextureSlot");
+		SetPixelShaderResource(inShaderResource, AsIntegral(inSlot));
 	}
 
 	void UGraphicsDriver::SetRasterizerState(SRasterizerStateId inRasterizerState) const
 	{
-		ID_GET_SAFE(raster, inRasterizerState, g_rasterizerStateStore, "Invalid rasterizer state");
+		ID_TRY_GET(raster, inRasterizerState, g_rasterizerStateStore, "Invalid rasterizer state");
 		g_d3dDeviceContext->RSSetState(raster.Get());
 	}
 
 	void UGraphicsDriver::SetBlendState(SBlendStateId inBlendstate) const
 	{
-		ID_GET_SAFE(blend, inBlendstate, g_blendStateStore, "Invalid blend state");
-
-		FLOAT blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		ID_TRY_GET(blend, inBlendstate, g_blendStateStore, "Invalid blend state");
+		static FLOAT blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		g_d3dDeviceContext->OMSetBlendState(blend.Get(), blendFactor, 0xffffffff);
+	}
+
+	void UGraphicsDriver::DestroyDepthStencil(SDepthStencilId& inOutDepthStencil) const
+	{
+		ID_DESTROY(inOutDepthStencil, g_depthStencilStore);
+	}
+
+	void UGraphicsDriver::DestroyShaderResource(SShaderResourceId& inOutShaderResource) const
+	{
+		ID_DESTROY(inOutShaderResource, g_shaderResourceViewStore);
+	}
+
+	void UGraphicsDriver::DestroyRenderTarget(SRenderTargetId& inOutRenderTarget) const
+	{
+		ID_DESTROY(inOutRenderTarget, g_renderTargetStore);
 	}
 
 	void UGraphicsDriver::SetFullScreen(bool inIsFullscreen) const
@@ -729,4 +1036,12 @@ namespace MAD
 	{
 		g_dxgiSwapChain->Present(0, 0);
 	}
+
+#ifdef _DEBUG
+	void UGraphicsDriver::SetDebugName_RenderTarget(SRenderTargetId inRenderTarget, const eastl::string& inName) const
+	{
+		ID_GET_SAFE(renderTarget, inRenderTarget, g_renderTargetStore, "Invalid render target");
+		renderTarget->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(inName.size()), inName.data());
+	}
+#endif
 }

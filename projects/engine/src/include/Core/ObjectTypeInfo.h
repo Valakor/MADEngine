@@ -36,7 +36,7 @@ namespace MAD
 	// Base object class macro definition
 #define MAD_DECLARE_CLASS_COMMON(ClassName)									\
 	public:																	\
-	virtual const TTypeInfo* GetTypeInfo()									\
+	virtual const TTypeInfo* GetTypeInfo() const							\
 	{																		\
 		return ClassName::StaticClass();									\
 	}																		\
@@ -111,11 +111,9 @@ namespace MAD
 	template <typename IsAToClass, typename IsAFromClass>
 	bool IsA(const IsAFromClass* inObjectPtr)
 	{
-		(void)inObjectPtr;
-
 		// Iterate up the TTypeInfo tree of the IsAFromClass until you find IsAToClass's TTypeInfo or we reach null
 		const TTypeInfo* const targetTypeInfo = IsAToClass::StaticClass();
-		const TTypeInfo* currentTypeInfo = IsAFromClass::StaticClass();
+		const TTypeInfo* currentTypeInfo = inObjectPtr->GetTypeInfo();
 
 		while (currentTypeInfo)
 		{

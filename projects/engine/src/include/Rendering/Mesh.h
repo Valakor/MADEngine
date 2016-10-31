@@ -1,68 +1,54 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <d3d11_2.h>
-__pragma(warning(push))
-__pragma(warning(disable:4838))
-#include <DirectXTK/SimpleMath.h>
-__pragma(warning(pop))
-
 #include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
 
+#include "Core/SimpleMath.h"
+#include "Rendering/RenderingCommon.h"
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/Material.h"
 #include "Rendering/SubMesh.h"
+#include "Rendering/VertexArray.h"
 
 namespace MAD
 {
 	using Index_t = uint16_t;
 
-	struct SVertex_Pos_Tex
+	struct SMeshInstance
 	{
-		DirectX::SimpleMath::Vector3 P;
-		DirectX::SimpleMath::Vector2 T;
+		SMeshInstance() : m_bVisible(false) {}
 
-		static const int NumInputElements = 2;
-		static const D3D11_INPUT_ELEMENT_DESC InputElements[NumInputElements];
+		SPerDrawConstants m_perDrawConstants;
+		eastl::shared_ptr<class UMesh> m_mesh;
+		bool m_bVisible;
 	};
-	static_assert(sizeof(SVertex_Pos_Tex) == 20, "");
-
-	struct SVertex_Pos_Norm_Tex
-	{
-		DirectX::SimpleMath::Vector3 P;
-		DirectX::SimpleMath::Vector3 N;
-		DirectX::SimpleMath::Vector2 T;
-
-		static const int NumInputElements = 3;
-		static const D3D11_INPUT_ELEMENT_DESC InputElements[NumInputElements];
-	};
-	static_assert(sizeof(SVertex_Pos_Norm_Tex) == 32, "");
 
 	class UMesh
 	{
 	public:
-		void Draw() { }
+		static SMeshInstance CreatePrimitivePlane();
 
-	private:
+		void BuildDrawItems(eastl::vector<struct SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const;
+
+	//private:
 		friend class UAssetCache;
 		static eastl::shared_ptr<UMesh> Load(const eastl::string& inPath);
 
 		eastl::vector<SSubMesh> m_subMeshes;
 		eastl::vector<UMaterial> m_materials;
 
-		eastl::vector<SVertex_Pos_Norm_Tex> m_vertexBuffer;
+		SInputLayoutId m_inputLayout;
+
+		eastl::vector<Vector3> m_positions;
+		eastl::vector<Vector3> m_normals;
+		eastl::vector<Vector2> m_texCoords;
+
+		UVertexArray m_gpuPositions;
+		UVertexArray m_gpuNormals;
+		UVertexArray m_gpuTexCoords;
+
 		eastl::vector<Index_t> m_indexBuffer;
-
-		SBufferId m_gpuVertexBuffer;
 		SBufferId m_gpuIndexBuffer;
-	};
-
-	struct SMeshInstance
-	{
-		DirectX::SimpleMath::Matrix m_transform;
-		eastl::shared_ptr<UMesh> m_mesh;
-		bool m_bVisible;
 	};
 }

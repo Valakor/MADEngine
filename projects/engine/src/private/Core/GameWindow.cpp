@@ -224,6 +224,9 @@ namespace MAD
 			break;
 		}
 
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
 		case WM_KEYDOWN:
 		{
 			// For key events (i.e. game input)
@@ -288,10 +291,17 @@ namespace MAD
 			break;
 		}
 
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
 		case WM_KEYUP:
 		{
 			// For key events (i.e. game input)
-			const auto key = static_cast<UINT>(wParam);
+			auto key = static_cast<UINT>(wParam);
+
+			if (message == WM_LBUTTONUP) key = MK_LBUTTON;
+			else if (message == WM_MBUTTONUP) key = MK_MBUTTON;
+			else if (message == WM_RBUTTONUP) key = MK_RBUTTON;
 
 			// Send character to input event system
 			UGameInput::Get().OnKeyUp(key);
@@ -307,36 +317,6 @@ namespace MAD
 			(void)numClicks;
 			// TODO
 			break;
-		}
-
-		case WM_LBUTTONDOWN:
-		{
-			return 0;
-		}
-
-		case WM_MBUTTONDOWN:
-		{
-			return 0;
-		}
-
-		case WM_RBUTTONDOWN:
-		{
-			return 0;
-		}
-
-		case WM_LBUTTONUP:
-		{
-			return 0;
-		}
-
-		case WM_MBUTTONUP:
-		{
-			return 0;
-		}
-
-		case WM_RBUTTONUP:
-		{
-			return 0;
 		}
 
 		case WM_SIZE:

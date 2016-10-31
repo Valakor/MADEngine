@@ -10,7 +10,7 @@ namespace MAD
 
 	void CLightComponent::UpdateComponent(float inDeltaTime)
 	{
-		(void)inDeltaTime;
+		 (void)inDeltaTime;
 		LOG(LogLightComponent, Log, "Updating Light Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
 	}
 

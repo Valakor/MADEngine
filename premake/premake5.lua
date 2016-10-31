@@ -52,7 +52,7 @@ function useAssimp()
 end
 
 function useDirectX()
-	links { "d3d11", "dxgi" }
+	links { "d3d11", "dxgi", "d3dcompiler" }
 end
 
 function useDirectXTK()
