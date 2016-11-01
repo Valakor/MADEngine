@@ -1,5 +1,3 @@
-#include "rapidjson/rapidjson.h"
-
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderPassProgram.h"
 #include "Rendering/CameraInstance.h"
@@ -13,8 +11,6 @@
 #include "Rendering/InputLayoutCache.h"
 
 #include <EASTL/array.h>
-
-#include "yojimbo/yojimbo.h"
 
 namespace MAD
 {
@@ -57,8 +53,6 @@ namespace MAD
 			g_graphicsDriver.SetVertexBuffer(verts, EVertexBufferSlot::Position, sizeof(Vector3), 0);
 
 			g_graphicsDriver.DrawIndexed(6, 0, 0);
-
-			InitializeYojimbo();
 
 			// Alternatively use the SV_VertexID semantic in the shader and calculate the coordinates like:
 			//   float2 texCoord = float2(id & 1, id >> 1);
