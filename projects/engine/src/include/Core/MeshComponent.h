@@ -13,10 +13,9 @@ namespace MAD
 	public:
 		explicit CMeshComponent(OGameWorld* inOwningWorld);
 		
+		virtual void Load(const UGameWorldLoader& inLoader) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 	
-		// TODO: Setup transform hierarchy for entities and components
-		void TEMPInitializeMeshInstance(const eastl::string& inMeshFileName, const DirectX::SimpleMath::Matrix& inDirectTransform, bool inIsVisibleInitial = true);
 	private:
 		void ConstructDrawItem();
 	private:

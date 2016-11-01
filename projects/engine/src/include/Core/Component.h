@@ -20,6 +20,9 @@ namespace MAD
 		inline void SetOwner(AEntity& inOwner) { m_ownerPtr = &inOwner; }
 		inline AEntity& GetOwner() { return *m_ownerPtr; }
 		inline const AEntity& GetOwner() const { return *m_ownerPtr; }
+
+		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
+
 	private:
 		AEntity* m_ownerPtr;
 	};

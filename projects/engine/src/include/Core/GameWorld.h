@@ -36,6 +36,12 @@ namespace MAD
 		
 		template <typename CommonAncestorEntityType>
 		eastl::shared_ptr<CommonAncestorEntityType> SpawnEntity(const TTypeInfo& inTypeInfo, const eastl::string& inWorldLayerName);
+
+		// Doesn't add the entity to the layer, doesn't call PostInitializeComponents, etc. Call FinalizeSpawnEntity(...) with the entity to finalize the process
+		template <typename CommonAncestorEntityType>
+		eastl::shared_ptr<CommonAncestorEntityType> SpawnEntityDeferred(const TTypeInfo& inTypeInfo, const eastl::string& inWorldLayerName);
+
+		void FinalizeSpawnEntity(eastl::shared_ptr<AEntity> inEntity);
 		
 		const eastl::string& GetWorldName() const { return m_worldName; }
 		const eastl::string& GetDefaultLayerName() const { return m_defaultLayerName; }
@@ -50,8 +56,6 @@ namespace MAD
 
 		void UpdatePrePhysics(float inDeltaTime);
 		void UpdatePostPhysics(float inDeltaTime);
-	private:
-		void RegisterEntity(AEntity& inEntity, OGameWorldLayer& inWorldLayer); // Registers the entity to the world layer and registers the entity's components to the component updater
 	private:
 		eastl::string m_worldName;
 		eastl::string m_defaultLayerName;
@@ -89,18 +93,42 @@ namespace MAD
 			targetWorldLayerIter->second.SetWorldLayerName(inWorldLayerName);
 		}
 
-		LOG(LogDefault, Log, "Spawning Entity at Layer: %s\n", targetWorldLayerIter->first.c_str());
+		LOG(LogDefault, Log, "Spawning Entity of type %s at Layer: %s\n", inTypeInfo.GetTypeName(), targetWorldLayerIter->first.c_str());
 
 		// Create default EntityType object through common creation API and assign the entity's owning world layer
 		eastl::shared_ptr<CommonAncestorEntityType> defaultEntityObject = inTypeInfo.CreateDefaultObject<CommonAncestorEntityType>(this);
 		
 		targetWorldLayerIter->second.AddEntityToLayer(defaultEntityObject);
 
-		RegisterEntity(*defaultEntityObject, targetWorldLayerIter->second);
+		defaultEntityObject->SetOwningWorldLayer(targetWorldLayerIter->second);
 
 		defaultEntityObject->PostInitializeComponents();
 	
 		defaultEntityObject->OnBeginPlay();
+
+		return defaultEntityObject;
+	}
+
+	template <typename CommonAncestorEntityType>
+	eastl::shared_ptr<CommonAncestorEntityType> OGameWorld::SpawnEntityDeferred(const TTypeInfo& inTypeInfo, const eastl::string& inWorldLayerName)
+	{
+		static_assert(eastl::is_base_of<AEntity, CommonAncestorEntityType>::value, "Error: You may only create entities that are of type AEntity or more derived"); // Make sure the user is only specifying children classes of AEntity
+
+		auto targetWorldLayerIter = m_worldLayers.find(inWorldLayerName);
+
+		if (targetWorldLayerIter == m_worldLayers.end())
+		{
+			// Create new world layer and assign its owning world
+			targetWorldLayerIter = m_worldLayers.emplace(inWorldLayerName, OGameWorldLayer(this)).first;
+			targetWorldLayerIter->second.SetWorldLayerName(inWorldLayerName);
+		}
+
+		LOG(LogDefault, Log, "Spawning deferred Entity of type %s at Layer: %s\n", inTypeInfo.GetTypeName(), targetWorldLayerIter->first.c_str());
+
+		// Create default EntityType object through common creation API and assign the entity's owning world layer
+		eastl::shared_ptr<CommonAncestorEntityType> defaultEntityObject = inTypeInfo.CreateDefaultObject<CommonAncestorEntityType>(this);
+
+		defaultEntityObject->SetOwningWorldLayer(targetWorldLayerIter->second);
 
 		return defaultEntityObject;
 	}

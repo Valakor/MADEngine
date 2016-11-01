@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Core/Component.h"
+#include "Core/SimpleMath.h"
 #include "Rendering/CameraInstance.h"
 
-// TEMP -------------
-#include "Core/SimpleMath.h"
 
 namespace MAD
 {
@@ -15,11 +14,9 @@ namespace MAD
 		explicit CCameraComponent(OGameWorld* inOwningWorld);
 		virtual ~CCameraComponent();
 
+		virtual void Load(const UGameWorldLoader& inLoader) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
-	
-		// TODO: Eventually change so that the camera uses it's owners transform to update the view matrix.
-		// For now, the camera is stationary so we can just set the camera's view matrix
-		void TEMPInitializeCameraInstance(float inFOV, float inNearPlane, float inFarPlane, const Vector3& inPosition, const Quaternion& inRotation);
+
 	private:
 		void MoveRight(float inVal);
 		void MoveForward(float inVal);

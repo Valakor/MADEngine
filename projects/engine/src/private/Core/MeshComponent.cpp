@@ -1,6 +1,7 @@
 #include "Core/MeshComponent.h"
 #include "Core/Entity.h"
 #include "Core/GameEngine.h"
+#include "Core/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/DrawItem.h"
@@ -12,7 +13,11 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
 	CMeshComponent::CMeshComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
+		: Super(inOwningWorld)
+	{
+		m_meshInstance.m_bVisible = false;
+		m_meshInstance.m_perDrawConstants.m_objectToWorldMatrix = Matrix::Identity;
+	}
 
 	void CMeshComponent::UpdateComponent(float inDeltaTime)
 	{
@@ -26,13 +31,6 @@ namespace MAD
 			// Only create the draw item if our mesh instance is initialized properly with a mesh and direct transform
 			ConstructDrawItem();
 		}
-	}
-
-	void CMeshComponent::TEMPInitializeMeshInstance(const eastl::string& inMeshFileName, const DirectX::SimpleMath::Matrix& inDirectTransform, bool inIsVisibleInitial)
-	{
-		m_meshInstance.m_bVisible = inIsVisibleInitial;
-		m_meshInstance.m_perDrawConstants.m_objectToWorldMatrix = inDirectTransform;
-		m_meshInstance.m_mesh = UAssetCache::Load<UMesh>(inMeshFileName);
 	}
 
 	void CMeshComponent::ConstructDrawItem()
@@ -51,4 +49,14 @@ namespace MAD
 		}
 	}
 
+	void CMeshComponent::Load(const UGameWorldLoader& inLoader)
+	{
+		inLoader.GetBool("visible", m_meshInstance.m_bVisible);
+
+		eastl::string meshName;
+		if (inLoader.GetString("mesh", meshName))
+		{
+			m_meshInstance.m_mesh = UAssetCache::Load<UMesh>(meshName);
+		}
+	}
 }

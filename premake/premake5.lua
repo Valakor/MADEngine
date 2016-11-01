@@ -119,6 +119,4 @@ project "game"
 	useEngine()
 	entrypoint "mainCRTStartup"
 
-	postbuildcommands { "rmdir /S /Q $(TargetDir)assets" }
-	postbuildcommands { "xcopy /Y /S /Q ..\\engine\\assets $(TargetDir)assets\\engine\\" }
-	postbuildcommands { "xcopy /Y /S /Q assets $(TargetDir)assets" }
+	postbuildcommands { "if not exist $(TargetDir)assets mklink /J $(TargetDir)assets $(SolutionDir)assets" }

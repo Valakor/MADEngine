@@ -44,9 +44,13 @@ namespace MAD
 		// to an entity's components
 		template <typename ComponentType>
 		eastl::weak_ptr<const ComponentType> GetFirstComponentByType() const;
+		template <typename ComponentTypeBase>
+		eastl::weak_ptr<const ComponentTypeBase> GetFirstComponentByType(const TTypeInfo& inTypeInfo) const;
 
 		template <typename ComponentType>
 		eastl::weak_ptr<ComponentType> GetFirstComponentByType();
+		template <typename ComponentTypeBase>
+		eastl::weak_ptr<ComponentTypeBase> GetFirstComponentByType(const TTypeInfo& inTypeInfo);
 
 		template <typename ComponentType>
 		eastl::vector<eastl::weak_ptr<ComponentType>> GetComponentsByType();
@@ -62,6 +66,8 @@ namespace MAD
 		template <typename ComponentType>
 		eastl::weak_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
 	private:
+		friend class UGameWorldLoader;
+
 		bool m_isPendingForKill;
 		OGameWorldLayer* m_owningWorldLayer;
 		eastl::vector<eastl::shared_ptr<UComponent>> m_actorComponents;
@@ -115,6 +121,22 @@ namespace MAD
 		return eastl::weak_ptr<const ComponentType>();
 	}
 
+	template <typename ComponentTypeBase>
+	eastl::weak_ptr<const ComponentTypeBase> AEntity::GetFirstComponentByType(const TTypeInfo& inTypeInfo) const
+	{
+		static_assert(eastl::is_base_of<UComponent, ComponentTypeBase>::value, "Error: Components must be of type UComponent or more derived");
+
+		for (const auto& currentComponent : m_actorComponents)
+		{
+			if (IsA(inTypeInfo, currentComponent.get()))
+			{
+				return eastl::reinterpret_pointer_cast<const ComponentTypeBase>(currentComponent);
+			}
+		}
+
+		return eastl::weak_ptr<const ComponentTypeBase>();
+	}
+
 	template <typename ComponentType>
 	eastl::weak_ptr<ComponentType> AEntity::GetFirstComponentByType()
 	{
@@ -127,6 +149,22 @@ namespace MAD
 		}
 
 		return eastl::weak_ptr<ComponentType>();
+	}
+
+	template <typename ComponentTypeBase>
+	eastl::weak_ptr<ComponentTypeBase> AEntity::GetFirstComponentByType(const TTypeInfo& inTypeInfo)
+	{
+		static_assert(eastl::is_base_of<UComponent, ComponentTypeBase>::value, "Error: Components must be of type UComponent or more derived");
+
+		for (const auto& currentComponent : m_actorComponents)
+		{
+			if (IsA(inTypeInfo, currentComponent.get()))
+			{
+				return eastl::reinterpret_pointer_cast<ComponentTypeBase>(currentComponent);
+			}
+		}
+
+		return eastl::weak_ptr<ComponentTypeBase>();
 	}
 
 	template <typename ComponentType>
