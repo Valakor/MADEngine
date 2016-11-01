@@ -7,6 +7,7 @@
 #include "Core/GameInstance.h"
 #include "Core/GameWindow.h"
 #include "Core/GameWorld.h"
+#include "Core/GameWorldLoader.h"
 #include "Core/PhysicsWorld.h"
 #include "Misc/AssetCache.h"
 #include "Rendering/Renderer.h"
@@ -14,6 +15,11 @@
 // TESTING
 #include "Core/Character.h"
 #include "Rendering/Mesh.h"
+#include "Core/CameraComponent.h"
+#include "Core/MeshComponent.h"
+#include "Core/LightComponent.h"
+#include "Core/DirectionalLightComponent.h"
+#include "Core/PointLightComponent.h"
 
 using eastl::string;
 
@@ -57,6 +63,25 @@ namespace MAD
 		}
 	}
 
+	namespace
+	{
+		// TODO Clean this up somehow to make it less manual
+		void RegisterAllTypeInfos()
+		{
+			UObject::StaticClass();
+			OGameWorld::StaticClass();
+			AEntity::StaticClass();
+			ACharacter::StaticClass();
+			UComponent::StaticClass();
+
+			CCameraComponent::StaticClass();
+			CMeshComponent::StaticClass();
+			CLightComponent::StaticClass();
+			CDirectionalLightComponent::StaticClass();
+			CPointLightComponent::StaticClass();
+		}
+	}
+
 	UGameEngine* gEngine = nullptr;
 
 	UGameEngine::UGameEngine()
@@ -68,6 +93,9 @@ namespace MAD
 
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
+		RegisterAllTypeInfos();
+		TTypeInfo::DumpTypeInfo();
+
 		UGameWindow::SetWorkingDirectory();
 		UAssetCache::SetAssetRoot(UGameWindow::GetWorkingDirectory() + "\\assets\\");
 
@@ -149,11 +177,6 @@ namespace MAD
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
 	void UGameEngine::TEMPInitializeGameContext()
 	{
-		eastl::weak_ptr<OGameWorld> initialGameWorld = SpawnGameWorld<OGameWorld>("Gameplay_World");
-
-		mRenderer->SetWorldAmbientColor(Color(0.2f, 0.2f, 0.2f, 1.0f));
-		mRenderer->SetBackBufferClearColor(Color(0.529f, 0.808f, 0.922f, 1.0f));
-
 		SControlScheme& renderScheme = SControlScheme("RenderDebug")
 			.RegisterEvent("NormalView", '0')
 			.RegisterEvent("LightAccumulationView", '1')
@@ -180,7 +203,9 @@ namespace MAD
 		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
 
-		initialGameWorld.lock()->SpawnEntity<ACharacter>();
+		// Load the world _after_ setting up control schemes. (We could probably define those in the world file or something as well)
+		UGameWorldLoader loader;
+		loader.LoadWorld("engine\\worlds\\default_world.json");
 	}
 
 	void UGameEngine::Tick()

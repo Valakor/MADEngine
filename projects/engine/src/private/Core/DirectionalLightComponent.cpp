@@ -1,18 +1,17 @@
 #include "Core/DirectionalLightComponent.h"
 #include "Core/GameEngine.h"
+#include "Core/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 
 namespace MAD
 {
 	CDirectionalLightComponent::CDirectionalLightComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
-
-	void CDirectionalLightComponent::TEMPInitializeDirectionalLight(const DirectX::SimpleMath::Vector3& inDir, const DirectX::SimpleMath::Color& inColor, float inIntensity)
+		: Super(inOwningWorld)
 	{
-		m_directionalLight.m_isLightEnabled = true;
-		m_directionalLight.m_gpuDirectionalLight.m_lightColor = inColor;
-		m_directionalLight.m_gpuDirectionalLight.m_lightDirection = inDir;
-		m_directionalLight.m_gpuDirectionalLight.m_lightIntensity = inIntensity;
+		m_directionalLight.m_isLightEnabled = false;
+		m_directionalLight.m_gpuDirectionalLight.m_lightColor = Color(1.0f, 1.0f, 1.0f, 1.0f);
+		m_directionalLight.m_gpuDirectionalLight.m_lightDirection = Vector3::Forward;
+		m_directionalLight.m_gpuDirectionalLight.m_lightIntensity = 1.0f;
 	}
 
 	void CDirectionalLightComponent::UpdateComponent(float inDeltaTime)
@@ -25,5 +24,13 @@ namespace MAD
 			URenderer& targetRenderer = gEngine->GetRenderer();
 			targetRenderer.QueueDirectionalLight(m_directionalLight.m_gpuDirectionalLight);
 		}
+	}
+
+	void CDirectionalLightComponent::Load(const UGameWorldLoader& inLoader)
+	{
+		inLoader.GetBool("enabled", m_directionalLight.m_isLightEnabled);
+		inLoader.GetColor("color", m_directionalLight.m_gpuDirectionalLight.m_lightColor);
+		inLoader.GetVector("direction", m_directionalLight.m_gpuDirectionalLight.m_lightDirection);
+		inLoader.GetFloat("intensity", m_directionalLight.m_gpuDirectionalLight.m_lightIntensity);
 	}
 }
