@@ -18,11 +18,11 @@ namespace MAD
 
 	bool UGameWorldLoader::LoadWorld(const eastl::string& inWorldFilePath)
 	{
-		const eastl::string fullPath = UAssetCache::GetAssetRoot() + inWorldFilePath;
+		m_fullFilePath = UAssetCache::GetAssetRoot() + inWorldFilePath;
 
 		LOG(LogGameWorldLoader, Log, "Loading game world `%s`\n", inWorldFilePath.c_str());
 
-		std::ifstream file(fullPath.c_str());
+		std::ifstream file(m_fullFilePath.c_str());
 		if (!file)
 		{
 			LOG(LogGameWorldLoader, Warning, "Failed to open world file `%s`\n", inWorldFilePath.c_str());
@@ -46,7 +46,12 @@ namespace MAD
 			return false;
 		}
 
-		m_currentValue = &m_doc;
+		return LoadWorld(m_doc);
+	}
+
+	bool UGameWorldLoader::LoadWorld(Value& inRoot)
+	{
+		m_currentValue = &inRoot;
 
 		// Load world name
 		eastl::string worldName;
@@ -59,174 +64,192 @@ namespace MAD
 
 		// Create world
 		eastl::weak_ptr<OGameWorld> gameWorld_weak = gEngine->SpawnGameWorld<OGameWorld>(worldName);
-		eastl::shared_ptr<OGameWorld> gameWorld = gameWorld_weak.lock();
+		m_world = gameWorld_weak.lock();
 
 		// Load world configuration
-		{
-			Color ambientColor(0.2f, 0.2f, 0.2f, 1.0f);
-			GetColor("ambientColor", ambientColor);
-			gEngine->GetRenderer().SetWorldAmbientColor(ambientColor);
+		Color ambientColor(0.2f, 0.2f, 0.2f, 1.0f);
+		GetColor("ambientColor", ambientColor);
+		gEngine->GetRenderer().SetWorldAmbientColor(ambientColor);
 
-			Color backBufferClearColor(0.529f, 0.808f, 0.922f, 1.0f);
-			GetColor("backBufferColor", backBufferClearColor);
-			gEngine->GetRenderer().SetBackBufferClearColor(backBufferClearColor);
-		}
+		Color backBufferClearColor(0.529f, 0.808f, 0.922f, 1.0f);
+		GetColor("backBufferColor", backBufferClearColor);
+		gEngine->GetRenderer().SetBackBufferClearColor(backBufferClearColor);
 
-		// Load layers
+		// Check layers array
 		auto layer_iter = m_doc.FindMember("layers");
 		if (layer_iter == m_doc.MemberEnd() || !layer_iter->value.IsArray() || layer_iter->value.Size() < 1)
 		{
-			LOG(LogGameWorldLoader, Warning, "World `%s` (%s) has no layers and will be empty. Was this intentional?\n", worldName.c_str(), inWorldFilePath.c_str());
+			LOG(LogGameWorldLoader, Warning, "World `%s` (%s) has no layers and will be empty. Was this intentional?\n", worldName.c_str(), m_fullFilePath.c_str());
 			return true;
 		}
 		LOG(LogGameWorldLoader, Log, "Number of layers: %i\n", layer_iter->value.Size());
 
-		// Create and build layers one at a time
-		int l_idx = 0;
-		for (auto& l : layer_iter->value.GetArray())
+		// Load layers
+		for (auto& layer : layer_iter->value.GetArray())
 		{
-			l_idx++;
-			m_currentValue = &l;
+			LoadLayer(layer);
+		}
 
-			// Read layer name
-			eastl::string layerName;
-			if (!GetString("name", layerName))
+		return true;
+	}
+
+	bool UGameWorldLoader::LoadLayer(Value& inRoot)
+	{
+		m_currentValue = &inRoot;
+
+		// Read layer name
+		eastl::string layerName;
+		if (!GetString("name", layerName))
+		{
+			LOG(LogGameWorldLoader, Warning, "Layer has no name. Please specify a layer name\n");
+			return false;
+		}
+		LOG(LogGameWorldLoader, Log, "Layer `%s`\n", layerName.c_str());
+
+		// Check entities array
+		auto entity_iter = inRoot.FindMember("entities");
+		if (entity_iter == inRoot.MemberEnd() || !entity_iter->value.IsArray() || entity_iter->value.Size() < 1)
+		{
+			LOG(LogGameWorldLoader, Warning, "Layer `%s` has no entities. Was this intentional?\n", layerName.c_str());
+			return true;
+		}
+
+		// Load the entities
+		for (auto& entity_value : entity_iter->value.GetArray())
+		{
+			LoadEntity(entity_value, layerName);
+		}
+
+		return true;
+	}
+
+	bool UGameWorldLoader::LoadEntity(Value& inRoot, const eastl::string& inLayerName)
+	{
+		m_currentValue = &inRoot;
+
+		// Read entity type name
+		eastl::string entityTypeName = "AEntity";
+		GetString("type", entityTypeName);
+
+		// Get entity type info
+		auto typeInfo = TTypeInfo::GetTypeInfo(entityTypeName);
+		if (typeInfo == nullptr)
+		{
+			LOG(LogGameWorldLoader, Warning, "\tEntity `%s`: Unrecognized type name\n", entityTypeName.c_str());
+			return false;
+		}
+
+		// Spawn entity
+		eastl::shared_ptr<AEntity> entity = m_world->SpawnEntityDeferred<AEntity>(*typeInfo, inLayerName);
+
+		// Load existing components
+		auto existing_iter = inRoot.FindMember("existingComponents");
+		if (existing_iter != inRoot.MemberEnd() && existing_iter->value.IsArray())
+		{
+			for (auto& component : existing_iter->value.GetArray())
 			{
-				LOG(LogGameWorldLoader, Warning, "Layer [%i] has no name. Please specify a layer name\n", l_idx);
-				continue;
-			}
-			LOG(LogGameWorldLoader, Log, "Layer [%i] `%s`\n", l_idx, layerName.c_str());
-
-			// Read entities array
-			auto entity_iter = l.FindMember("entities");
-			if (entity_iter == l.MemberEnd() || !entity_iter->value.IsArray() || entity_iter->value.Size() < 1)
-			{
-				LOG(LogGameWorldLoader, Warning, "Layer [%i] `%s` has no entities. Was this intentional?\n", l_idx, layerName.c_str());
-				continue;
-			}
-
-			int e_idx = 0;
-			for (auto& e : entity_iter->value.GetArray())
-			{
-				e_idx++;
-				m_currentValue = &e;
-
-				// Read entity type name
-				eastl::string entityTypeName = "AEntity";
-				GetString("type", entityTypeName);
-
-				// Get entity type info
-				auto typeInfo = TTypeInfo::GetTypeInfo(entityTypeName);
-				if (typeInfo == nullptr)
-				{
-					LOG(LogGameWorldLoader, Warning, "\tEntity [%i] `%s`: Unrecognized type name\n", e_idx, entityTypeName.c_str());
-					continue;
-				}
-
-				// Spawn entity
-				eastl::shared_ptr<AEntity> entity = gameWorld->SpawnEntityDeferred<AEntity>(*typeInfo, layerName);
-
-				// Read existing components
-				auto existing_iter = e.FindMember("existingComponents");
-				if (existing_iter != e.MemberEnd() && existing_iter->value.IsArray())
-				{
-					int c_idx = 0;
-
-					for (auto& c : existing_iter->value.GetArray())
-					{
-						c_idx++;
-						m_currentValue = &c;
-
-						// Read component type name
-						eastl::string compTypeName;
-						if (!GetString("type", compTypeName))
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tExisting component [%i] has no specified type name, skipping\n", c_idx);
-							continue;
-						}
-
-						// Get component type info
-						auto componentTypeInfo = TTypeInfo::GetTypeInfo(compTypeName);
-						if (componentTypeInfo == nullptr)
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tExisting component [%i] `%s`: Unrecognized type name\n", c_idx, compTypeName.c_str());
-							continue;
-						}
-
-						// Find component on entity
-						eastl::weak_ptr<UComponent> comp_weak = entity->GetFirstComponentByType<UComponent>(*componentTypeInfo);
-						if (comp_weak.expired())
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tExisting component [%] `%s`: Component not found on entity\n", c_idx, compTypeName.c_str());
-							continue;
-						}
-
-						// Load the component's properties
-						auto props_iter = c.FindMember("properties");
-						if (props_iter == c.MemberEnd() || !props_iter->value.IsObject())
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tExisting component [%] `%s`: Could not load properties\n", c_idx, compTypeName.c_str());
-							continue;
-						}
-
-						// Update the component's properties
-						m_currentValue = &props_iter->value;
-						comp_weak.lock()->Load(*this);
-					}
-				}
-
-				// Read new components
-				auto new_iter = e.FindMember("newComponents");
-				if (new_iter != e.MemberEnd() && new_iter->value.IsArray())
-				{
-					int c_idx = 0;
-
-					for (auto& c : new_iter->value.GetArray())
-					{
-						c_idx++;
-						m_currentValue = &c;
-
-						// Read component type name
-						eastl::string compTypeName;
-						if (!GetString("type", compTypeName))
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tNew component [%i] has no specified type name, skipping\n", c_idx);
-							continue;
-						}
-
-						// Get component type info
-						auto componentTypeInfo = TTypeInfo::GetTypeInfo(compTypeName);
-						if (componentTypeInfo == nullptr)
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tNew component [%i] `%s`: Unrecognized type name\n", c_idx, compTypeName.c_str());
-							continue;
-						}
-
-						// Add new component
-						eastl::weak_ptr<UComponent> comp_weak = entity->AddComponent<UComponent>(*componentTypeInfo);
-						if (comp_weak.expired())
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tNew component [%] `%s`: Failed to add component to entity\n", c_idx, compTypeName.c_str());
-							continue;
-						}
-
-						// Load the component's properties
-						auto props_iter = c.FindMember("properties");
-						if (props_iter == c.MemberEnd() || !props_iter->value.IsObject())
-						{
-							LOG(LogGameWorldLoader, Warning, "\t\tNew component [%] `%s`: Could not load properties\n", c_idx, compTypeName.c_str());
-							continue;
-						}
-
-						// Update the component's properties
-						m_currentValue = &props_iter->value;
-						comp_weak.lock()->Load(*this);
-					}
-				}
-
-				gameWorld->FinalizeSpawnEntity(entity);
+				LoadExistingComponent(component, entity);
 			}
 		}
+
+		// Load new components
+		auto new_iter = inRoot.FindMember("newComponents");
+		if (new_iter != inRoot.MemberEnd() && new_iter->value.IsArray())
+		{
+			for (auto& component : new_iter->value.GetArray())
+			{
+				LoadNewComponent(component, entity);
+			}
+		}
+
+		// Finalize the deferred spawning of the entity
+		m_world->FinalizeSpawnEntity(entity);
+
+		return true;
+	}
+
+	bool UGameWorldLoader::LoadExistingComponent(Value& inRoot, eastl::shared_ptr<AEntity> inOwningEntity)
+	{
+		m_currentValue = &inRoot;
+
+		// Read component type name
+		eastl::string compTypeName;
+		if (!GetString("type", compTypeName))
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tExisting component has no specified type name, skipping\n");
+			return false;
+		}
+
+		// Get component type info
+		auto componentTypeInfo = TTypeInfo::GetTypeInfo(compTypeName);
+		if (componentTypeInfo == nullptr)
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tExisting component `%s`: Unrecognized type name\n", compTypeName.c_str());
+			return false;
+		}
+
+		// Find component on entity
+		eastl::weak_ptr<UComponent> comp_weak = inOwningEntity->GetFirstComponentByType<UComponent>(*componentTypeInfo);
+		if (comp_weak.expired())
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tExisting component `%s`: Component type not found on entity\n", compTypeName.c_str());
+			return false;
+		}
+
+		// Load the component's properties
+		auto props_iter = inRoot.FindMember("properties");
+		if (props_iter == inRoot.MemberEnd() || !props_iter->value.IsObject())
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tExisting component `%s`: Could not load properties\n", compTypeName.c_str());
+			return false;
+		}
+
+		// Update the component's properties
+		m_currentValue = &props_iter->value;
+		comp_weak.lock()->Load(*this);
+
+		return true;
+	}
+
+	bool UGameWorldLoader::LoadNewComponent(Value& inRoot, eastl::shared_ptr<AEntity> inOwningEntity)
+	{
+		m_currentValue = &inRoot;
+
+		// Read component type name
+		eastl::string compTypeName;
+		if (!GetString("type", compTypeName))
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tNew component has no specified type name, skipping\n");
+			return false;
+		}
+
+		// Get component type info
+		auto componentTypeInfo = TTypeInfo::GetTypeInfo(compTypeName);
+		if (componentTypeInfo == nullptr)
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tNew component `%s`: Unrecognized type name\n", compTypeName.c_str());
+			return false;
+		}
+
+		// Load the component's properties
+		auto props_iter = inRoot.FindMember("properties");
+		if (props_iter == inRoot.MemberEnd() || !props_iter->value.IsObject())
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tNew component `%s`: Could not load properties\n", compTypeName.c_str());
+			return false;
+		}
+
+		// Add new component
+		eastl::weak_ptr<UComponent> comp_weak = inOwningEntity->AddComponent<UComponent>(*componentTypeInfo);
+		if (comp_weak.expired())
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tNew component `%s`: Failed to add new component to entity\n", compTypeName.c_str());
+			return false;
+		}
+
+		// Update the component's properties
+		m_currentValue = &props_iter->value;
+		comp_weak.lock()->Load(*this);
 
 		return true;
 	}

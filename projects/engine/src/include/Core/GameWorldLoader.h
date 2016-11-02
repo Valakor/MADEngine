@@ -1,5 +1,6 @@
 #pragma once
 
+#include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 #include <rapidjson/document.h>
 
@@ -27,5 +28,14 @@ namespace MAD
 	private:
 		rapidjson::Document m_doc;
 		rapidjson::Value* m_currentValue = nullptr;
+
+		eastl::string m_fullFilePath;
+		eastl::shared_ptr<class OGameWorld> m_world;
+
+		bool LoadWorld(rapidjson::Value& inRoot);
+		bool LoadLayer(rapidjson::Value& inRoot);
+		bool LoadEntity(rapidjson::Value& inRoot, const eastl::string& inLayerName);
+		bool LoadExistingComponent(rapidjson::Value& inRoot, eastl::shared_ptr<class AEntity> inOwningEntity);
+		bool LoadNewComponent(rapidjson::Value& inRoot, eastl::shared_ptr<class AEntity> inOwningEntity);
 	};
 }
