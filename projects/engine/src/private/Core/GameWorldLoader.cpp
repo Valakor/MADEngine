@@ -1,6 +1,7 @@
 #include "Core/GameWorldLoader.h"
 
 #include <fstream>
+#include <rapidjson/error/en.h>
 
 #include "Engine.h"
 #include "Core/Entity.h"
@@ -42,7 +43,7 @@ namespace MAD
 		
 		if (m_doc.ParseStream(jsonStr).HasParseError())
 		{
-			LOG(LogGameWorldLoader, Warning, "Failed to parse world file `%s`. Error: %d at %d\n", inWorldFilePath.c_str(), m_doc.GetParseError(), m_doc.GetErrorOffset());
+			LOG(LogGameWorldLoader, Warning, "Failed to parse world file `%s`. Error(offset %d) %s\n", inWorldFilePath.c_str(), m_doc.GetErrorOffset(), GetParseError_En(m_doc.GetParseError()));
 			return false;
 		}
 
