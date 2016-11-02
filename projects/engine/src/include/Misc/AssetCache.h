@@ -24,6 +24,7 @@ namespace MAD
 		UAssetCache& operator=(UAssetCache&&) = delete;
 
 		static void SetAssetRoot(const eastl::string& inPath) { s_assetRootPath = inPath; }
+		static const eastl::string& GetAssetRoot() { return s_assetRootPath; }
 
 		template <class T>
 		static eastl::shared_ptr<T> Load(const eastl::string& inPath, bool inIsRelative = true);

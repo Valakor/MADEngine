@@ -2,6 +2,7 @@
 #include "Core/Entity.h"
 #include "Core/GameEngine.h"
 #include "Core/GameWindow.h"
+#include "Core/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 #include "Misc/Logging.h"
 #include "Core/GameInput.h"
@@ -13,6 +14,19 @@ namespace MAD
 	CCameraComponent::CCameraComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 	{
+		auto clientWindow = gEngine->GetWindow().GetClientSize();
+		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
+
+		m_cameraPos = m_cameraPosInitial = Vector3::Zero;
+		m_cameraRot = m_cameraRotInitial = Quaternion::Identity;
+
+		m_cameraInstance.m_verticalFOV = ConvertToRadians(60.0f);
+		m_cameraInstance.m_nearPlaneDistance = 3.0f;
+		m_cameraInstance.m_farPlaneDistance = 10000.0f;
+		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRot) * Matrix::CreateTranslation(m_cameraPos);
+		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
+		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
+
 		auto& cameraScheme = *UGameInput::Get().GetControlScheme("CameraDebug");
 		cameraScheme.BindAxis<CCameraComponent, &CCameraComponent::MoveForward>("Forward", this);
 		cameraScheme.BindAxis<CCameraComponent, &CCameraComponent::MoveRight>("Horizontal", this);
@@ -41,9 +55,6 @@ namespace MAD
 		Matrix translation = Matrix::CreateTranslation(m_cameraPos);
 		Matrix rotation = Matrix::CreateFromQuaternion(m_cameraRot);
 
-		//Matrix rotationX = Matrix::CreateRotationX(ConvertToRadians(m_cameraRot.x));
-		//Matrix rotationY = Matrix::CreateRotationY(ConvertToRadians(m_cameraRot.y));
-
 		m_cameraInstance.m_viewMatrix = (rotation * translation).Invert();
 		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
 
@@ -52,19 +63,23 @@ namespace MAD
 		renderer.UpdateCameraConstants(m_cameraInstance);
 	}
 
-	void CCameraComponent::TEMPInitializeCameraInstance(float inFOV, float inNearPlane, float inFarPlane, const Vector3& inPosition, const Quaternion& inRotation)
+	void CCameraComponent::Load(const UGameWorldLoader& inLoader)
 	{
 		auto clientWindow = gEngine->GetWindow().GetClientSize();
 		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
 
-		m_cameraPos = m_cameraPosInitial = inPosition;
-		m_cameraRot = m_cameraRotInitial = inRotation;
+		inLoader.GetFloat("fov", m_cameraInstance.m_verticalFOV);
+		inLoader.GetFloat("near", m_cameraInstance.m_nearPlaneDistance);
+		inLoader.GetFloat("far", m_cameraInstance.m_farPlaneDistance);
+		inLoader.GetVector("position", m_cameraPos);
+		inLoader.GetRotation("rotation", m_cameraRot);
 
-		m_cameraInstance.m_verticalFOV = inFOV;
-		m_cameraInstance.m_nearPlaneDistance = inNearPlane;
-		m_cameraInstance.m_farPlaneDistance = inFarPlane;
+		m_cameraPosInitial = m_cameraPos;
+		m_cameraRotInitial = m_cameraRot;
+
+		m_cameraInstance.m_verticalFOV = ConvertToRadians(m_cameraInstance.m_verticalFOV);
 		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRot) * Matrix::CreateTranslation(m_cameraPos);
-		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(inFOV, aspectRatio, inNearPlane, inFarPlane);
+		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
 		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
 	}
 

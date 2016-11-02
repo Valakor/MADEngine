@@ -9,7 +9,5 @@ namespace MAD
 		MAD_DECLARE_ACTOR(ACharacter, AEntity)
 	public:
 		explicit ACharacter(OGameWorld* inOwningWorld);
-
-		virtual void OnBeginPlay() override;
 	};
 }

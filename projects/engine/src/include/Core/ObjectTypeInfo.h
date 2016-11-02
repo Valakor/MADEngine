@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <EASTL/shared_ptr.h>
+#include <EASTL/string_hash_map.h>
 
 #include "Core/ComponentPriorityInfo.h"
 
@@ -14,9 +15,11 @@ namespace MAD
 	class TTypeInfo
 	{
 	public:
-		static TypeID s_currentTypeID;
 		using CreationFunction_t = eastl::shared_ptr<class UObject> (*) (OGameWorld*);
 	public:
+		static const TTypeInfo* GetTypeInfo(const eastl::string& inTypeName);
+		static void DumpTypeInfo();
+
 		TTypeInfo(const TTypeInfo* inParent, const char* inTypeName, CreationFunction_t inCreationFunc);
 
 		inline TypeID GetTypeID() const { return m_typeID; }
@@ -26,6 +29,9 @@ namespace MAD
 		template <typename ObjectType> 
 		eastl::shared_ptr<ObjectType> CreateDefaultObject(OGameWorld* inOwningGameWorld) const { return eastl::static_shared_pointer_cast<ObjectType>(m_creationFunction(inOwningGameWorld)); } // Default create an object
 	private:
+		static TypeID s_currentTypeID;
+		static eastl::string_hash_map<const TTypeInfo*> s_typeNameToTypeInfoMap;
+
 		const CreationFunction_t m_creationFunction;
 		const char* const m_typeName;
 		const TypeID m_typeID;
@@ -54,8 +60,8 @@ namespace MAD
 	public:																	\
 		static const TTypeInfo* StaticClass()								\
 		{																	\
-			static TTypeInfo s_classTypeInfo(nullptr, #BaseClass, nullptr);				\
-			return &s_classTypeInfo;													\
+			static const TTypeInfo s_classTypeInfo(nullptr, #BaseClass, nullptr);	\
+			return &s_classTypeInfo;										\
 		}																	\
 																			\
 	private:																\
@@ -65,8 +71,8 @@ namespace MAD
 	public:																	\
 		static const TTypeInfo* StaticClass()														\
 		{																							\
-			static TTypeInfo s_classTypeInfo(ParentClass::StaticClass(), #ClassName, &ClassName::CreateObject);	\
-			return &s_classTypeInfo;																	\
+			static const TTypeInfo s_classTypeInfo(ParentClass::StaticClass(), #ClassName, &ClassName::CreateObject);	\
+			return &s_classTypeInfo;																\
 		}																							\
 																									\
 	private:																						\
@@ -83,7 +89,7 @@ namespace MAD
 		static UComponentPriorityInfo* PriorityInfo()																	\
 		{																												\
 			static UComponentPriorityInfo s_componentPriorityInfo(ComponentPriorityLevel);								\
-			return &s_componentPriorityInfo;																				\
+			return &s_componentPriorityInfo;																			\
 		}																												\
 																														\
 		virtual UComponentPriorityInfo* GetPriorityInfo() override														\
@@ -113,6 +119,26 @@ namespace MAD
 	{
 		// Iterate up the TTypeInfo tree of the IsAFromClass until you find IsAToClass's TTypeInfo or we reach null
 		const TTypeInfo* const targetTypeInfo = IsAToClass::StaticClass();
+		const TTypeInfo* currentTypeInfo = inObjectPtr->GetTypeInfo();
+
+		while (currentTypeInfo)
+		{
+			if (currentTypeInfo == targetTypeInfo)
+			{
+				return true;
+			}
+
+			currentTypeInfo = currentTypeInfo->GetParent();
+		}
+
+		return false;
+	}
+
+	template <typename IsAFromClass>
+	bool IsA(const TTypeInfo& inIsAToClassTypeInfo, const IsAFromClass* inObjectPtr)
+	{
+		// Iterate up the TTypeInfo tree of the IsAFromClass until you find IsAToClass's TTypeInfo or we reach null
+		const TTypeInfo* const targetTypeInfo = &inIsAToClassTypeInfo;
 		const TTypeInfo* currentTypeInfo = inObjectPtr->GetTypeInfo();
 
 		while (currentTypeInfo)

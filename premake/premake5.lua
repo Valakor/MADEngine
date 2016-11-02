@@ -3,9 +3,10 @@ workspace "MAD"
 	language "C++"
 	architecture "x86_64"
 	configurations { "Debug", "Release" }
+	flags { "FloatFast", "EnableSSE2", "StaticRuntime" }
 	
 	filter { "configurations:Debug" }
-		defines { "_DEBUG" }
+		defines { "_DEBUG", "DEBUG" }
 		flags { "Symbols" }
 		optimize "Off"
 		inlining "Disabled"
@@ -43,10 +44,10 @@ function useAssimp()
 	includedirs { "../ThirdParty/assimp/include" }
 
 	filter { "configurations:Debug" }
-		links { "zlibstaticD", "assimp-vc140-mtD" }
+		links { "zlibstaticD", "assimpD" }
 
 	filter { "configurations:Release" }
-		links { "zlibstatic", "assimp-vc140-mt" }
+		links { "zlibstatic", "assimp" }
 
 	filter { }
 end
@@ -68,6 +69,23 @@ function useDirectXTK()
 	filter { }
 end
 
+function useRapidjson()
+	includedirs { "../ThirdParty/rapidjson/include" }
+end
+
+function useYojimbo()
+	libdirs { "../ThirdParty/yojimbo/lib" }
+	includedirs { "../ThirdParty/yojimbo/include" }
+
+	filter { "configurations:Debug" }
+		links { "yojimboD", "sodium-debug", "mbedtls-debug", "mbedx509-debug", "mbedcrypto-debug" }
+
+	filter { "configurations:Release" }
+		links { "yojimbo", "sodium-release", "mbedtls-release", "mbedx509-release", "mbedcrypto-release" }
+
+	filter { }
+end
+
 function commonSetup()
 	rtti "Off"
 	warnings "Extra"
@@ -77,6 +95,8 @@ function commonSetup()
 	useAssimp()
 	useDirectX()
 	useDirectXTK()
+	useRapidjson()
+	useYojimbo()
 end
 
 project "engine"
@@ -89,7 +109,6 @@ project "engine"
 function useEngine()
 	includedirs "../projects/engine/src/include"
 	links "engine"
-
 end
 
 project "game"
@@ -100,6 +119,4 @@ project "game"
 	useEngine()
 	entrypoint "mainCRTStartup"
 
-	postbuildcommands { "rmdir /S /Q $(TargetDir)assets" }
-	postbuildcommands { "xcopy /Y /S /Q ..\\engine\\assets $(TargetDir)assets\\engine\\" }
-	postbuildcommands { "xcopy /Y /S /Q assets $(TargetDir)assets" }
+	postbuildcommands { "if not exist $(TargetDir)assets mklink /J $(TargetDir)assets $(SolutionDir)assets" }

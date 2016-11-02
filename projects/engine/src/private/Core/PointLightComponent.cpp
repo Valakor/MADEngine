@@ -1,20 +1,19 @@
 #include "Core/PointLightComponent.h"
 #include "Rendering/Renderer.h"
 #include "Core/GameEngine.h"
+#include "Core/GameWorldLoader.h"
 
 namespace MAD
 {
 	CPointLightComponent::CPointLightComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
-
-	void CPointLightComponent::TEMPInitializePointLight(const Vector3& inPosition, const Color& inColor, float inIntensity, float inInnerRadius, float inOuterRadius)
+		: Super(inOwningWorld)
 	{
-		m_pointLight.m_isLightEnabled = true;
-		m_pointLight.m_gpuPointLight.m_lightColor = inColor;
-		m_pointLight.m_gpuPointLight.m_lightPosition = inPosition;
-		m_pointLight.m_gpuPointLight.m_lightIntensity = inIntensity;
-		m_pointLight.m_gpuPointLight.m_lightInnerRadius = inInnerRadius;
-		m_pointLight.m_gpuPointLight.m_lightOuterRadius = inOuterRadius;
+		m_pointLight.m_isLightEnabled = false;
+		m_pointLight.m_gpuPointLight.m_lightColor = Color(1.0f, 1.0f, 1.0f, 1.0f);
+		m_pointLight.m_gpuPointLight.m_lightPosition = Vector3::Zero;
+		m_pointLight.m_gpuPointLight.m_lightIntensity = 1.0f;
+		m_pointLight.m_gpuPointLight.m_lightInnerRadius = 50;
+		m_pointLight.m_gpuPointLight.m_lightOuterRadius = 500;
 	}
 
 	void CPointLightComponent::UpdateComponent(float inDeltaTime)
@@ -27,5 +26,15 @@ namespace MAD
 			URenderer& targetRenderer = gEngine->GetRenderer();
 			targetRenderer.QueuePointLight(m_pointLight.m_gpuPointLight);
 		}
+	}
+
+	void CPointLightComponent::Load(const UGameWorldLoader& inLoader)
+	{
+		inLoader.GetBool("enabled", m_pointLight.m_isLightEnabled);
+		inLoader.GetColor("color", m_pointLight.m_gpuPointLight.m_lightColor);
+		inLoader.GetVector("position", m_pointLight.m_gpuPointLight.m_lightPosition);
+		inLoader.GetFloat("intensity", m_pointLight.m_gpuPointLight.m_lightIntensity);
+		inLoader.GetFloat("innerRadius", m_pointLight.m_gpuPointLight.m_lightInnerRadius);
+		inLoader.GetFloat("outerRadius", m_pointLight.m_gpuPointLight.m_lightOuterRadius);
 	}
 }

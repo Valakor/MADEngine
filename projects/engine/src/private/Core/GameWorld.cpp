@@ -12,6 +12,17 @@ namespace MAD
 		: Super(inOwningGameWorld)
 		, m_defaultLayerName(s_defaultWorldLayerName) {}
 
+	void OGameWorld::FinalizeSpawnEntity(eastl::shared_ptr<AEntity> inEntity)
+	{
+		MAD_ASSERT_DESC(inEntity.get() != nullptr, "Cannot finalize spawning a null entity");
+
+		LOG(LogDefault, Log, "Finalizing spawning entity of type %s at Layer: %s\n", inEntity->GetTypeInfo()->GetTypeName(), inEntity->GetOwningWorldLayer().GetLayerName().c_str());
+
+		inEntity->GetOwningWorldLayer().AddEntityToLayer(inEntity);
+		inEntity->PostInitializeComponents();
+		inEntity->OnBeginPlay();
+	}
+
 	void OGameWorld::CleanupEntities()
 	{
 		//LOG(LogDefault, Log, "Cleaning up entites from %s\n", m_worldName.c_str());
@@ -32,11 +43,4 @@ namespace MAD
 	{
 		m_componentUpdater.UpdatePostPhysicsComponents(inDeltaTime);
 	}
-
-	void OGameWorld::RegisterEntity(AEntity& inEntity, OGameWorldLayer& inWorldLayer)
-	{
-		// Register entity to world layer
-		inEntity.SetOwningWorldLayer(inWorldLayer);
-	}
-
 }

@@ -26,6 +26,8 @@ namespace MAD
 		AEntity& GetOwner() { return *m_ownerPtr; }
 		const AEntity& GetOwner() const { return *m_ownerPtr; }
 		ULinearTransform GetWorldTransform() const { return m_worldTransform; }
+		
+		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
 	private:
 		void UpdateComponentTransform();
 	private:
