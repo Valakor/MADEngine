@@ -5,34 +5,21 @@ namespace MAD
 {
 
 	UComponent::UComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
+		: Super(inOwningWorld)
+	{}
+
+	void UComponent::AttachComponent(eastl::shared_ptr<UComponent> inChildComponent)
+	{
+		if (inChildComponent)
+		{
+			m_attachedChildren.push_back(inChildComponent);
+			inChildComponent->m_parentComponent = this;
+		}
+	}
 
 	bool UComponent::IsOwnerValid() const
 	{
 		// A component is valid only if it's owner isn't marked pending for kill
-		return !GetOwner().IsPendingForKill();
+		return !GetOwningEntity().IsPendingForKill();
 	}
-
-	void UComponent::SetScale(float inScale)
-	{
-		m_componentScale = inScale;
-
-		UpdateComponentTransform();
-	}
-
-	void UComponent::SetRotation(const Quaternion& inRotation)
-	{
-		
-	}
-
-	void UComponent::SetTranslation(const Vector3& inTranslation)
-	{
-		
-	}
-
-	void UComponent::UpdateComponentTransform()
-	{
-		
-	}
-
 }

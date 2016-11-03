@@ -8,8 +8,7 @@ namespace MAD
 		: Super(inOwningWorld)
 		, m_isPendingForKill(false)
 		, m_owningWorldLayer(nullptr)
-		, m_isTransformDirty(true)
-		, m_entityParent(nullptr)
+		, m_parentEntity(nullptr)
 	{}
 
 	void AEntity::Destroy()
@@ -34,7 +33,7 @@ namespace MAD
 
 	void AEntity::GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const
 	{
-		for (auto& currentComponent : m_actorComponents)
+		for (auto& currentComponent : m_entityComponents)
 		{
 			inOutConstEntityComponents.emplace_back(currentComponent);
 		}
@@ -42,38 +41,17 @@ namespace MAD
 
 	void AEntity::GetEntityComponents(ComponentContainer& inOutEntityComponents)
 	{
-		for (auto& currentComponent : m_actorComponents)
+		for (auto& currentComponent : m_entityComponents)
 		{
 			inOutEntityComponents.emplace_back(currentComponent);
 		}
 	}
 
-	void AEntity::UpdateEntityWorldTransform()
+	void AEntity::SetRootComponent(UComponent* inEntityRootComp)
 	{
-		// Walk the parent hierarchy
-		ULinearTransform finalWorldTransform = m_localTransform;
-		
-		if (m_entityParent)
+		if (inEntityRootComp)
 		{
-			finalWorldTransform *= m_entityParent->GetWorldTransform();
+			m_rootComponent = inEntityRootComp;
 		}
-
-		m_worldTransform = finalWorldTransform;
-	}
-
-	void AEntity::SetScale(float inScale)
-	{
-		m_entityScale = inScale;
-		
-	}
-
-	void AEntity::SetRotation(const Quaternion& inRotation)
-	{
-		
-	}
-
-	void AEntity::SetPosition(const Vector3& inPosition)
-	{
-		
 	}
 }

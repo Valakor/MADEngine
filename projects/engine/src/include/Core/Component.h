@@ -1,5 +1,8 @@
 #pragma once
 
+#include <EASTL/vector.h>
+#include <EASTL/shared_ptr.h>
+
 #include "Core/Object.h"
 #include "Core/SimpleMath.h"
 
@@ -17,26 +20,20 @@ namespace MAD
 
 		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };
 
-		bool IsOwnerValid() const;
-		void SetOwner(AEntity& inOwner) { m_ownerPtr = &inOwner; }
-		void SetScale(float inScale);
-		void SetRotation(const Quaternion& inRotation);
-		void SetTranslation(const Vector3& inTranslation);
+		void AttachComponent(eastl::shared_ptr<UComponent> inChildComponent);
 
-		AEntity& GetOwner() { return *m_ownerPtr; }
-		const AEntity& GetOwner() const { return *m_ownerPtr; }
-		ULinearTransform GetWorldTransform() const { return m_worldTransform; }
-		
+		bool IsOwnerValid() const;
+		void SetOwningEntity(AEntity& inOwner) { m_parentEntity = &inOwner; }
+		AEntity& GetOwningEntity() { return *m_parentEntity; }
+		const AEntity& GetOwningEntity() const { return *m_parentEntity; }
+		UComponent* GetParent() const { return m_parentComponent; }
+
 		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
 	private:
-		void UpdateComponentTransform();
-	private:
-		AEntity* m_ownerPtr;
+		AEntity* m_parentEntity;
+	
+		UComponent* m_parentComponent;
 
-		ULinearTransform m_worldTransform;
-
-		float m_componentScale;
-		Quaternion m_componentRotation;
-		Vector3 m_componentTranslation;
+		eastl::vector<eastl::shared_ptr<UComponent>> m_attachedChildren;
 	};
 }
