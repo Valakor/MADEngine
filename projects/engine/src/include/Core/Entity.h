@@ -27,10 +27,22 @@ namespace MAD
 		virtual void OnBeginPlay() {}
 		virtual void PostInitializeComponents() {}
 
+		bool AttachTo(AEntity* inParentEntity);
+
 		void Destroy();
 		bool IsPendingForKill() const { return m_isPendingForKill; }
+	
+		const ULinearTransform& GetWorldTransform() const;
+		float GetWorldScale() const;
+		const Quaternion& GetWorldRotation() const;
+		const Vector3& GetWorldTranslation() const;
 
-		AEntity* GetEntityParent() const { return m_parentEntity; }
+		void SetWorldScale(float inScale);
+		void SetWorldRotation(const Quaternion& inRotation);
+		void SetWorldTranslation(const Vector3& inTranslation);
+
+		AEntity* GetParent() const;
+		UComponent* GetRootComponent() const { return m_rootComponent; }
 		void GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const;
 		void GetEntityComponents(ComponentContainer& inOutEntityComponents);
 		size_t GetComponentCount() const { return m_entityComponents.size(); }
@@ -73,7 +85,7 @@ namespace MAD
 		bool m_isPendingForKill;
 		OGameWorldLayer* m_owningWorldLayer;
 
-		AEntity* m_parentEntity;
+		AEntity* m_owningEntity;
 		UComponent* m_rootComponent;
 
 		eastl::vector<eastl::shared_ptr<UComponent>> m_entityComponents;

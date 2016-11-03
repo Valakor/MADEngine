@@ -29,9 +29,9 @@ namespace MAD
 		ULinearTransform(float inScale, const Quaternion& inRotation, const Vector3& inTranslation);
 
 		float GetScale() const { return m_scale; }
-		Quaternion GetRotation() const { return m_rotation; }
-		Vector3 GetTranslation() const { return m_translation; }
-		Matrix GetMatrix() const { return m_cachedTransform; }
+		const Quaternion& GetRotation() const { return m_rotation; }
+		const Vector3& GetTranslation() const { return m_translation; }
+		const Matrix& GetMatrix() const { return m_cachedTransform; }
 
 		void SetScale(float inNewScale);
 		void SetRotation(const Quaternion& inNewRotation);
