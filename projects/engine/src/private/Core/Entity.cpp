@@ -22,10 +22,7 @@ namespace MAD
 
 		// If our root component has a parent (i.e this entity is parented to another entity), we need to remove ourselves from their root component's
 		// child list
-		if (m_rootComponent && m_rootComponent->GetParent())
-		{
-			m_rootComponent->DetachFromParent();
-		}
+		DetachFromParent();
 	}
 
 	OGameWorld& AEntity::GetWorld()
@@ -39,11 +36,11 @@ namespace MAD
 	}
 
 	// Attempts at attaching this entity to another entity as a parent. Returns true on success and false on failure
-	bool AEntity::AttachTo(AEntity* inParentEntity)
+	bool AEntity::AttachTo(eastl::shared_ptr<AEntity> inParentEntity)
 	{
 		if (m_rootComponent && inParentEntity)
 		{
-			m_rootComponent->AttachToParent(inParentEntity);
+			AttachToParent(inParentEntity);
 
 			return true;
 		}
@@ -127,12 +124,56 @@ namespace MAD
 		}
 	}
 
-	void AEntity::SetRootComponent(UComponent* inEntityRootComp)
+	void AEntity::SetRootComponent(eastl::weak_ptr<UComponent> inEntityRootComp)
 	{
 		// We shouldn't be allowed to set a component as the root component if it has a parent component already (?)
-		if (inEntityRootComp && !inEntityRootComp->GetParent())
+		if (!inEntityRootComp.expired() && !inEntityRootComp.lock()->GetParent())
 		{
-			m_rootComponent = inEntityRootComp;
+			// Validate that this component is actually a component of the entity
+			for (const auto& currentEntityComp : m_entityComponents)
+			{
+				if (currentEntityComp == inEntityRootComp.lock())
+				{
+					m_rootComponent = currentEntityComp;
+					return;
+				}
+			}
+		}
+	}
+
+	void AEntity::AttachToParent(eastl::shared_ptr<AEntity> inParentEntity)
+	{
+		if (m_rootComponent && inParentEntity)
+		{
+			UComponent* parentEntityRootComponent = inParentEntity->GetRootComponent();
+			if (parentEntityRootComponent)
+			{
+				m_rootComponent->m_parentComponent = parentEntityRootComponent;
+
+				// Add this component to the root component's children list so that we can receive spatial transform updates
+				parentEntityRootComponent->m_childComponents.push_back(m_rootComponent);
+			}
+		}
+	}
+
+	void AEntity::DetachFromParent()
+	{
+		if (m_rootComponent && m_rootComponent->m_parentComponent)
+		{
+			// Remove myself from my parent's child list
+			UComponent* parentEntityRoot = m_rootComponent->m_parentComponent;
+
+			MAD_ASSERT_DESC(parentEntityRoot != nullptr, "Error: You shouldn't be trying to detach from a parent if the component doesn't have a parent");
+
+			if (parentEntityRoot)
+			{
+				auto childCompFindIter = eastl::find(parentEntityRoot->m_childComponents.cbegin(), parentEntityRoot->m_childComponents.cend(), m_rootComponent);
+
+				if (childCompFindIter != parentEntityRoot->m_childComponents.cend())
+				{
+					parentEntityRoot->m_childComponents.erase(childCompFindIter);
+				}
+			}
 		}
 	}
 }

@@ -99,28 +99,8 @@ namespace MAD
 	void UComponent::UpdateChildWorldTransforms()
 	{
 		for (auto& currentChildComp : m_childComponents)
-		{
+		{ 
 			currentChildComp->UpdateWorldTransform();
 		}
 	}
-
-	void UComponent::AttachToParent(AEntity* inParent)
-	{
-		if (inParent)
-		{
-			m_parentComponent = inParent->GetRootComponent();
-
-			// Add this component to the root component's children list so that we can receive spatial transform updates
-		}
-	}
-
-	void UComponent::DetachFromParent()
-	{
-		// Remove myself from my parent's child list
-		if (m_parentComponent)
-		{
-			
-		}
-	}
-
 }

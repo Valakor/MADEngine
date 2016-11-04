@@ -41,8 +41,6 @@ namespace MAD
 	private:
 		friend class AEntity;
 
-		void AttachToParent(AEntity* inParent);
-		void DetachFromParent();
 		void UpdateWorldTransform();
 		void UpdateChildWorldTransforms();
 	private:

@@ -27,7 +27,7 @@ namespace MAD
 		virtual void OnBeginPlay() {}
 		virtual void PostInitializeComponents() {}
 
-		bool AttachTo(AEntity* inParentEntity);
+		bool AttachTo(eastl::shared_ptr<AEntity> inParentEntity);
 
 		void Destroy();
 		bool IsPendingForKill() const { return m_isPendingForKill; }
@@ -42,7 +42,7 @@ namespace MAD
 		void SetWorldTranslation(const Vector3& inTranslation);
 
 		AEntity* GetParent() const;
-		UComponent* GetRootComponent() const { return m_rootComponent; }
+		UComponent* GetRootComponent() const { return m_rootComponent.get(); }
 		void GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const;
 		void GetEntityComponents(ComponentContainer& inOutEntityComponents);
 		size_t GetComponentCount() const { return m_entityComponents.size(); }
@@ -67,7 +67,6 @@ namespace MAD
 		OGameWorldLayer& GetOwningWorldLayer() { return *m_owningWorldLayer; }
 		const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
 		void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
-
 	protected:
 		// Component creation API
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater
@@ -78,15 +77,19 @@ namespace MAD
 		template <typename ComponentType>
 		eastl::weak_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
 
-		void SetRootComponent(UComponent* inEntityRootComp);
+		void SetRootComponent(eastl::weak_ptr<UComponent> inEntityRootComp);
+	private:
+		void AttachToParent(eastl::shared_ptr<AEntity> inParentEntity);
+		void DetachFromParent();
 	private:
 		friend class UGameWorldLoader;
 
 		bool m_isPendingForKill;
-		OGameWorldLayer* m_owningWorldLayer;
 
 		AEntity* m_owningEntity;
-		UComponent* m_rootComponent;
+		OGameWorldLayer* m_owningWorldLayer;
+
+		eastl::shared_ptr<UComponent> m_rootComponent;
 
 		eastl::vector<eastl::shared_ptr<UComponent>> m_entityComponents;
 		eastl::vector<eastl::shared_ptr<AEntity>> m_entityChildren;
