@@ -70,11 +70,7 @@ PS_OUTPUT PS(PS_INPUT input)
 {
 #ifdef OPACITY_MASK
 	float opacityMask = g_opacityMask.Sample(g_anisotropicSampler, input.mTex).r;
-	if (opacityMask < 0.75)
-	{
-		// If this pixel is masked out by the mask texture, just throw it out
-		discard;
-	}
+    clip(opacityMask < 0.75 ? -1 : 1);
 #endif
 
 	input.mVSNormal = normalize(input.mVSNormal);
