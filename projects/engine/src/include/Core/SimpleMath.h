@@ -33,9 +33,9 @@ namespace MAD
 		const Vector3& GetTranslation() const { return m_translation; }
 		const Matrix& GetMatrix() const { return m_cachedTransform; }
 
-		void SetScale(float inNewScale);
-		void SetRotation(const Quaternion& inNewRotation);
-		void SetTranslation(const Vector3& inNewTranslation);
+		void SetScale(float inScale);
+		void SetRotation(const Quaternion& inRotation);
+		void SetTranslation(const Vector3& inTranslation);
 
 		void operator*=(const ULinearTransform& inOtherTransform);
 

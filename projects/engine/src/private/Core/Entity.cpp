@@ -19,6 +19,13 @@ namespace MAD
 		// of it's components, but obviously we can't modify the component lists while iterating over them'
 		// THEREFORE, we must mark the entity as pending for kill so that we can safely destroy the entity
 		m_isPendingForKill = true;
+
+		// If our root component has a parent (i.e this entity is parented to another entity), we need to remove ourselves from their root component's
+		// child list
+		if (m_rootComponent && m_rootComponent->GetParent())
+		{
+			m_rootComponent->DetachFromParent();
+		}
 	}
 
 	OGameWorld& AEntity::GetWorld()
@@ -95,6 +102,7 @@ namespace MAD
 
 	AEntity* AEntity::GetParent() const
 	{
+		// An entity can only have a parent entity if it's root component has a parent component
 		if (m_rootComponent && m_rootComponent->GetParent())
 		{
 			return &m_rootComponent->GetParent()->GetOwningEntity();

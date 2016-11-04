@@ -42,6 +42,7 @@ namespace MAD
 		friend class AEntity;
 
 		void AttachToParent(AEntity* inParent);
+		void DetachFromParent();
 		void UpdateWorldTransform();
 		void UpdateChildWorldTransforms();
 	private:
@@ -49,6 +50,7 @@ namespace MAD
 	
 		UComponent* m_parentComponent;
 
+		ULinearTransform m_componentLocalTransform;
 		ULinearTransform m_componentWorldTransform;
 
 		eastl::vector<eastl::shared_ptr<UComponent>> m_childComponents;

@@ -12,21 +12,21 @@ namespace MAD
 		UpdateCachedTransform();
 	}
 
-	void ULinearTransform::SetScale(float inNewScale)
+	void ULinearTransform::SetScale(float inScale)
 	{
-		m_scale = inNewScale;
+		m_scale = inScale;
 		UpdateCachedTransform();
 	}
 
-	void ULinearTransform::SetRotation(const Quaternion& inNewRotation)
+	void ULinearTransform::SetRotation(const Quaternion& inRotation)
 	{
-		m_rotation = inNewRotation;
+		m_rotation = inRotation;
 		UpdateCachedTransform();
 	}
 
-	void ULinearTransform::SetTranslation(const Vector3& inNewTranslation)
+	void ULinearTransform::SetTranslation(const Vector3& inTranslation)
 	{
-		m_translation = inNewTranslation;
+		m_translation = inTranslation;
 		UpdateCachedTransform();
 	}
 
@@ -51,6 +51,8 @@ namespace MAD
 		outputTransform.m_scale = inLeftTransform.m_scale * inRightTransform.m_scale;
 		outputTransform.m_rotation = inLeftTransform.m_rotation * inRightTransform.m_rotation;
 		outputTransform.m_translation = inLeftTransform.m_translation + inRightTransform.m_translation;
+
+		outputTransform.UpdateCachedTransform();
 
 		return outputTransform;
 	}
