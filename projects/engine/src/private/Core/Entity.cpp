@@ -9,6 +9,7 @@ namespace MAD
 		, m_isPendingForKill(false)
 		, m_owningWorldLayer(nullptr)
 		, m_owningEntity(nullptr)
+		, m_rootComponent(nullptr)
 	{}
 
 	void AEntity::Destroy()
@@ -40,6 +41,15 @@ namespace MAD
 		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot print translation hierarchy for an entity that doesn't have a root component");
 
 		return m_rootComponent->PrintTranslationHierarchy(0);
+	}
+
+	void AEntity::PostInitializeComponents()
+	{
+		// If the entity has already set it's root component, we should set the root component to the first component of the entity (if it exists)
+		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
+		{
+			m_rootComponent = m_entityComponents.front();
+		}
 	}
 
 	// Attempts at attaching this entity to another entity as a parent. Returns true on success and false on failure

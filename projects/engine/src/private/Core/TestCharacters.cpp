@@ -13,8 +13,8 @@ namespace MAD
 			auto siblingSpatialComponent = AddComponent<CSpatialComponent>();
 			auto grandchildSpatialComponent = AddComponent<CSpatialComponent>();
 
-			SetRootComponent(spatialComponent);
-
+			//SetRootComponent(spatialComponent);
+			
 			childSpatialComponent.lock()->SetRelativeTranslation(Vector3(10.0f, 5.0f, 15.0f));
 			childSpatialComponent.lock()->SetRelativeScale(5.0f);
 

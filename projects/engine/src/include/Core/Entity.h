@@ -25,7 +25,7 @@ namespace MAD
 		explicit AEntity(OGameWorld* inOwningWorld);
 
 		virtual void OnBeginPlay() {}
-		virtual void PostInitializeComponents() {}
+		virtual void PostInitializeComponents();
 
 		bool AttachTo(eastl::shared_ptr<AEntity> inParentEntity);
 
