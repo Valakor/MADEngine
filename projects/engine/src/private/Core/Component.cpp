@@ -3,9 +3,11 @@
 
 namespace MAD
 {
+	DECLARE_LOG_CATEGORY(LogBaseComponent);
 
 	UComponent::UComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
+		, m_parentComponent(nullptr)
 	{}
 
 	void UComponent::AttachComponent(eastl::shared_ptr<UComponent> inChildComponent)
@@ -14,6 +16,8 @@ namespace MAD
 		{
 			m_childComponents.push_back(inChildComponent);
 			inChildComponent->m_parentComponent = this;
+
+			inChildComponent->UpdateWorldTransform();
 		}
 	}
 
@@ -30,9 +34,7 @@ namespace MAD
 			adjustedLocalScale = inScale / m_parentComponent->m_componentWorldTransform.GetScale();
 		}
 
-		m_componentLocalTransform.SetScale(adjustedLocalScale);
-		
-		UpdateWorldTransform();
+		SetRelativeScale(adjustedLocalScale);
 	}
 
 	void UComponent::SetWorldRotation(const Quaternion& inRotation)
@@ -52,9 +54,7 @@ namespace MAD
 			adjustedLocalRotation = Quaternion::Concatenate(inRotation, parentWorldRotationInverse);
 		}
 
-		m_componentLocalTransform.SetRotation(adjustedLocalRotation);
-
-		UpdateWorldTransform();
+		SetRelativeRotation(adjustedLocalRotation);
 	}
 
 	void UComponent::SetWorldTranslation(const Vector3& inTranslation)
@@ -70,7 +70,26 @@ namespace MAD
 			adjustedLocalTranslation = inTranslation - m_parentComponent->m_componentWorldTransform.GetTranslation();
 		}
 
-		m_componentLocalTransform.SetTranslation(adjustedLocalTranslation);
+		SetRelativeTranslation(adjustedLocalTranslation);
+	}
+
+	void UComponent::SetRelativeScale(float inScale)
+	{
+		m_componentLocalTransform.SetScale(inScale);
+
+		UpdateWorldTransform();
+	}
+
+	void UComponent::SetRelativeRotation(const Quaternion& inRotation)
+	{
+		m_componentLocalTransform.SetRotation(inRotation);
+
+		UpdateWorldTransform();
+	}
+
+	void UComponent::SetRelativeTranslation(const Vector3& inTranslation)
+	{
+		m_componentLocalTransform.SetTranslation(inTranslation);
 
 		UpdateWorldTransform();
 	}
@@ -79,6 +98,23 @@ namespace MAD
 	{
 		// A component is valid only if it's owner isn't marked pending for kill
 		return !GetOwningEntity().IsPendingForKill();
+	}
+
+	void UComponent::PrintTranslationHierarchy(uint8_t inDepth) const
+	{
+		const Vector3 currentWorldTranslation = m_componentWorldTransform.GetTranslation();
+
+		for (size_t i = 0; i < inDepth; ++i)
+		{
+			OutputDebugString(L">> ");
+		}
+
+		LOG(LogBaseComponent, Log, "World Translation: %f, %f, %f\n", currentWorldTranslation.x, currentWorldTranslation.y, currentWorldTranslation.z);
+
+		for (const auto& currentChild : m_childComponents)
+		{
+			currentChild->PrintTranslationHierarchy(inDepth + 1);
+		}
 	}
 
 	void UComponent::UpdateWorldTransform()

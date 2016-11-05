@@ -26,5 +26,12 @@ namespace MAD
 				AddComponent<Test::CTestComponent5>();
 			}
 		};
+
+		class ASpatialCharacter : public AEntity
+		{
+			MAD_DECLARE_ACTOR(ASpatialCharacter, AEntity)
+		public:
+			explicit ASpatialCharacter(OGameWorld* inOwningWorld);
+		};
 	}
 }

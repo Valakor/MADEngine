@@ -35,6 +35,13 @@ namespace MAD
 		return *m_owningWorldLayer->GetOwningWorld();
 	}
 
+	void AEntity::PrintTranslationHierarchy() const
+	{
+		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot print translation hierarchy for an entity that doesn't have a root component");
+
+		return m_rootComponent->PrintTranslationHierarchy(0);
+	}
+
 	// Attempts at attaching this entity to another entity as a parent. Returns true on success and false on failure
 	bool AEntity::AttachTo(eastl::shared_ptr<AEntity> inParentEntity)
 	{
@@ -152,6 +159,8 @@ namespace MAD
 
 				// Add this component to the root component's children list so that we can receive spatial transform updates
 				parentEntityRootComponent->m_childComponents.push_back(m_rootComponent);
+
+				m_rootComponent->UpdateWorldTransform();
 			}
 		}
 	}

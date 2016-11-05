@@ -25,7 +25,11 @@ namespace MAD
 		void SetWorldScale(float inScale);
 		void SetWorldRotation(const Quaternion& inRotation);
 		void SetWorldTranslation(const Vector3& inTranslation);
-		
+
+		void SetRelativeScale(float inScale);
+		void SetRelativeRotation(const Quaternion& inRotation);
+		void SetRelativeTranslation(const Vector3& inTranslation);
+
 		const ULinearTransform& GetWorldTransform() const { return m_componentWorldTransform; }
 		float GetWorldScale() const { return m_componentWorldTransform.GetScale(); }
 		const Quaternion& GetWorldRotation() const { return m_componentWorldTransform.GetRotation(); }
@@ -38,6 +42,8 @@ namespace MAD
 		UComponent* GetParent() const { return m_parentComponent; }
 
 		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
+
+		void PrintTranslationHierarchy(uint8_t inDepth) const;
 	private:
 		friend class AEntity;
 

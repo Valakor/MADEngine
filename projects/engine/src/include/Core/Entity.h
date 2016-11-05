@@ -67,6 +67,8 @@ namespace MAD
 		OGameWorldLayer& GetOwningWorldLayer() { return *m_owningWorldLayer; }
 		const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
 		void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
+
+		void PrintTranslationHierarchy() const;
 	protected:
 		// Component creation API
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater

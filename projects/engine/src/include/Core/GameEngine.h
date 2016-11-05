@@ -50,6 +50,7 @@ namespace MAD
 		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
 	private:
 		void TEMPInitializeGameContext();
+		void TEMPTestTransformHierarchy();
 	private:
 		const int MAX_SIMULATION_STEPS = 10;
 		const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
