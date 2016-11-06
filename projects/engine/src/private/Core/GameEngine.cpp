@@ -196,6 +196,10 @@ namespace MAD
 			.RegisterEvent("Reset", 'R')
 			.Finalize(true);
 
+		SControlScheme& debugScheme = SControlScheme("")
+			.RegisterEvent("ReloadWorld", 'T')
+			.Finalize(true);
+
 		renderScheme.BindEvent<&OnDisableGBufferVisualization>("NormalView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableLightAccumulation>("LightAccumulationView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDiffuse>("DiffuseView", EInputEvent::IE_KeyDown);
@@ -203,7 +207,16 @@ namespace MAD
 		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
 
+		debugScheme.BindEvent<UGameEngine, &UGameEngine::TEMPReloadWorld>("ReloadWorld", EInputEvent::IE_KeyDown, this);
+
 		// Load the world _after_ setting up control schemes. (We could probably define those in the world file or something as well)
+		TEMPReloadWorld();
+	}
+
+	void UGameEngine::TEMPReloadWorld()
+	{
+		m_worlds.clear();
+
 		UGameWorldLoader loader;
 		loader.LoadWorld("engine\\worlds\\default_world.json");
 	}

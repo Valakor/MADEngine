@@ -339,6 +339,7 @@ namespace MAD
 		}
 
 		// Do point lighting
+		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 		for (const SGPUPointLight& currentPointLight : m_queuedPointLights)
 		{

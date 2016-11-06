@@ -55,7 +55,11 @@ namespace MAD
 		Matrix translation = Matrix::CreateTranslation(m_cameraPos);
 		Matrix rotation = Matrix::CreateFromQuaternion(m_cameraRot);
 
+		auto clientWindow = gEngine->GetWindow().GetClientSize();
+		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
+
 		m_cameraInstance.m_viewMatrix = (rotation * translation).Invert();
+		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
 		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
 
 		// Update the renderer's camera's per camera constant buffer values
@@ -78,9 +82,7 @@ namespace MAD
 		m_cameraRotInitial = m_cameraRot;
 
 		m_cameraInstance.m_verticalFOV = ConvertToRadians(m_cameraInstance.m_verticalFOV);
-		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRot) * Matrix::CreateTranslation(m_cameraPos);
-		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
-		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
+		UpdateComponent(0.0f);
 	}
 
 	void CCameraComponent::MoveRight(float inVal)
