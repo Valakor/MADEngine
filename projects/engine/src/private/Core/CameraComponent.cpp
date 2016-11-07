@@ -43,11 +43,6 @@ namespace MAD
 		m_cameraLookSpeed = 1.0f;
 	}
 
-	CCameraComponent::~CCameraComponent()
-	{
-		// TODO unbind from cameraScheme
-	}
-
 	void CCameraComponent::UpdateComponent(float inDeltaTime)
 	{
 		(void)inDeltaTime;

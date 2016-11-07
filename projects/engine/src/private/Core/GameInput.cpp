@@ -131,6 +131,33 @@ namespace MAD
 		return false;
 	}
 
+	void SControlScheme::UnBindObject(void* inObj)
+	{
+		if (!inObj)
+		{
+			LOG(LogGameInput, Warning, "Unbinding null object is meaningless\n");
+			return;
+		}
+
+		for (auto& keyBindingList : KeyToActionBindings)
+		{
+			for (auto& keyBinding : keyBindingList.second)
+			{
+				keyBinding.OnPressed.UnBind(inObj);
+				keyBinding.OnHeld.UnBind(inObj);
+				keyBinding.OnReleased.UnBind(inObj);
+			}
+		}
+
+		for (auto& axisBindingList : KeyToAxisBindings)
+		{
+			for (auto& axisBinding : axisBindingList.second)
+			{
+				axisBinding->OnAxis.UnBind(inObj);
+			}
+		}
+	}
+
 	bool SControlScheme::OnKeyDown(key_t inKey, bool bInRepeat)
 	{
 		bool keyEaten = false;
@@ -475,6 +502,14 @@ namespace MAD
 		for (auto iter = mControlStack.rbegin(); iter != mControlStack.rend(); ++iter)
 		{
 			iter->ClearAxis();
+		}
+	}
+
+	void UGameInput::UnBindObject(void* inObj)
+	{
+		for (auto iter = mControlStack.begin(); iter != mControlStack.end(); ++iter)
+		{
+			iter->UnBindObject(inObj);
 		}
 	}
 }

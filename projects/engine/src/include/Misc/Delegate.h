@@ -242,7 +242,7 @@ namespace MAD
 			auto d = DelegateType::template Create<T, Function>(inObj);
 			MAD_ASSERT_DESC(!IsDuplicate(d), "Cannot bind the same function to a multicast delegate more than once.");
 			auto h = HandleGen();
-			mUserFuncs.emplace(h.mHandle, d);
+			mUserFuncs[h.mHandle] = d;
 			return h;
 		}
 
@@ -252,7 +252,7 @@ namespace MAD
 			auto d = DelegateType::template Create<T, Function>(inObj);
 			MAD_ASSERT_DESC(!IsDuplicate(d), "Cannot bind the same function to a multicast delegate more than once.");
 			auto h = HandleGen();
-			mUserFuncs.emplace(h.mHandle, d);
+			mUserFuncs[h.mHandle] = d;
 			return h;
 		}
 
@@ -262,7 +262,7 @@ namespace MAD
 			auto d = DelegateType::template Create<Function>();
 			MAD_ASSERT_DESC(!IsDuplicate(d), "Cannot bind the same function to a multicast delegate more than once.");
 			auto h = HandleGen();
-			mUserFuncs.emplace(h.mHandle, d);
+			mUserFuncs[h.mHandle] = d;
 			return h;
 		}
 
@@ -272,6 +272,32 @@ namespace MAD
 			auto h = HandleGen();
 			mUserFuncs[h.mHandle] = inDelegate;
 			return h;
+		}
+
+		inline bool UnBind(void* inObj)
+		{
+			MAD_ASSERT_DESC(inObj != nullptr, "Cannot unbind a null object");
+			if (!inObj)
+			{
+				return false;
+			}
+
+			bool removedAny = false;
+			auto iter = mUserFuncs.begin();
+			while (iter != mUserFuncs.end())
+			{
+				if (iter->second.mObj == inObj)
+				{
+					iter = mUserFuncs.erase(iter);
+					removedAny = true;
+				}
+				else
+				{
+					++iter;
+				}
+			}
+
+			return removedAny;
 		}
 
 		inline bool UnBind(SDelegateHandle inHandle)

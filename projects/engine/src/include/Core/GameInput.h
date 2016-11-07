@@ -109,6 +109,8 @@ namespace MAD
 		bool BindAxis(const eastl::string& inAxisName);
 		bool BindAxis(const eastl::string& inAxisName, AxisDelegate inCallback);
 
+		void UnBindObject(void* inObj);
+
 	private:
 		friend class UGameInput;
 
@@ -152,6 +154,8 @@ namespace MAD
 		void SetMouseMode(EMouseMode inMouseMode);
 
 		void GetMousePos(int32_t& outX, int32_t& outY) const { outX = mMousePosX; outY = mMousePosY; }
+
+		void UnBindObject(void* inObj);
 
 	private:
 		UGameInput();
