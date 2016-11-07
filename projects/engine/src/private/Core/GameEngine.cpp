@@ -196,7 +196,7 @@ namespace MAD
 			.RegisterEvent("Reset", 'R')
 			.Finalize(true);
 
-		SControlScheme& debugScheme = SControlScheme("")
+		SControlScheme& debugScheme = SControlScheme("Debug")
 			.RegisterEvent("ReloadWorld", 'T')
 			.Finalize(true);
 
