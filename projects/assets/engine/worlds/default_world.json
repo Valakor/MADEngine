@@ -32,7 +32,7 @@
 						{
 							"type": "CPointLightComponent",
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"position": [-1200.0, 150.0, 50.0],
 								"intensity": 1.5,
