@@ -6,19 +6,27 @@
 //=>:(Permute, SPECULAR)
 //=>:(Permute, EMISSIVE)
 //=>:(Permute, OPACITY_MASK)
+//=>:(Permute, NORMAL_MAP)
 
 // Input structs for vertex and pixel shader
 struct VS_INPUT
 {
-	float3 mModelPos	: POSITION;
-	float3 mModelNormal	: NORMAL;
-	float2 mTex			: TEXCOORD0;
+	float3 mModelPos     : POSITION;
+	float3 mModelNormal  : NORMAL;
+#ifdef NORMAL_MAP
+	float3 mModelTangent : TANGENT;
+#endif
+	float2 mTex          : TEXCOORD0;
 };
 
 struct PS_INPUT
 {
 	float4 mHomogenousPos	: SV_POSITION;
-	float3 mVSNormal		: NORMAL;
+	float3 mVSNormal		: NORMAL0;
+#ifdef NORMAL_MAP
+	float3 mVSTangent		: NORMAL1;
+	float3 mVSBitangent		: NORMAL2;
+#endif
 	float2 mTex				: TEXCOORD0;
 };
 
@@ -59,6 +67,10 @@ PS_INPUT VS(VS_INPUT input)
 	psInput.mHomogenousPos = mul(float4(input.mModelPos, 1.0f), g_objectToProjectionMatrix);
 	psInput.mTex = input.mTex;
 	psInput.mVSNormal = mul(float4(input.mModelNormal, 0.0f), g_objectToViewMatrix).xyz;
+#ifdef NORMAL_MAP
+	psInput.mVSTangent = mul(float4(input.mModelTangent, 0.0f), g_objectToViewMatrix).xyz;
+	psInput.mVSBitangent = cross(psInput.mVSTangent, psInput.mVSNormal);
+#endif
 
 	return psInput;
 }
@@ -73,7 +85,16 @@ PS_OUTPUT PS(PS_INPUT input)
     clip(opacityMask < 0.75 ? -1 : 1);
 #endif
 
-	input.mVSNormal = normalize(input.mVSNormal);
+	float3 finalVSNormal = normalize(input.mVSNormal);
+#ifdef NORMAL_MAP
+	input.mVSTangent = normalize(input.mVSTangent);
+	input.mVSBitangent = normalize(input.mVSBitangent);
+
+	float3x3 TBN = float3x3(input.mVSTangent, input.mVSBitangent, finalVSNormal);
+	float3 TSSampleNormal = g_normalMap.Sample(g_anisotropicSampler, input.mTex).rgb;
+	TSSampleNormal = normalize(TSSampleNormal * 2.0f - 1.0f);
+	finalVSNormal = normalize(mul(TSSampleNormal, TBN));
+#endif
 
 	float3 finalLightAccumulation;
 
@@ -103,7 +124,7 @@ PS_OUTPUT PS(PS_INPUT input)
 	PS_OUTPUT output;
 	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
 	output.m_diffuse           = float4(saturate(finalDiffuseColor), 1.0f);
-	output.m_normal            = EncodeNormal(input.mVSNormal);
+	output.m_normal            = EncodeNormal(finalVSNormal);
 	output.m_specular          = float4(saturate(finalSpecularColor), EncodeSpecPower(finalSpecularPower));
 
 	return output;

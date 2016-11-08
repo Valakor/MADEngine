@@ -42,10 +42,12 @@ namespace MAD
 
 		eastl::vector<Vector3> m_positions;
 		eastl::vector<Vector3> m_normals;
+		eastl::vector<Vector3> m_tangents;
 		eastl::vector<Vector2> m_texCoords;
 
 		UVertexArray m_gpuPositions;
 		UVertexArray m_gpuNormals;
+		UVertexArray m_gpuTangents;
 		UVertexArray m_gpuTexCoords;
 
 		eastl::vector<Index_t> m_indexBuffer;

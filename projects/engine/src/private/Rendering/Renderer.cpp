@@ -445,6 +445,9 @@ namespace MAD
 			case ETextureSlot::OpacityMask: // Do you have an opacity mask?
 				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_OpacityMask);
 				break;
+			case ETextureSlot::NormalMap: // Do you have a normal map?
+				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_NormalMap);
+				break;
 			}
 		}
 
