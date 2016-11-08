@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ObjectTypeInfo.h"
+#include "Networking/Networking.h"
 
 namespace MAD
 {
@@ -17,12 +18,14 @@ namespace MAD
 		virtual ~UObject();
 
 		inline ObjectID GetObjectID() const { return m_objectID; }
+		inline SNetworkID GetNetID() const { return m_netID; }
 		inline OGameWorld* GetOwningWorld() { return m_owningGameWorld; }
 		inline const OGameWorld* GetOwningWorld() const { return m_owningGameWorld; }
 	private:
 		static ObjectID s_objectRunningUID;
 
 		ObjectID m_objectID;
+		SNetworkID m_netID;
 		OGameWorld* m_owningGameWorld;
 	};
 }
