@@ -130,6 +130,12 @@ namespace MAD
 			return false;
 		}
 
+		// Init networking manager
+		if (!m_NetworkManager.Init())
+		{
+			return false;
+		}
+
 		// Start the FrameTimer
 		mFrameTimer = eastl::make_shared<UFrameTimer>();
 		mFrameTimer->Start();
@@ -167,6 +173,8 @@ namespace MAD
 	{
 		mGameInstance->OnShutdown();
 		mGameInstance = nullptr;
+
+		m_NetworkManager.Shutdown();
 
 		mRenderer->Shutdown();
 		mRenderer = nullptr;

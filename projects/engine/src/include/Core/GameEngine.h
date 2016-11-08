@@ -6,6 +6,8 @@
 #include <EASTL/vector.h>
 #include <EASTL/type_traits.h>
 
+#include "Networking/NetworkManager.h"
+
 namespace MAD
 {
 	class TTypeInfo;
@@ -72,6 +74,7 @@ namespace MAD
 		eastl::shared_ptr<class UGameWindow> mGameWindow;
 		eastl::shared_ptr<class UPhysicsWorld> m_physicsWorld;
 		eastl::shared_ptr<class URenderer> mRenderer;
+		UNetworkManager m_NetworkManager;
 	};
 
 	template <typename WorldType>
