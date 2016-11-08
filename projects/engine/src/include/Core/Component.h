@@ -1,6 +1,10 @@
 #pragma once
 
+#include <EASTL/vector.h>
+#include <EASTL/shared_ptr.h>
+
 #include "Core/Object.h"
+#include "Core/SimpleMath.h"
 
 namespace MAD
 {
@@ -16,14 +20,43 @@ namespace MAD
 
 		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };
 
+		void AttachComponent(eastl::shared_ptr<UComponent> inChildComponent);
+		
+		void SetWorldScale(float inScale);
+		void SetWorldRotation(const Quaternion& inRotation);
+		void SetWorldTranslation(const Vector3& inTranslation);
+
+		void SetRelativeScale(float inScale);
+		void SetRelativeRotation(const Quaternion& inRotation);
+		void SetRelativeTranslation(const Vector3& inTranslation);
+
+		const ULinearTransform& GetWorldTransform() const { return m_componentWorldTransform; }
+		float GetWorldScale() const { return m_componentWorldTransform.GetScale(); }
+		const Quaternion& GetWorldRotation() const { return m_componentWorldTransform.GetRotation(); }
+		const Vector3& GetWorldTranslation() const { return m_componentWorldTransform.GetTranslation(); }
+
 		bool IsOwnerValid() const;
-		inline void SetOwner(AEntity& inOwner) { m_ownerPtr = &inOwner; }
-		inline AEntity& GetOwner() { return *m_ownerPtr; }
-		inline const AEntity& GetOwner() const { return *m_ownerPtr; }
+		void SetOwningEntity(AEntity& inOwner) { m_owningEntity = &inOwner; }
+		AEntity& GetOwningEntity() { return *m_owningEntity; }
+		const AEntity& GetOwningEntity() const { return *m_owningEntity; }
+		UComponent* GetParent() const { return m_parentComponent; }
 
 		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
 
+		void PrintTranslationHierarchy(uint8_t inDepth) const;
 	private:
-		AEntity* m_ownerPtr;
+		friend class AEntity;
+
+		void UpdateWorldTransform();
+		void UpdateChildWorldTransforms();
+	private:
+		AEntity* m_owningEntity;
+	
+		UComponent* m_parentComponent;
+
+		ULinearTransform m_componentLocalTransform;
+		ULinearTransform m_componentWorldTransform;
+
+		eastl::vector<eastl::shared_ptr<UComponent>> m_childComponents;
 	};
 }

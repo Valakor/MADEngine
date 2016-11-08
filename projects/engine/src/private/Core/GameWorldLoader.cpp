@@ -241,8 +241,8 @@ namespace MAD
 		}
 
 		// Add new component
-		eastl::weak_ptr<UComponent> comp_weak = inOwningEntity->AddComponent<UComponent>(*componentTypeInfo);
-		if (comp_weak.expired())
+		eastl::shared_ptr<UComponent> comp = inOwningEntity->AddComponent<UComponent>(*componentTypeInfo);
+		if (!comp)
 		{
 			LOG(LogGameWorldLoader, Warning, "\t\tNew component `%s`: Failed to add new component to entity\n", compTypeName.c_str());
 			return false;
@@ -250,7 +250,7 @@ namespace MAD
 
 		// Update the component's properties
 		m_currentValue = &props_iter->value;
-		comp_weak.lock()->Load(*this);
+		comp->Load(*this);
 
 		return true;
 	}

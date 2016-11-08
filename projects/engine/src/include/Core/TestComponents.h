@@ -15,7 +15,7 @@
 		virtual void UpdateComponent(float inDeltaTime) override				\
 		{																		\
 			(void)inDeltaTime;																									\
-			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());		\
+			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());		\
 		}																		\
 	};																			\
 
@@ -32,7 +32,7 @@
 		virtual void UpdateComponent(float inDeltaTime) override							\
 		{																					\
 			(void)inDeltaTime;																									\
-			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());		\
+			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());		\
 		}																					\
 	};																						\
 
@@ -41,6 +41,7 @@ namespace MAD
 {
 	namespace Test
 	{
+		MAD_DEFINE_TEST_COMPONENT(SpatialComponent);
 		MAD_DEFINE_TEST_COMPONENT(TestComponent1);
 		MAD_DEFINE_TEST_COMPONENT(TestComponent2);
 		MAD_DEFINE_TEST_COMPONENT(TestComponent3);

@@ -7,6 +7,7 @@
 #include "Core/Component.h"
 #include "Core/Object.h"
 #include "Core/GameWorld.h"
+#include "Core/SimpleMath.h"
 #include "Misc/Assert.h"
 
 namespace MAD
@@ -25,21 +26,27 @@ namespace MAD
 		virtual ~AEntity() {}
 
 		virtual void OnBeginPlay() {}
-		virtual void PostInitializeComponents() {}
+		virtual void PostInitializeComponents();
+
+		bool AttachEntity(eastl::shared_ptr<AEntity> inChildEntity);
 
 		void Destroy();
+		bool IsPendingForKill() const { return m_isPendingForKill; }
+	
+		const ULinearTransform& GetWorldTransform() const;
+		float GetWorldScale() const;
+		const Quaternion& GetWorldRotation() const;
+		const Vector3& GetWorldTranslation() const;
 
-		// Utility getter and setter functions
-		inline bool IsPendingForKill() const { return m_isPendingForKill; }
+		void SetWorldScale(float inScale);
+		void SetWorldRotation(const Quaternion& inRotation);
+		void SetWorldTranslation(const Vector3& inTranslation);
 
-		OGameWorld& GetWorld();
-		const OGameWorld& GetWorld() const;
-
+		AEntity* GetParent() const;
+		UComponent* GetRootComponent() const { return m_rootComponent.get(); }
 		void GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const;
 		void GetEntityComponents(ComponentContainer& inOutEntityComponents);
-		inline size_t GetComponentCount() const { return m_actorComponents.size(); }
-		inline OGameWorldLayer& GetOwningWorldLayer() { return *m_owningWorldLayer; }
-		inline const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
+		size_t GetComponentCount() const { return m_entityComponents.size(); }
 
 		// Gets the first component of the input type. Returns weak_ptr because external users shouldn't maintain strong references
 		// to an entity's components
@@ -56,54 +63,72 @@ namespace MAD
 		template <typename ComponentType>
 		eastl::vector<eastl::weak_ptr<ComponentType>> GetComponentsByType();
 
-		inline void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
+		OGameWorld& GetWorld();
+		const OGameWorld& GetWorld() const;
+		OGameWorldLayer& GetOwningWorldLayer() { return *m_owningWorldLayer; }
+		const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
+		void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
+
+		void PrintTranslationHierarchy() const;
 	protected:
 		// Component creation API
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater
 		// as a progress of the entity construction process. If you try to add components outside of the constructor, they will not update.
 		template <typename ComponentType>
-		eastl::weak_ptr<ComponentType> AddComponent();
+		eastl::shared_ptr<ComponentType> AddComponent();
 
 		template <typename ComponentType>
-		eastl::weak_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
+		eastl::shared_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
+
+		void SetRootComponent(eastl::shared_ptr<UComponent> inEntityRootComp);
+	private:
+		void AttachChild(eastl::shared_ptr<AEntity> inChildEntity);
+
+		void DetachFromParent();
 	private:
 		friend class UGameWorldLoader;
 
 		bool m_isPendingForKill;
+
+		AEntity* m_owningEntity;
 		OGameWorldLayer* m_owningWorldLayer;
-		eastl::vector<eastl::shared_ptr<UComponent>> m_actorComponents;
+
+		eastl::shared_ptr<UComponent> m_rootComponent;
+
+		eastl::vector<eastl::shared_ptr<UComponent>> m_entityComponents;
+		eastl::vector<eastl::weak_ptr<AEntity>> m_entityChildren;
 	};
 
 	// WARNING: Since we are giving shared_ptrs of the attached components, users that reference attached components must be careful of it's owner entity being destroyed.
 	// You can check if the component's owner is still valid by calling IsOwnerValid, which just checks if it's owner is not pending for kill.
 
 	template <typename ComponentType>
-	eastl::weak_ptr<ComponentType> AEntity::AddComponent()
+	eastl::shared_ptr<ComponentType> AEntity::AddComponent()
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 		return AddComponent<ComponentType>(*ComponentType::StaticClass());
 	}
 
 	template <typename ComponentType>
-	eastl::weak_ptr<ComponentType> AEntity::AddComponent(const TTypeInfo& inTypeInfo)
+	eastl::shared_ptr<ComponentType> AEntity::AddComponent(const TTypeInfo& inTypeInfo)
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
 		eastl::shared_ptr<ComponentType> newComponent = inTypeInfo.CreateDefaultObject<ComponentType>(GetOwningWorld());
 
-		newComponent->SetOwner(*this);
+		newComponent->SetOwningEntity(*this);
 		
 		MAD_ASSERT_DESC(GetOwningWorld() != nullptr, "Error: Every entity should have a valid owning UGameWorld!!!");
 
 		if (!GetOwningWorld())
 		{
-			return eastl::weak_ptr<ComponentType>();
+			return nullptr;
 		}
 
 		// Before adding the component to the entity, we need to register it with the owning world's component updater
 		GetOwningWorld()->GetComponentUpdater().RegisterComponent(newComponent);
 		
-		m_actorComponents.push_back(newComponent);
+		m_entityComponents.push_back(newComponent);
 
 		return newComponent;
 	}
@@ -111,7 +136,7 @@ namespace MAD
 	template <typename ComponentType>
 	eastl::weak_ptr<const ComponentType> AEntity::GetFirstComponentByType() const
 	{
-		for (const auto& currentComponent : m_actorComponents)
+		for (const auto& currentComponent : m_entityComponents)
 		{
 			if (IsA<ComponentType>(currentComponent.get()))
 			{
@@ -127,7 +152,7 @@ namespace MAD
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentTypeBase>::value, "Error: Components must be of type UComponent or more derived");
 
-		for (const auto& currentComponent : m_actorComponents)
+		for (const auto& currentComponent : m_entityComponents)
 		{
 			if (IsA(inTypeInfo, currentComponent.get()))
 			{
@@ -141,7 +166,7 @@ namespace MAD
 	template <typename ComponentType>
 	eastl::weak_ptr<ComponentType> AEntity::GetFirstComponentByType()
 	{
-		for (const auto& currentComponent : m_actorComponents)
+		for (const auto& currentComponent : m_entityComponents)
 		{
 			if (IsA<ComponentType>(currentComponent.get()))
 			{
@@ -157,7 +182,7 @@ namespace MAD
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentTypeBase>::value, "Error: Components must be of type UComponent or more derived");
 
-		for (const auto& currentComponent : m_actorComponents)
+		for (const auto& currentComponent : m_entityComponents)
 		{
 			if (IsA(inTypeInfo, currentComponent.get()))
 			{
@@ -173,7 +198,7 @@ namespace MAD
 	{
 		eastl::vector<eastl::weak_ptr<ComponentType>> foundComps;
 
-		for (const auto& currentComponent : m_actorComponents)
+		for (const auto& currentComponent : m_entityComponents)
 		{
 			if (IsA<ComponentType>(currentComponent.get()))
 			{

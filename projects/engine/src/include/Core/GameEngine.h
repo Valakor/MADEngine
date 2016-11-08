@@ -50,6 +50,7 @@ namespace MAD
 		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
 	private:
 		void TEMPInitializeGameContext();
+		void TEMPTestTransformHierarchy();
 		void TEMPReloadWorld();
 	private:
 		const int MAX_SIMULATION_STEPS = 10;

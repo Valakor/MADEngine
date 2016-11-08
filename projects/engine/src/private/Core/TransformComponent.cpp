@@ -16,12 +16,12 @@ namespace MAD
 		if (m_updateCount < 2)
 		{
 			(void) inDeltaTime;
-			LOG(LogTransformComponent, Log, "Updating Transform Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
+			LOG(LogTransformComponent, Log, "Updating Transform Component for %s #%d\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());
 		}
 		else
 		{
-			GetOwner().Destroy();
-			LOG(LogTransformComponent, Log, "Mark destruction for %s #%d from Transform Component\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
+			GetOwningEntity().Destroy();
+			LOG(LogTransformComponent, Log, "Mark destruction for %s #%d from Transform Component\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());
 		}
 
 		++m_updateCount;

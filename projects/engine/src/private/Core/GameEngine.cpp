@@ -20,6 +20,7 @@
 #include "Core/LightComponent.h"
 #include "Core/DirectionalLightComponent.h"
 #include "Core/PointLightComponent.h"
+#include "Core/TestCharacters.h"
 
 using eastl::string;
 
@@ -146,6 +147,8 @@ namespace MAD
 		// In the future, update defaults by configuration file
 		TEMPInitializeGameContext();
 
+		//TEMPTestTransformHierarchy();
+
 		while (bContinue)
 		{
 			Tick();
@@ -219,6 +222,24 @@ namespace MAD
 
 		UGameWorldLoader loader;
 		loader.LoadWorld("engine\\worlds\\default_world.json");
+	}
+
+	void UGameEngine::TEMPTestTransformHierarchy()
+	{
+		// Assumes that the default world loaded in correctly
+		if (!m_worlds.empty())
+		{
+			eastl::shared_ptr<OGameWorld> defaultWorld = m_worlds[0];
+
+			auto spatialMattCharacter = defaultWorld->SpawnEntity<MAD::Test::ASpatialCharacter>();
+			auto spatialDerekCharacter = defaultWorld->SpawnEntity<MAD::Test::ASpatialCharacter>();
+
+			spatialMattCharacter->AttachEntity(spatialDerekCharacter);
+
+			spatialMattCharacter->SetWorldTranslation(Vector3(10.0f, -7.5f, 1.0f));
+
+			spatialMattCharacter->PrintTranslationHierarchy();
+		}
 	}
 
 	void UGameEngine::Tick()
