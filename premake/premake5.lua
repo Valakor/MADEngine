@@ -7,12 +7,13 @@ workspace "MAD"
 	
 	filter { "configurations:Debug" }
 		defines { "_DEBUG", "DEBUG" }
-		flags { "Symbols" }
+		symbols "On"
 		optimize "Off"
 		inlining "Disabled"
 	
 	filter { "configurations:Release" }
 		defines { "NDEBUG" }
+		symbols "Off"
 		optimize "Speed"
 		inlining "Auto"
 	

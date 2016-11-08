@@ -70,7 +70,9 @@ namespace yojimbo
 
         virtual void Reset() = 0;
 
-        virtual Packet * CreatePacket( int type ) = 0;
+        virtual void SetPacketFactory( PacketFactory & packetFactory ) = 0;
+
+        virtual void ClearPacketFactory() = 0;
 
         virtual void SendPacket( const Address & address, Packet * packet, uint64_t sequence = 0, bool immediate = false ) = 0;
 
@@ -117,6 +119,8 @@ namespace yojimbo
         virtual const Address & GetAddress() const = 0;
 
         virtual PacketFactory * GetPacketFactory() = 0;
+
+        virtual const PacketFactory * GetPacketFactory() const = 0;
     };
 
     class BaseTransport : public Transport
@@ -124,18 +128,19 @@ namespace yojimbo
     public:
 
         BaseTransport( Allocator & allocator,
-                       PacketFactory & packetFactory, 
                        const Address & address,
                        uint32_t protocolId,
                        int maxPacketSize = 4 * 1024,
                        int sendQueueSize = 1024,
                        int receiveQueueSize = 1024 );
 
+        void SetPacketFactory( PacketFactory & packetFactory );
+
+        void ClearPacketFactory();
+
         ~BaseTransport();
 
         void Reset();
-
-        Packet * CreatePacket( int type );
 
         void SendPacket( const Address & address, Packet * packet, uint64_t sequence, bool immediate );
 
@@ -182,6 +187,8 @@ namespace yojimbo
         const Address & GetAddress() const;
 
         PacketFactory * GetPacketFactory();
+
+        const PacketFactory * GetPacketFactory() const;
 
     protected:
 
@@ -241,9 +248,9 @@ namespace yojimbo
         uint8_t * m_packetTypeIsEncrypted;
         uint8_t * m_packetTypeIsUnencrypted;
 
-        ContextManager m_contextManager;
+        ContextManager * m_contextManager;
 
-        EncryptionManager m_encryptionManager;
+        EncryptionManager * m_encryptionManager;
 
         uint64_t m_counters[TRANSPORT_COUNTER_NUM_COUNTERS];
     };
