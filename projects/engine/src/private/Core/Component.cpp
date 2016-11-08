@@ -9,7 +9,7 @@ namespace MAD
 
 	UComponent::UComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
-		, m_ownerPtr(nullptr) { }
+		, m_owningEntity(nullptr)
 		, m_parentComponent(nullptr)
 	{}
 

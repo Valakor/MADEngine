@@ -14,19 +14,18 @@ namespace MAD
 			auto grandchildSpatialComponent = AddComponent<CSpatialComponent>();
 
 			//SetRootComponent(spatialComponent);
-			
-			childSpatialComponent.lock()->SetRelativeTranslation(Vector3(10.0f, 5.0f, 15.0f));
-			childSpatialComponent.lock()->SetRelativeScale(5.0f);
+			childSpatialComponent->SetRelativeTranslation(Vector3(10.0f, 5.0f, 15.0f));
+			childSpatialComponent->SetRelativeScale(5.0f);
 
-			siblingSpatialComponent.lock()->SetRelativeTranslation(Vector3(-10.0f, 1.0f, 10.0f));
-			siblingSpatialComponent.lock()->SetRelativeRotation(Quaternion::CreateFromYawPitchRoll(45.0f, 0.0f, 0.0f));
+			siblingSpatialComponent->SetRelativeTranslation(Vector3(-10.0f, 1.0f, 10.0f));
+			siblingSpatialComponent->SetRelativeRotation(Quaternion::CreateFromYawPitchRoll(45.0f, 0.0f, 0.0f));
 
-			grandchildSpatialComponent.lock()->SetRelativeTranslation(Vector3(25.0f, 0.0f, -55.0f));
+			grandchildSpatialComponent->SetRelativeTranslation(Vector3(25.0f, 0.0f, -55.0f));
 
 			// Attachment of children
-			spatialComponent.lock()->AttachComponent(childSpatialComponent.lock()); // Ew
-			spatialComponent.lock()->AttachComponent(siblingSpatialComponent.lock()); // Ew
-			childSpatialComponent.lock()->AttachComponent(grandchildSpatialComponent.lock()); // Ew
+			spatialComponent->AttachComponent(childSpatialComponent);
+			spatialComponent->AttachComponent(siblingSpatialComponent);
+			childSpatialComponent->AttachComponent(grandchildSpatialComponent);
 
 			// Setting world translation only operates correctly after parent-child attachments have been setup
 			// Without proper parent-child attachments, setting world space properties are treated as setting relative properties

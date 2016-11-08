@@ -28,7 +28,7 @@ namespace MAD
 		virtual void OnBeginPlay() {}
 		virtual void PostInitializeComponents();
 
-		bool AttachTo(eastl::shared_ptr<AEntity> inParentEntity);
+		bool AttachEntity(eastl::shared_ptr<AEntity> inChildEntity);
 
 		void Destroy();
 		bool IsPendingForKill() const { return m_isPendingForKill; }
@@ -75,14 +75,15 @@ namespace MAD
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater
 		// as a progress of the entity construction process. If you try to add components outside of the constructor, they will not update.
 		template <typename ComponentType>
-		eastl::weak_ptr<ComponentType> AddComponent();
+		eastl::shared_ptr<ComponentType> AddComponent();
 
 		template <typename ComponentType>
-		eastl::weak_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
+		eastl::shared_ptr<ComponentType> AddComponent(const TTypeInfo& inTypeInfo);
 
-		void SetRootComponent(eastl::weak_ptr<UComponent> inEntityRootComp);
+		void SetRootComponent(eastl::shared_ptr<UComponent> inEntityRootComp);
 	private:
-		void AttachToParent(eastl::shared_ptr<AEntity> inParentEntity);
+		void AttachChild(eastl::shared_ptr<AEntity> inChildEntity);
+
 		void DetachFromParent();
 	private:
 		friend class UGameWorldLoader;
@@ -95,21 +96,21 @@ namespace MAD
 		eastl::shared_ptr<UComponent> m_rootComponent;
 
 		eastl::vector<eastl::shared_ptr<UComponent>> m_entityComponents;
-		eastl::vector<eastl::shared_ptr<AEntity>> m_entityChildren;
+		eastl::vector<eastl::weak_ptr<AEntity>> m_entityChildren;
 	};
 
 	// WARNING: Since we are giving shared_ptrs of the attached components, users that reference attached components must be careful of it's owner entity being destroyed.
 	// You can check if the component's owner is still valid by calling IsOwnerValid, which just checks if it's owner is not pending for kill.
 
 	template <typename ComponentType>
-	eastl::weak_ptr<ComponentType> AEntity::AddComponent()
+	eastl::shared_ptr<ComponentType> AEntity::AddComponent()
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 		return AddComponent<ComponentType>(*ComponentType::StaticClass());
 	}
 
 	template <typename ComponentType>
-	eastl::weak_ptr<ComponentType> AEntity::AddComponent(const TTypeInfo& inTypeInfo)
+	eastl::shared_ptr<ComponentType> AEntity::AddComponent(const TTypeInfo& inTypeInfo)
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
@@ -121,7 +122,7 @@ namespace MAD
 
 		if (!GetOwningWorld())
 		{
-			return eastl::weak_ptr<ComponentType>();
+			return nullptr;
 		}
 
 		// Before adding the component to the entity, we need to register it with the owning world's component updater

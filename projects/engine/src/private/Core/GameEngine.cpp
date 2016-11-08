@@ -147,7 +147,7 @@ namespace MAD
 		// In the future, update defaults by configuration file
 		TEMPInitializeGameContext();
 
-		TEMPTestTransformHierarchy();
+		//TEMPTestTransformHierarchy();
 
 		while (bContinue)
 		{
@@ -234,7 +234,7 @@ namespace MAD
 			auto spatialMattCharacter = defaultWorld->SpawnEntity<MAD::Test::ASpatialCharacter>();
 			auto spatialDerekCharacter = defaultWorld->SpawnEntity<MAD::Test::ASpatialCharacter>();
 
-			spatialDerekCharacter->AttachTo(spatialMattCharacter);
+			spatialMattCharacter->AttachEntity(spatialDerekCharacter);
 
 			spatialMattCharacter->SetWorldTranslation(Vector3(10.0f, -7.5f, 1.0f));
 

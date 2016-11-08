@@ -52,12 +52,11 @@ namespace MAD
 		}
 	}
 
-	// Attempts at attaching this entity to another entity as a parent. Returns true on success and false on failure
-	bool AEntity::AttachTo(eastl::shared_ptr<AEntity> inParentEntity)
+	bool AEntity::AttachEntity(eastl::shared_ptr<AEntity> inChildEntity)
 	{
-		if (m_rootComponent && inParentEntity)
+		if (m_rootComponent && inChildEntity && inChildEntity->m_rootComponent)
 		{
-			AttachToParent(inParentEntity);
+			AttachChild(inChildEntity);
 
 			return true;
 		}
@@ -141,15 +140,15 @@ namespace MAD
 		}
 	}
 
-	void AEntity::SetRootComponent(eastl::weak_ptr<UComponent> inEntityRootComp)
+	void AEntity::SetRootComponent(eastl::shared_ptr<UComponent> inEntityRootComp)
 	{
 		// We shouldn't be allowed to set a component as the root component if it has a parent component already (?)
-		if (!inEntityRootComp.expired() && !inEntityRootComp.lock()->GetParent())
+		if (inEntityRootComp && !inEntityRootComp->GetParent())
 		{
 			// Validate that this component is actually a component of the entity
 			for (const auto& currentEntityComp : m_entityComponents)
 			{
-				if (currentEntityComp == inEntityRootComp.lock())
+				if (currentEntityComp == inEntityRootComp)
 				{
 					m_rootComponent = currentEntityComp;
 					return;
@@ -158,21 +157,11 @@ namespace MAD
 		}
 	}
 
-	void AEntity::AttachToParent(eastl::shared_ptr<AEntity> inParentEntity)
+	void AEntity::AttachChild(eastl::shared_ptr<AEntity> inChildEntity)
 	{
-		if (m_rootComponent && inParentEntity)
-		{
-			UComponent* parentEntityRootComponent = inParentEntity->GetRootComponent();
-			if (parentEntityRootComponent)
-			{
-				m_rootComponent->m_parentComponent = parentEntityRootComponent;
+		m_rootComponent->AttachComponent(inChildEntity->m_rootComponent);
 
-				// Add this component to the root component's children list so that we can receive spatial transform updates
-				parentEntityRootComponent->m_childComponents.push_back(m_rootComponent);
-
-				m_rootComponent->UpdateWorldTransform();
-			}
-		}
+		m_entityChildren.push_back(inChildEntity);
 	}
 
 	void AEntity::DetachFromParent()
@@ -181,17 +170,12 @@ namespace MAD
 		{
 			// Remove myself from my parent's child list
 			UComponent* parentEntityRoot = m_rootComponent->m_parentComponent;
+			
+			auto childCompFindIter = eastl::find(parentEntityRoot->m_childComponents.cbegin(), parentEntityRoot->m_childComponents.cend(), m_rootComponent);
 
-			MAD_ASSERT_DESC(parentEntityRoot != nullptr, "Error: You shouldn't be trying to detach from a parent if the component doesn't have a parent");
-
-			if (parentEntityRoot)
+			if (childCompFindIter != parentEntityRoot->m_childComponents.cend())
 			{
-				auto childCompFindIter = eastl::find(parentEntityRoot->m_childComponents.cbegin(), parentEntityRoot->m_childComponents.cend(), m_rootComponent);
-
-				if (childCompFindIter != parentEntityRoot->m_childComponents.cend())
-				{
-					parentEntityRoot->m_childComponents.erase(childCompFindIter);
-				}
+				parentEntityRoot->m_childComponents.erase(childCompFindIter);
 			}
 		}
 	}
