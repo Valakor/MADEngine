@@ -14,7 +14,7 @@ namespace MAD
 	public:
 		explicit UObject(OGameWorld* inOwningGameWorld);
 
-		virtual ~UObject() {}
+		virtual ~UObject();
 
 		inline ObjectID GetObjectID() const { return m_objectID; }
 		inline OGameWorld* GetOwningWorld() { return m_owningGameWorld; }

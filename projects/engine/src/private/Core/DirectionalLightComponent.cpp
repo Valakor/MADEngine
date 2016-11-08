@@ -32,5 +32,7 @@ namespace MAD
 		inLoader.GetColor("color", m_directionalLight.m_gpuDirectionalLight.m_lightColor);
 		inLoader.GetVector("direction", m_directionalLight.m_gpuDirectionalLight.m_lightDirection);
 		inLoader.GetFloat("intensity", m_directionalLight.m_gpuDirectionalLight.m_lightIntensity);
+
+		m_directionalLight.m_gpuDirectionalLight.m_lightDirection.Normalize();
 	}
 }

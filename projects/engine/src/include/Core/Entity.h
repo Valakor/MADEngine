@@ -23,6 +23,7 @@ namespace MAD
 		using ConstComponentContainer = eastl::vector<eastl::weak_ptr<const UComponent>>;
 	public:
 		explicit AEntity(OGameWorld* inOwningWorld);
+		virtual ~AEntity() {}
 
 		virtual void OnBeginPlay() {}
 		virtual void PostInitializeComponents();

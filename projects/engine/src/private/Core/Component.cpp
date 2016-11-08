@@ -1,5 +1,7 @@
 #include "Core/Component.h"
+
 #include "Core/Entity.h"
+#include "Core/GameInput.h"
 
 namespace MAD
 {
@@ -7,6 +9,7 @@ namespace MAD
 
 	UComponent::UComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
+		, m_ownerPtr(nullptr) { }
 		, m_parentComponent(nullptr)
 	{}
 
@@ -131,7 +134,6 @@ namespace MAD
 
 		UpdateChildWorldTransforms();
 	}
-
 	void UComponent::UpdateChildWorldTransforms()
 	{
 		for (auto& currentChildComp : m_childComponents)

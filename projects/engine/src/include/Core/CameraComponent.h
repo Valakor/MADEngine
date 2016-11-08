@@ -12,7 +12,6 @@ namespace MAD
 		MAD_DECLARE_PRIORITIZED_COMPONENT(CCameraComponent, UComponent, EPriorityLevelReference::EPriorityLevel_Physics + 1)
 	public:
 		explicit CCameraComponent(OGameWorld* inOwningWorld);
-		virtual ~CCameraComponent();
 
 		virtual void Load(const UGameWorldLoader& inLoader) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
