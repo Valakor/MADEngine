@@ -17,13 +17,13 @@ namespace MAD
 		auto clientWindow = gEngine->GetWindow().GetClientSize();
 		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
 
-		m_cameraPos = m_cameraPosInitial = Vector3::Zero;
-		m_cameraRot = m_cameraRotInitial = Quaternion::Identity;
+		m_cameraPosInitial = Vector3::Zero;
+		m_cameraRotInitial = Quaternion::Identity;
 
 		m_cameraInstance.m_verticalFOV = ConvertToRadians(60.0f);
 		m_cameraInstance.m_nearPlaneDistance = 3.0f;
 		m_cameraInstance.m_farPlaneDistance = 10000.0f;
-		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRot) * Matrix::CreateTranslation(m_cameraPos);
+		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRotInitial) * Matrix::CreateTranslation(m_cameraPosInitial);
 		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
 		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
 
@@ -47,8 +47,8 @@ namespace MAD
 	{
 		(void)inDeltaTime;
 
-		Matrix translation = Matrix::CreateTranslation(m_cameraPos);
-		Matrix rotation = Matrix::CreateFromQuaternion(m_cameraRot);
+		Matrix translation = Matrix::CreateTranslation(GetWorldTranslation());
+		Matrix rotation = Matrix::CreateFromQuaternion(GetWorldRotation());
 
 		auto clientWindow = gEngine->GetWindow().GetClientSize();
 		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
@@ -70,11 +70,9 @@ namespace MAD
 		inLoader.GetFloat("fov", m_cameraInstance.m_verticalFOV);
 		inLoader.GetFloat("near", m_cameraInstance.m_nearPlaneDistance);
 		inLoader.GetFloat("far", m_cameraInstance.m_farPlaneDistance);
-		inLoader.GetVector("position", m_cameraPos);
-		inLoader.GetRotation("rotation", m_cameraRot);
 
-		m_cameraPosInitial = m_cameraPos;
-		m_cameraRotInitial = m_cameraRot;
+		m_cameraPosInitial = GetWorldTranslation();
+		m_cameraRotInitial = GetWorldRotation();
 
 		m_cameraInstance.m_verticalFOV = ConvertToRadians(m_cameraInstance.m_verticalFOV);
 		UpdateComponent(0.0f);
@@ -82,21 +80,19 @@ namespace MAD
 
 	void CCameraComponent::MoveRight(float inVal)
 	{
-		Vector3 right;
-		Vector3::Transform(Vector3::Right, m_cameraRot, right);
-		m_cameraPos += right * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed;
+		Vector3 right = Vector3::Transform(Vector3::Right, GetWorldRotation());
+		SetWorldTranslation(GetWorldTranslation() + right * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed);
 	}
 
 	void CCameraComponent::MoveForward(float inVal)
 	{
-		Vector3 forward;
-		Vector3::Transform(Vector3::Forward, m_cameraRot, forward);
-		m_cameraPos += forward * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed;
+		Vector3 forward = Vector3::Transform(Vector3::Forward, GetWorldRotation());
+		SetWorldTranslation(GetWorldTranslation() + forward * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed);
 	}
 
 	void CCameraComponent::MoveUp(float inVal)
 	{
-		m_cameraPos += Vector3::Up * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed;
+		SetWorldTranslation(GetWorldTranslation() +  Vector3::Up * inVal * gEngine->GetDeltaTime() * m_cameraMoveSpeed);
 	}
 
 	void CCameraComponent::LookRight(float inVal)
@@ -104,7 +100,7 @@ namespace MAD
 		if (m_mouseRightClickDown)
 		{
 			auto rot = Quaternion::CreateFromAxisAngle(Vector3::Up, -inVal * gEngine->GetDeltaTime() * m_cameraLookSpeed);
-			m_cameraRot *= rot;
+			SetWorldRotation(GetWorldRotation() * rot);
 		}
 	}
 
@@ -112,10 +108,9 @@ namespace MAD
 	{
 		if (m_mouseRightClickDown)
 		{
-			Vector3 right;
-			Vector3::Transform(Vector3::Right, m_cameraRot, right);
+			Vector3 right = Vector3::Transform(Vector3::Right, GetWorldRotation());
 			auto rot = Quaternion::CreateFromAxisAngle(right, -inVal * gEngine->GetDeltaTime() * m_cameraLookSpeed);
-			m_cameraRot *= rot;
+			SetWorldRotation(GetWorldRotation() * rot);
 		}
 	}
 
@@ -133,7 +128,7 @@ namespace MAD
 
 	void CCameraComponent::OnReset()
 	{
-		m_cameraPos = m_cameraPosInitial;
-		m_cameraRot = m_cameraRotInitial;
+		SetWorldTranslation(m_cameraPosInitial);
+		SetWorldRotation(m_cameraRotInitial);
 	}
 }

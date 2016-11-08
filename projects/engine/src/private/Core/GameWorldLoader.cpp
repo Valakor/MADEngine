@@ -197,6 +197,8 @@ namespace MAD
 			return false;
 		}
 
+		eastl::shared_ptr<UComponent> comp = comp_weak.lock();
+
 		// Load the component's properties
 		auto props_iter = inRoot.FindMember("properties");
 		if (props_iter == inRoot.MemberEnd() || !props_iter->value.IsObject())
@@ -205,9 +207,30 @@ namespace MAD
 			return false;
 		}
 
+		// Load the component's transform
+		{
+			Vector3 position;
+			if (GetVector("position", position))
+			{
+				comp->SetRelativeTranslation(position);
+			}
+
+			Quaternion rotation;
+			if (GetRotation("rotation", rotation))
+			{
+				comp->SetRelativeRotation(rotation);
+			}
+
+			float scale;
+			if (GetFloat("scale", scale))
+			{
+				comp->SetRelativeScale(scale);
+			}
+		}
+
 		// Update the component's properties
 		m_currentValue = &props_iter->value;
-		comp_weak.lock()->Load(*this);
+		comp->Load(*this);
 
 		return true;
 	}
@@ -246,6 +269,27 @@ namespace MAD
 		{
 			LOG(LogGameWorldLoader, Warning, "\t\tNew component `%s`: Failed to add new component to entity\n", compTypeName.c_str());
 			return false;
+		}
+
+		// Load the component's transform
+		{
+			Vector3 position;
+			if (GetVector("position", position))
+			{
+				comp->SetRelativeTranslation(position);
+			}
+
+			Quaternion rotation;
+			if (GetRotation("rotation", rotation))
+			{
+				comp->SetRelativeRotation(rotation);
+			}
+
+			float scale;
+			if (GetFloat("scale", scale))
+			{
+				comp->SetRelativeScale(scale);
+			}
 		}
 
 		// Update the component's properties

@@ -31,9 +31,6 @@ namespace MAD
 
 		SCameraInstance m_cameraInstance;
 
-		Vector3 m_cameraPos;
-		Quaternion m_cameraRot;
-
 		Vector3 m_cameraPosInitial;
 		Quaternion m_cameraRotInitial;
 

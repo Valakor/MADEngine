@@ -23,6 +23,8 @@ namespace MAD
 
 		if (m_pointLight.m_isLightEnabled)
 		{
+			m_pointLight.m_gpuPointLight.m_lightPosition = GetWorldTranslation();
+
 			URenderer& targetRenderer = gEngine->GetRenderer();
 			targetRenderer.QueuePointLight(m_pointLight.m_gpuPointLight);
 		}
@@ -32,7 +34,6 @@ namespace MAD
 	{
 		inLoader.GetBool("enabled", m_pointLight.m_isLightEnabled);
 		inLoader.GetColor("color", m_pointLight.m_gpuPointLight.m_lightColor);
-		inLoader.GetVector("position", m_pointLight.m_gpuPointLight.m_lightPosition);
 		inLoader.GetFloat("intensity", m_pointLight.m_gpuPointLight.m_lightIntensity);
 		inLoader.GetFloat("innerRadius", m_pointLight.m_gpuPointLight.m_lightInnerRadius);
 		inLoader.GetFloat("outerRadius", m_pointLight.m_gpuPointLight.m_lightOuterRadius);

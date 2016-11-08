@@ -40,6 +40,7 @@ namespace MAD
 
 		memset(&constructedDrawItems, 0, sizeof(constructedDrawItems));
 
+		m_meshInstance.m_perDrawConstants.m_objectToWorldMatrix = GetWorldTransform().GetMatrix();
 		m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, m_meshInstance.m_perDrawConstants);
 
 		// Set the draw item properties
