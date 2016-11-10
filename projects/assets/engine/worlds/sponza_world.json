@@ -1,5 +1,5 @@
 {
-	"worldName": "test_world",
+	"worldName": "sponza_test",
 	"ambientColor": [0.2, 0.2, 0.2, 1.0],
 	"backBufferColor": [0.529, 0.808, 0.922, 1.0],
 	"layers": [
@@ -19,9 +19,31 @@
 							}
 						},
 						{
+							"type": "CPointLightComponent",
+							"position": [1100.0, 150.0, 50.0],
+							"properties": {
+								"enabled": true,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"intensity": 1.5,
+								"innerRadius": 0.0,
+								"outerRadius": 500.0
+							}
+						},
+						{
+							"type": "CPointLightComponent",
+							"position": [-1200.0, 150.0, 50.0],
+							"properties": {
+								"enabled": true,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"intensity": 1.5,
+								"innerRadius": 0.0,
+								"outerRadius": 500.0
+							}
+						},
+						{
 							"type": "CCameraComponent",
-							"position": [0.0, 300.0, 500.0],
-							"rotation": [-30.0, 0.0, 0.0],
+							"position": [0.0, 150.0, 50.0],
+							"rotation": [0.0, -90.0, 0.0],
 							"properties": {
 								"fov": 60.0,
 								"near": 3.0,
@@ -29,29 +51,10 @@
 							}
 						},
 						{
-							"scale": 50.0,
 							"type": "CMeshComponent",
 							"properties": {
 								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"position": [150.0, 0.0, 0.0],
-							"scale": 50.0,
-							"type": "CMeshComponent",
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"position": [-150.0, 0.0, 0.0],
-							"scale": 50.0,
-							"type": "CMeshComponent",
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
+								"mesh": "engine\\meshes\\sponza\\sponza.obj"
 							}
 						}
 					],
