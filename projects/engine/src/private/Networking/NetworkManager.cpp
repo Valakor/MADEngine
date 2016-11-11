@@ -43,6 +43,11 @@ namespace MAD
 
 		if (m_netMode == ENetMode::Client)
 		{
+			// Create local player
+			eastl::shared_ptr<ONetworkPlayer> localPlayer = CreateDefaultObject<ONetworkPlayer>(nullptr);
+			SetPlayerID(localPlayer, InvalidPlayerID, true);
+
+			// Connect to server if specified on commandline
 			eastl::string connectString;
 			if (SParse::Get(SCmdLine::Get(), "-ServerEndpoint=", connectString))
 			{
@@ -80,36 +85,34 @@ namespace MAD
 
 		if (m_server)
 		{
-			// Insert logic to create message for RPCs, state updates, etc.
+			m_server->AdvanceTime(gameTime);
+			m_serverTransport->AdvanceTime(gameTime);
 
-			m_server->SendPackets();
-			m_serverTransport->WritePackets();
 			m_serverTransport->ReadPackets();
 			m_server->ReceivePackets();
 			m_server->CheckForTimeOut();
-			m_server->AdvanceTime(gameTime);
-			m_serverTransport->AdvanceTime(gameTime);
+
+			// Insert logic to create message for RPCs, state updates, etc.
+			m_server->SendPackets();
+			m_serverTransport->WritePackets();
 		}
 		else if (m_client)
 		{
-			m_client->SendPackets();
-			m_clientTransport->WritePackets();
-			m_clientTransport->ReadPackets();
-			m_client->ReceivePackets();
-			m_client->CheckForTimeOut();
-			
-			if (m_client->IsDisconnected())
-			{
-				// ??
-			}
-
 			m_client->AdvanceTime(gameTime);
 			m_clientTransport->AdvanceTime(gameTime);
 
-			if (m_client->ConnectionFailed())
+			m_clientTransport->ReadPackets();
+			m_client->ReceivePackets();
+
+			m_client->CheckForTimeOut();
+			
+			if (m_client->IsConnected())
 			{
-				// ??
+				ClientReceiveMessages();
 			}
+
+			m_client->SendPackets();
+			m_clientTransport->WritePackets();
 		}
 	}
 
@@ -141,6 +144,39 @@ namespace MAD
 		m_clientTransport = nullptr;
 
 		ShutdownYojimbo();
+	}
+
+	void UNetworkManager::OnLocalPlayerConnected(NetworkPlayerID inNewID)
+	{
+		auto localPlayer = m_localPlayer.lock();
+		SetPlayerID(localPlayer, inNewID, true);
+	}
+
+	void UNetworkManager::OnLocalPlayerDisconnectd()
+	{
+		auto localPlayer = m_localPlayer.lock();
+		m_players.clear();
+		SetPlayerID(localPlayer, InvalidPlayerID, true);
+	}
+
+	void UNetworkManager::OnRemotePlayerConnected(NetworkPlayerID inNewID)
+	{
+		AddConnectedPlayer(inNewID);
+	}
+
+	void UNetworkManager::OnRemotePlayerDisconnected(NetworkPlayerID inID)
+	{
+		MAD_ASSERT_DESC(m_localPlayer.expired() || m_localPlayer.lock()->GetPlayerID() != inID, "The remote disconnected player cannot be this local player");
+
+		auto erased = m_players.erase(inID);
+		if (!erased)
+		{
+			LOG(LogNetworkManager, Warning, "[OnRemotePlayerDisconnected] Remote player with ID %d not found\n", inID);
+		}
+		else
+		{
+			LOG(LogNetworkManager, Log, "[OnRemotePlayerDisconnected] Remote player %d disconnected\n", inID);
+		}
 	}
 
 	bool UNetworkManager::StartServer(int port)
@@ -177,5 +213,66 @@ namespace MAD
 		m_client->InsecureConnect(inServerAddress);
 
 		return true;
+	}
+
+	void UNetworkManager::ClientReceiveMessages()
+	{
+		MAD_ASSERT_DESC(m_client && m_client->IsConnected(), "Need a connected client to call this");
+
+		while (auto msg = m_client->ReceiveMsg())
+		{
+			switch (msg->GetType())
+			{
+			case OTHER_PLAYER_CONNECTION_CHANGED:
+			{
+				MOtherPlayerConnectionChanged* message = static_cast<MOtherPlayerConnectionChanged*>(msg);
+				if (message->m_connect)
+				{
+					OnRemotePlayerConnected(message->m_playerID);
+				}
+				else
+				{
+					OnRemotePlayerDisconnected(message->m_playerID);
+				}
+				break;
+			}
+			}
+
+			m_client->ReleaseMsg(msg);
+		}
+	}
+
+	eastl::weak_ptr<ONetworkPlayer> UNetworkManager::GetPlayerById(NetworkPlayerID inID) const
+	{
+		auto iter = m_players.find(inID);
+		return (iter != m_players.end()) ? iter->second : nullptr;
+	}
+
+	void UNetworkManager::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer)
+	{
+		MAD_ASSERT_DESC(m_players.find(inPlayerID) == m_players.end(), "Cannot assign a player to an already mapped playerID");
+
+		auto iter = m_players.find(inPlayer->GetPlayerID());
+		if (iter != m_players.end())
+		{
+			m_players.erase(iter);
+		}
+
+		inPlayer->SetPlayerID(inPlayerID);
+		inPlayer->SetIsLocalPlayer(inIsLocalPlayer);
+
+		m_players.insert({ inPlayerID, inPlayer });
+
+		if (inIsLocalPlayer)
+		{
+			m_localPlayer = inPlayer;
+		}
+	}
+
+	void UNetworkManager::AddConnectedPlayer(NetworkPlayerID inNewPlayerID)
+	{
+		auto newPlayer = CreateDefaultObject<ONetworkPlayer>(nullptr);
+		SetPlayerID(newPlayer, inNewPlayerID, false);
+		LOG(LogNetworkManager, Log, "[AddConnectedPlayer] Remote player connected with id %d\n", inNewPlayerID);
 	}
 }

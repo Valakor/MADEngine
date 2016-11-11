@@ -114,7 +114,7 @@ namespace MAD
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
-		eastl::shared_ptr<ComponentType> newComponent = inTypeInfo.CreateDefaultObject<ComponentType>(GetOwningWorld());
+		eastl::shared_ptr<ComponentType> newComponent = CreateDefaultObject<ComponentType>(inTypeInfo, GetOwningWorld());;
 
 		newComponent->SetOwningEntity(*this);
 		

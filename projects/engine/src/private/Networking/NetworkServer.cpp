@@ -2,6 +2,7 @@
 
 #include <time.h>
 
+#include "Core/GameEngine.h"
 #include "Misc/Logging.h"
 
 using namespace yojimbo;
@@ -127,6 +128,21 @@ namespace MAD
 		char addressString[MaxAddressLength];
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientConnect] Client %d connected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
+
+		UNetworkManager& netMananager = gEngine->GetNetworkManager();
+		netMananager.OnRemotePlayerConnected(clientIndex);
+
+		for (auto iter = netMananager.PlayersBegin(); iter != netMananager.PlayersEnd(); ++iter)
+		{
+			auto idx = iter->first;
+			if (idx != clientIndex)
+			{
+				MOtherPlayerConnectionChanged* msg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
+				msg->m_connect = true;
+				msg->m_playerID = clientIndex;
+				SendMsg(idx, msg);
+			}
+		}
 	}
 
 	void UNetworkServer::OnClientDisconnect(int clientIndex)
@@ -134,6 +150,21 @@ namespace MAD
 		char addressString[MaxAddressLength];
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientDisconnect] Client %d disconnected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
+
+		UNetworkManager& netMananager = gEngine->GetNetworkManager();
+		netMananager.OnRemotePlayerDisconnected(clientIndex);
+
+		for (auto iter = netMananager.PlayersBegin(); iter != netMananager.PlayersEnd(); ++iter)
+		{
+			auto idx = iter->first;
+			if (idx != clientIndex)
+			{
+				MOtherPlayerConnectionChanged* msg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
+				msg->m_connect = false;
+				msg->m_playerID = clientIndex;
+				SendMsg(idx, msg);
+			}
+		}
 	}
 
 	void UNetworkServer::OnClientError(int clientIndex, ServerClientError error)

@@ -1,5 +1,6 @@
 #include "Networking/NetworkClient.h"
 
+#include "Core/GameEngine.h"
 #include "Misc/Logging.h"
 
 using namespace yojimbo;
@@ -12,7 +13,7 @@ namespace MAD
 	{
 		char addressString[MaxAddressLength];
 		address.ToString(addressString, sizeof(addressString));
-		LOG(LogNetworkClient, Log, "[OnConnect] Client connecting to %s\n", addressString);
+		LOG(LogNetworkClient, Log, "[OnConnect] Client connecting to %s...\n", addressString);
 	}
 
 	void UNetworkClient::OnClientStateChange(int previousState, int currentState)
@@ -22,16 +23,23 @@ namespace MAD
 		const char* currentStateString = GetClientStateName(currentState);
 		LOG(LogNetworkClient, Log, "[OnClientStateChange] Client changed state from '%s' to '%s'\n", previousStateString, currentStateString);
 
+		UNetworkManager& netManager = gEngine->GetNetworkManager();
+
 		if (currentState == CLIENT_STATE_CONNECTED)
 		{
 			LOG(LogNetworkClient, Log, "[OnClientStateChange] Client connected as client %d\n", GetClientIndex());
-			printf("client connected as client %d\n", GetClientIndex());
+			netManager.OnLocalPlayerConnected(GetClientIndex());
+		}
+		else if (currentState <= CLIENT_STATE_DISCONNECTED)
+		{
+			LOG(LogNetworkClient, Log, "[OnClientStateChange] Client %d disconnected\n", GetClientIndex());
+			netManager.OnLocalPlayerDisconnectd();
 		}
 	}
 
 	void UNetworkClient::OnDisconnect()
 	{
-		LOG(LogNetworkClient, Log, "[OnDisconnect] Client disconnected\n");
+		LOG(LogNetworkClient, Log, "[OnDisconnect] Client disconnecting...\n");
 	}
 
 	void UNetworkClient::OnPacketSent(int packetType, const Address& to, bool immediate)
