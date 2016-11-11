@@ -129,13 +129,13 @@ namespace MAD
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientConnect] Client %d connected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
 
-		UNetworkManager& netMananager = gEngine->GetNetworkManager();
-		netMananager.OnRemotePlayerConnected(clientIndex);
+		UNetworkManager& netManager = gEngine->GetNetworkManager();
+		netManager.OnRemotePlayerConnected(clientIndex);
 
 		MInitializeNewPlayer* initMsg = static_cast<MInitializeNewPlayer*>(CreateMsg(clientIndex, INITIALIZE_NEW_PLAYER));
 
 		// Notify other clients about this new client
-		for (auto iter = netMananager.PlayersBegin(); iter != netMananager.PlayersEnd(); ++iter)
+		for (auto iter = netManager.PlayersBegin(); iter != netManager.PlayersEnd(); ++iter)
 		{
 			auto idx = iter->first;
 			if (idx != clientIndex)
@@ -159,10 +159,10 @@ namespace MAD
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientDisconnect] Client %d disconnected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
 
-		UNetworkManager& netMananager = gEngine->GetNetworkManager();
-		netMananager.OnRemotePlayerDisconnected(clientIndex);
+		UNetworkManager& netManager = gEngine->GetNetworkManager();
+		netManager.OnRemotePlayerDisconnected(clientIndex);
 
-		for (auto iter = netMananager.PlayersBegin(); iter != netMananager.PlayersEnd(); ++iter)
+		for (auto iter = netManager.PlayersBegin(); iter != netManager.PlayersEnd(); ++iter)
 		{
 			auto idx = iter->first;
 			if (idx != clientIndex)
