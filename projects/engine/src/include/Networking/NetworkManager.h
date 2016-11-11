@@ -25,6 +25,8 @@ namespace MAD
 		eastl::weak_ptr<ONetworkPlayer> GetLocalPlayer() const { return m_localPlayer; }
 		eastl::weak_ptr<ONetworkPlayer> GetPlayerById(NetworkPlayerID inID) const;
 
+		size_t GetNumPlayers() const { return m_players.size(); }
+
 		void OnLocalPlayerConnected(NetworkPlayerID inNewID);
 		void OnLocalPlayerDisconnectd();
 

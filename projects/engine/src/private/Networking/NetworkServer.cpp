@@ -132,17 +132,25 @@ namespace MAD
 		UNetworkManager& netMananager = gEngine->GetNetworkManager();
 		netMananager.OnRemotePlayerConnected(clientIndex);
 
+		MInitializeNewPlayer* initMsg = static_cast<MInitializeNewPlayer*>(CreateMsg(clientIndex, INITIALIZE_NEW_PLAYER));
+
+		// Notify other clients about this new client
 		for (auto iter = netMananager.PlayersBegin(); iter != netMananager.PlayersEnd(); ++iter)
 		{
 			auto idx = iter->first;
 			if (idx != clientIndex)
 			{
-				MOtherPlayerConnectionChanged* msg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
-				msg->m_connect = true;
-				msg->m_playerID = clientIndex;
-				SendMsg(idx, msg);
+				MOtherPlayerConnectionChanged* connectMsg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
+				connectMsg->m_connect = true;
+				connectMsg->m_playerID = clientIndex;
+				SendMsg(idx, connectMsg);
+
+				initMsg->m_otherPlayers.push_back(idx);
 			}
 		}
+
+		// Tell this new client about other existing clients on the server
+		SendMsg(clientIndex, initMsg);
 	}
 
 	void UNetworkServer::OnClientDisconnect(int clientIndex)

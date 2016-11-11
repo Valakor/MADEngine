@@ -236,6 +236,13 @@ namespace MAD
 				}
 				break;
 			}
+			case INITIALIZE_NEW_PLAYER:
+				MInitializeNewPlayer* message = static_cast<MInitializeNewPlayer*>(msg);
+				for (auto playerID : message->m_otherPlayers)
+				{
+					OnRemotePlayerConnected(playerID);
+				}
+				break;
 			}
 
 			m_client->ReleaseMsg(msg);
