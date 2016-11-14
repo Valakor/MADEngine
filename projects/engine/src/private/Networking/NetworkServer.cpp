@@ -13,6 +13,7 @@ namespace MAD
 
 	void UNetworkServer::OnStart(int maxClients)
 	{
+		(void)maxClients;
 		LOG(LogNetworkServer, Log, "[OnStart] MaxClients=%i\n", maxClients);
 	}
 
@@ -23,6 +24,9 @@ namespace MAD
 
 	void UNetworkServer::OnConnectionRequest(ServerConnectionRequestAction action, const ConnectionRequestPacket& packet, const Address& address, const ConnectToken& connectToken)
 	{
+		(void)packet;
+		(void)connectToken;
+
 		char addressString[MaxAddressLength];
 		address.ToString(addressString, sizeof(addressString));
 
@@ -88,6 +92,7 @@ namespace MAD
 	void UNetworkServer::OnChallengeResponse(ServerChallengeResponseAction action, const ChallengeResponsePacket& packet, const Address& address, const ChallengeToken& challengeToken)
 	{
 		(void)packet;
+		(void)challengeToken;
 
 		char addressString[MaxAddressLength];
 		address.ToString(addressString, sizeof(addressString));
@@ -177,28 +182,29 @@ namespace MAD
 
 	void UNetworkServer::OnClientError(int clientIndex, ServerClientError error)
 	{
-		auto clientId = GetClientId(clientIndex);
+		(void)clientIndex;
+		(void)error;
 
 		switch (error)
 		{
 		case SERVER_CLIENT_ERROR_TIMEOUT:
-			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d timed out (client id = %.16" PRIx64 ")\n", clientIndex, clientId);
+			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d timed out (client id = %.16" PRIx64 ")\n", clientIndex, GetClientId(clientIndex));
 			break;
 
 		case SERVER_CLIENT_ERROR_ALLOCATOR:
-			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced an allocator error (client id = %.16" PRIx64 ")\n", clientIndex, clientId);
+			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced an allocator error (client id = %.16" PRIx64 ")\n", clientIndex, GetClientId(clientIndex));
 			break;
 
 		case SERVER_CLIENT_ERROR_CONNECTION:
-			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced a connection error (client id = %.16" PRIx64 ")\n", clientIndex, clientId);
+			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced a connection error (client id = %.16" PRIx64 ")\n", clientIndex, GetClientId(clientIndex));
 			break;
 
 		case SERVER_CLIENT_ERROR_MESSAGE_FACTORY:
-			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced a message factory error (client id = %.16" PRIx64 ")\n", clientIndex, clientId);
+			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced a message factory error (client id = %.16" PRIx64 ")\n", clientIndex, GetClientId(clientIndex));
 			break;
 
 		case SERVER_CLIENT_ERROR_PACKET_FACTORY:
-			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced a packet factory error (client id = %.16" PRIx64 ")\n", clientIndex, clientId);
+			LOG(LogNetworkServer, Warning, "[OnClientError] Client %d experienced a packet factory error (client id = %.16" PRIx64 ")\n", clientIndex, GetClientId(clientIndex));
 			break;
 
 		default:
@@ -208,6 +214,8 @@ namespace MAD
 
 	void UNetworkServer::OnPacketSent(int packetType, const Address& to, bool immediate)
 	{
+		(void)immediate;
+
 		const char* packetTypeString = nullptr;
 
 		switch (packetType)

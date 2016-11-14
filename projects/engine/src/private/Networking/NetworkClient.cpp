@@ -18,10 +18,12 @@ namespace MAD
 
 	void UNetworkClient::OnClientStateChange(int previousState, int currentState)
 	{
-		assert(previousState != currentState);
-		const char* previousStateString = GetClientStateName(previousState);
-		const char* currentStateString = GetClientStateName(currentState);
-		LOG(LogNetworkClient, Log, "[OnClientStateChange] Client changed state from '%s' to '%s'\n", previousStateString, currentStateString);
+		(void)previousState;
+		(void)currentState;
+
+		MAD_ASSERT_DESC(previousState != currentState, "This should only be called when a client's state actually changes");
+
+		LOG(LogNetworkClient, Log, "[OnClientStateChange] Client changed state from '%s' to '%s'\n", GetClientStateName(previousState), GetClientStateName(currentState));
 
 		UNetworkManager& netManager = gEngine->GetNetworkManager();
 
@@ -44,6 +46,8 @@ namespace MAD
 
 	void UNetworkClient::OnPacketSent(int packetType, const Address& to, bool immediate)
 	{
+		(void)immediate;
+
 		const char* packetTypeString = nullptr;
 
 		switch (packetType)
