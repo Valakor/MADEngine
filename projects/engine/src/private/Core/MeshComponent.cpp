@@ -5,7 +5,6 @@
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/DrawItem.h"
-#include "Misc/AssetCache.h"
 #include "Misc/Logging.h"
 
 namespace MAD
@@ -57,7 +56,7 @@ namespace MAD
 		eastl::string meshName;
 		if (inLoader.GetString("mesh", meshName))
 		{
-			m_meshInstance.m_mesh = UAssetCache::Load<UMesh>(meshName);
+			m_meshInstance.m_mesh = UMesh::Load(meshName);
 		}
 	}
 }

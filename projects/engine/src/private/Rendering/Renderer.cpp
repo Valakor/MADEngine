@@ -4,7 +4,6 @@
 
 #include "Core/GameWindow.h"
 #include "Misc/ProgramPermutor.h"
-#include "Misc/AssetCache.h"
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/GraphicsDriver.h"
@@ -191,7 +190,7 @@ namespace MAD
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)], "Specular Buffer");
 #endif
 
-		m_gBufferPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inGBufferProgramPath);
+		m_gBufferPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inGBufferProgramPath);
 
 		m_gBufferPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
 	}
@@ -206,7 +205,7 @@ namespace MAD
 
 		m_dirLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
 
-		m_dirLightingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inDirLightingPassProgramPath);
+		m_dirLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inDirLightingPassProgramPath);
 
 		m_dirLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
 	}
@@ -224,7 +223,7 @@ namespace MAD
 			m_dirShadowMappingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateDepthRasterizerState();
 		}
 
-		m_dirShadowMappingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inProgramPath);
+		m_dirShadowMappingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
 	}
 
 	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
@@ -237,7 +236,7 @@ namespace MAD
 
 		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
 
-		m_pointLightingPassDescriptor.m_renderPassProgram = UAssetCache::Load<URenderPassProgram>(inLightingPassProgramPath);
+		m_pointLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inLightingPassProgramPath);
 
 		m_pointLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
 	}
@@ -354,7 +353,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
 		if (!loadedBackBufferProgram)
 		{
-			backBufferProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\BackBufferFinalize.hlsl");
+			backBufferProgram = URenderPassProgram::Load("engine\\shaders\\BackBufferFinalize.hlsl");
 			loadedBackBufferProgram = true;
 		}
 
@@ -376,7 +375,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
 		if (!loadedCopyTextureProgram)
 		{
-			copyTextureProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\CopyTexture.hlsl");
+			copyTextureProgram = URenderPassProgram::Load("engine\\shaders\\CopyTexture.hlsl");
 			loadedCopyTextureProgram = true;
 		}
 
@@ -384,7 +383,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> depthProgram;
 		if (!loadedDepthProgram)
 		{
-			depthProgram = UAssetCache::Load<URenderPassProgram>("engine\\shaders\\RenderDepth.hlsl");
+			depthProgram = URenderPassProgram::Load("engine\\shaders\\RenderDepth.hlsl");
 			loadedDepthProgram = true;
 		}
 
@@ -444,6 +443,9 @@ namespace MAD
 				break;
 			case ETextureSlot::OpacityMask: // Do you have an opacity mask?
 				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_OpacityMask);
+				break;
+			case ETextureSlot::NormalMap: // Do you have a normal map?
+				outputProgramId |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_NormalMap);
 				break;
 			}
 		}

@@ -28,8 +28,6 @@ namespace MAD
 				ULog::Get().LogF(LogError, ELogVerbosity::Error, short_file_name, inLine, szBuffer);
 			}
 
-			assert(false);
-
 			_snprintf_s(szBuffer, 1024, _TRUNCATE,
 						 "Assertion Failed!\n\nDescription: %s\n\nExpression: %s\nFile: %s\nLine: %d\n\nPress Retry to debug.",
 						 inDesc, inExprStr, inFileName, inLine);

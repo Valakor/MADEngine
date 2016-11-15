@@ -71,6 +71,9 @@ namespace MAD
 		inLoader.GetFloat("near", m_cameraInstance.m_nearPlaneDistance);
 		inLoader.GetFloat("far", m_cameraInstance.m_farPlaneDistance);
 
+		inLoader.GetFloat("moveSpeed", m_cameraMoveSpeed);
+		inLoader.GetFloat("lookSpeed", m_cameraLookSpeed);
+
 		m_cameraPosInitial = GetWorldTranslation();
 		m_cameraRotInitial = GetWorldRotation();
 

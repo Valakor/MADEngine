@@ -29,11 +29,16 @@ namespace MAD
 	public:
 		static SMeshInstance CreatePrimitivePlane();
 
+		/*
+		* Loads a mesh at the given path. The path should be relative to the assets root directory. Internally uses a cache
+		* to ensure meshes are only loaded once. Returns null if the mesh cannot be loaded.
+		*/
+		static eastl::shared_ptr<UMesh> Load(const eastl::string& inRelativePath);
+
 		void BuildDrawItems(eastl::vector<struct SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const;
 
 	//private:
-		friend class UAssetCache;
-		static eastl::shared_ptr<UMesh> Load(const eastl::string& inPath);
+		static eastl::shared_ptr<UMesh> Load_Internal(const eastl::string& inRelativePath);
 
 		eastl::vector<SSubMesh> m_subMeshes;
 		eastl::vector<UMaterial> m_materials;
@@ -42,10 +47,12 @@ namespace MAD
 
 		eastl::vector<Vector3> m_positions;
 		eastl::vector<Vector3> m_normals;
+		eastl::vector<Vector4> m_tangents;
 		eastl::vector<Vector2> m_texCoords;
 
 		UVertexArray m_gpuPositions;
 		UVertexArray m_gpuNormals;
+		UVertexArray m_gpuTangents;
 		UVertexArray m_gpuTexCoords;
 
 		eastl::vector<Index_t> m_indexBuffer;

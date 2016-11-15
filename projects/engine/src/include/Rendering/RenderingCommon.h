@@ -32,6 +32,7 @@ namespace MAD
 		SpecularMap,
 		EmissiveMap,
 		OpacityMask,
+		NormalMap,
 
 		// ------------- Defined by renderer -------------------
 		LightingBuffer,
@@ -72,8 +73,8 @@ namespace MAD
 	{
 		Position = 0,
 		Normal,
-		UV,
 		Tangent,
+		UV,
 
 		MAX
 	};

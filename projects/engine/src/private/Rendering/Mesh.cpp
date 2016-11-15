@@ -58,6 +58,25 @@ namespace MAD
 		return retInstance;
 	}
 
+	eastl::shared_ptr<UMesh> UMesh::Load(const eastl::string& inRelativePath)
+	{
+		if (auto cachedMesh = UAssetCache::GetCachedResource<UMesh>(inRelativePath))
+		{
+			return cachedMesh;
+		}
+
+		auto mesh = Load_Internal(inRelativePath);
+		if (!mesh)
+		{
+			LOG(LogDefault, Warning, "Failed to load mesh: `%s`\n", inRelativePath.c_str());
+			return nullptr;
+		}
+
+		LOG(LogDefault, Log, "Loaded mesh `%s`\n", inRelativePath.c_str());
+		UAssetCache::InsertResource<UMesh>(inRelativePath, mesh);
+		return mesh;
+	}
+
 	void UMesh::BuildDrawItems(eastl::vector<SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const
 	{
 		const size_t subMeshCount = m_subMeshes.size();
@@ -88,6 +107,11 @@ namespace MAD
 				currentDrawItem.m_vertexBuffers.push_back(m_gpuNormals);
 			}
 
+			if (!m_gpuTangents.Empty() && currentMaterial.m_normalMap.GetTexureResourceId().IsValid())
+			{
+				currentDrawItem.m_vertexBuffers.push_back(m_gpuTangents);
+			}
+
 			if (!m_gpuTexCoords.Empty())
 			{
 				currentDrawItem.m_vertexBuffers.push_back(m_gpuTexCoords);
@@ -106,6 +130,7 @@ namespace MAD
 			const SShaderResourceId& specularTextureResource = currentMaterial.m_specularTex.GetTexureResourceId();
 			const SShaderResourceId& emissiveTextureResource = currentMaterial.m_emissiveTex.GetTexureResourceId();
 			const SShaderResourceId& opacityMaskTextureResource = currentMaterial.m_opacityMask.GetTexureResourceId();
+			const SShaderResourceId& normalMapTextureResource = currentMaterial.m_normalMap.GetTexureResourceId();
 
 			if (diffuseTextureResource.IsValid())
 			{
@@ -127,32 +152,62 @@ namespace MAD
 				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::OpacityMask, opacityMaskTextureResource);
 			}
 
+			if (normalMapTextureResource.IsValid())
+			{
+				currentDrawItem.m_shaderResources.emplace_back(ETextureSlot::NormalMap, normalMapTextureResource);
+			}
+
 			inOutTargetDrawItems.emplace_back(currentDrawItem);
 		}
 	}
 
-	eastl::shared_ptr<UMesh> UMesh::Load(const eastl::string& inFilePath)
+	eastl::shared_ptr<UMesh> UMesh::Load_Internal(const eastl::string& inRelativePath)
 	{
+		eastl::string fullPath = UAssetCache::GetAssetRoot() + inRelativePath;
+		eastl::string path = inRelativePath.substr(0, inRelativePath.find_last_of('\\') + 1); // Everything but the mesh filename
+
 		Assimp::Importer importer;
 		importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
 		importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS);
 		importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80.0f);
+		importer.SetPropertyFloat(AI_CONFIG_PP_CT_MAX_SMOOTHING_ANGLE, 80.0f);
 
-		const aiScene* scene = importer.ReadFile(inFilePath.c_str(),
-												 aiProcess_ConvertToLeftHanded |
-												 aiProcessPreset_TargetRealtime_MaxQuality);
+		unsigned int flags = 0;
+		flags |= aiProcess_ValidateDataStructure;
+		flags |= aiProcess_RemoveRedundantMaterials;
+		flags |= aiProcess_FindInstances;
+		flags |= aiProcess_FindDegenerates;
+		flags |= aiProcess_GenUVCoords;
+		flags |= aiProcess_TransformUVCoords;
+		flags |= aiProcess_Triangulate;
+		flags |= aiProcess_SortByPType;
+		flags |= aiProcess_FindInvalidData;
+		flags |= aiProcess_OptimizeMeshes;
+		//flags |= aiProcess_FixInfacingNormals;
+		flags |= aiProcess_SplitLargeMeshes;
+		//flags |= aiProcess_GenNormals;
+		flags |= aiProcess_GenSmoothNormals;
+		flags |= aiProcess_CalcTangentSpace;
+		flags |= aiProcess_JoinIdenticalVertices;
+		flags |= aiProcess_LimitBoneWeights;
+		flags |= aiProcess_ImproveCacheLocality;
+		flags |= aiProcess_FlipUVs;
+		//flags |= aiProcess_FlipWindingOrder;
+		//flags |= aiProcess_MakeLeftHanded;
 
-		auto path = inFilePath.substr(0, inFilePath.find_last_of('\\') + 1);
+		const aiScene* scene = importer.ReadFile(fullPath.c_str(), flags);
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE)
 		{
-			LOG(LogMeshImport, Error, "Failed to load mesh '%s': %s\n", inFilePath.c_str(), importer.GetErrorString());
+			LOG(LogMeshImport, Error, "Failed to load mesh '%s': %s\n", inRelativePath.c_str(), importer.GetErrorString());
 			return nullptr;
 		}
 
 		auto mesh = eastl::make_shared<UMesh>();
 		mesh->m_materials.resize(scene->mNumMaterials);
 		mesh->m_subMeshes.resize(scene->mNumMeshes);
+
+		bool hasNormalMap = false;
 
 		// Process materials
 		for (unsigned i = 0; i < scene->mNumMaterials; ++i)
@@ -178,9 +233,9 @@ namespace MAD
 				madMaterial.m_mat.m_diffuseColor = Vector3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
 
 				aiString diffuse_tex;
-				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_DIFFUSE(0), diffuse_tex))
+				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &diffuse_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + diffuse_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + diffuse_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_diffuseTex = *tex;
@@ -205,9 +260,9 @@ namespace MAD
 				madMaterial.m_mat.m_specularPower = specular_power;
 
 				aiString specular_tex;
-				if (specular_strength > 0.0f && specular_power >= 1.0f && AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_SPECULAR(0), specular_tex))
+				if (specular_strength > 0.0f && specular_power >= 1.0f && AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_SPECULAR, 0, &specular_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + specular_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + specular_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_specularTex = *tex;
@@ -222,9 +277,9 @@ namespace MAD
 				madMaterial.m_mat.m_emissiveColor = Vector3(emissive_color.r, emissive_color.g, emissive_color.b);
 
 				aiString emissive_tex;
-				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_EMISSIVE(0), emissive_tex))
+				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_EMISSIVE, 0, &emissive_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + emissive_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + emissive_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_emissiveTex = *tex;
@@ -233,15 +288,28 @@ namespace MAD
 				LOG_IMPORT(Log, "\tEmissive tex = %s\n", emissive_tex.C_Str());
 			}
 			{
+				aiString normal_map;
+				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_HEIGHT, 0, &normal_map))
+				{
+					auto map = UTexture::Load(path + normal_map.C_Str(), false, true);
+					if (map)
+					{
+						madMaterial.m_normalMap = *map;
+						hasNormalMap = true;
+					}
+				}
+				LOG_IMPORT(Log, "\tNormal map = %s\n", normal_map.C_Str());
+			}
+			{
 				float opacity = 1.0f;
 				aiMaterial->Get(AI_MATKEY_OPACITY, opacity);
 				LOG_IMPORT(Log, "\tOpacity = %f\n", opacity);
 				madMaterial.m_mat.m_opacity = opacity;
 
 				aiString opacity_tex;
-				if (AI_SUCCESS == aiMaterial->Get(AI_MATKEY_TEXTURE_OPACITY(0), opacity_tex))
+				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_OPACITY, 0, &opacity_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + opacity_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + opacity_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_opacityMask = *tex;
@@ -298,6 +366,26 @@ namespace MAD
 					mesh->m_normals.emplace_back(nor.x, nor.y, nor.z);
 				}
 
+				if (aiMesh->HasTextureCoords(0) && aiMesh->HasNormals() && hasNormalMap && aiMesh->HasTangentsAndBitangents())
+				{
+					auto tangent = aiMesh->mTangents[v];
+					tangent.Normalize();
+					mesh->m_tangents.emplace_back(tangent.x, tangent.y, tangent.z, 1.0f);
+
+					auto bitangent = aiMesh->mBitangents[v];
+					bitangent.Normalize();
+
+					Vector4& T = mesh->m_tangents.back();
+					Vector3  B = Vector3(bitangent.x, bitangent.y, bitangent.z);
+					Vector3& N = mesh->m_normals.back();
+
+					if (Vector3(T).Cross(N).Dot(B) < 0.0f)
+					{
+						// Mirrored UVs
+						T.w = -1.0f;
+					}
+				}
+
 				if (aiMesh->HasTextureCoords(0))
 				{
 					auto uvs = aiMesh->mTextureCoords[0][v];
@@ -310,8 +398,6 @@ namespace MAD
 				auto& face = aiMesh->mFaces[f];
 				MAD_ASSERT_DESC(face.mNumIndices == 3, "Number of indices per face must be 3");
 
-				// Since we use a single vertex / index buffer for the entire model, we must offset
-				// each sub-mesh's indices.
 				Index_t i0 = static_cast<Index_t>(face.mIndices[0]);
 				Index_t i1 = static_cast<Index_t>(face.mIndices[1]);
 				Index_t i2 = static_cast<Index_t>(face.mIndices[2]);
@@ -345,6 +431,12 @@ namespace MAD
 		{
 			inputLayout |= EInputLayoutSemantic::Normal;
 			mesh->m_gpuNormals = UVertexArray(graphicsDriver, EVertexBufferSlot::Normal, EInputLayoutSemantic::Normal, mesh->m_normals.data(), sizeof(mesh->m_normals[0]), vertexCount);
+		}
+
+		if (mesh->m_tangents.size() > 0)
+		{
+			inputLayout |= EInputLayoutSemantic::Tangent;
+			mesh->m_gpuTangents = UVertexArray(graphicsDriver, EVertexBufferSlot::Tangent, EInputLayoutSemantic::Tangent, mesh->m_tangents.data(), sizeof(mesh->m_tangents[0]), vertexCount);
 		}
 
 		if (mesh->m_texCoords.size() > 0)

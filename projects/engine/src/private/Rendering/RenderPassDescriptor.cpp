@@ -1,9 +1,6 @@
 #include "Rendering/RenderPassDescriptor.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/GraphicsDriver.h"
-#include "Rendering/RenderPassProgram.h"
-#include "Core/GameEngine.h"
-#include "Misc/AssetCache.h"
 
 namespace MAD
 {
