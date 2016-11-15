@@ -32,6 +32,5 @@
 #include "Core/ObjectTypeInfo.h"
 #include "Core/SimpleMath.h"
 #include "Misc/Assert.h"
-#include "Misc/AssetCache.h"
 #include "Misc/Delegate.h"
 #include "Misc/Logging.h"

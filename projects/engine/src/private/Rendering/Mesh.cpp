@@ -58,6 +58,25 @@ namespace MAD
 		return retInstance;
 	}
 
+	eastl::shared_ptr<UMesh> UMesh::Load(const eastl::string& inRelativePath)
+	{
+		if (auto cachedMesh = UAssetCache::GetCachedResource<UMesh>(inRelativePath))
+		{
+			return cachedMesh;
+		}
+
+		auto mesh = Load_Internal(inRelativePath);
+		if (!mesh)
+		{
+			LOG(LogDefault, Warning, "Failed to load mesh: `%s`\n", inRelativePath.c_str());
+			return nullptr;
+		}
+
+		LOG(LogDefault, Log, "Loaded mesh `%s`\n", inRelativePath.c_str());
+		UAssetCache::InsertResource<UMesh>(inRelativePath, mesh);
+		return mesh;
+	}
+
 	void UMesh::BuildDrawItems(eastl::vector<SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const
 	{
 		const size_t subMeshCount = m_subMeshes.size();
@@ -142,22 +161,45 @@ namespace MAD
 		}
 	}
 
-	eastl::shared_ptr<UMesh> UMesh::Load(const eastl::string& inFilePath)
+	eastl::shared_ptr<UMesh> UMesh::Load_Internal(const eastl::string& inRelativePath)
 	{
+		eastl::string fullPath = UAssetCache::GetAssetRoot() + inRelativePath;
+		eastl::string path = inRelativePath.substr(0, inRelativePath.find_last_of('\\') + 1); // Everything but the mesh filename
+
 		Assimp::Importer importer;
 		importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
 		importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS);
 		importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 80.0f);
+		importer.SetPropertyFloat(AI_CONFIG_PP_CT_MAX_SMOOTHING_ANGLE, 80.0f);
 
-		const aiScene* scene = importer.ReadFile(inFilePath.c_str(),
-												 aiProcess_ConvertToLeftHanded |
-												 aiProcessPreset_TargetRealtime_MaxQuality);
+		unsigned int flags = 0;
+		flags |= aiProcess_ValidateDataStructure;
+		flags |= aiProcess_RemoveRedundantMaterials;
+		flags |= aiProcess_FindInstances;
+		flags |= aiProcess_FindDegenerates;
+		flags |= aiProcess_GenUVCoords;
+		flags |= aiProcess_TransformUVCoords;
+		flags |= aiProcess_Triangulate;
+		flags |= aiProcess_SortByPType;
+		flags |= aiProcess_FindInvalidData;
+		flags |= aiProcess_OptimizeMeshes;
+		//flags |= aiProcess_FixInfacingNormals;
+		flags |= aiProcess_SplitLargeMeshes;
+		//flags |= aiProcess_GenNormals;
+		flags |= aiProcess_GenSmoothNormals;
+		flags |= aiProcess_CalcTangentSpace;
+		flags |= aiProcess_JoinIdenticalVertices;
+		flags |= aiProcess_LimitBoneWeights;
+		flags |= aiProcess_ImproveCacheLocality;
+		flags |= aiProcess_FlipUVs;
+		//flags |= aiProcess_FlipWindingOrder;
+		//flags |= aiProcess_MakeLeftHanded;
 
-		auto path = inFilePath.substr(0, inFilePath.find_last_of('\\') + 1);
+		const aiScene* scene = importer.ReadFile(fullPath.c_str(), flags);
 
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE)
 		{
-			LOG(LogMeshImport, Error, "Failed to load mesh '%s': %s\n", inFilePath.c_str(), importer.GetErrorString());
+			LOG(LogMeshImport, Error, "Failed to load mesh '%s': %s\n", inRelativePath.c_str(), importer.GetErrorString());
 			return nullptr;
 		}
 
@@ -193,7 +235,7 @@ namespace MAD
 				aiString diffuse_tex;
 				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &diffuse_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + diffuse_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + diffuse_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_diffuseTex = *tex;
@@ -220,7 +262,7 @@ namespace MAD
 				aiString specular_tex;
 				if (specular_strength > 0.0f && specular_power >= 1.0f && AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_SPECULAR, 0, &specular_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + specular_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + specular_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_specularTex = *tex;
@@ -237,7 +279,7 @@ namespace MAD
 				aiString emissive_tex;
 				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_EMISSIVE, 0, &emissive_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + emissive_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + emissive_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_emissiveTex = *tex;
@@ -249,7 +291,7 @@ namespace MAD
 				aiString normal_map;
 				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_HEIGHT, 0, &normal_map))
 				{
-					auto map = UAssetCache::Load<UTexture>(path + normal_map.C_Str(), false);
+					auto map = UTexture::Load(path + normal_map.C_Str(), false, true);
 					if (map)
 					{
 						madMaterial.m_normalMap = *map;
@@ -267,7 +309,7 @@ namespace MAD
 				aiString opacity_tex;
 				if (AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_OPACITY, 0, &opacity_tex))
 				{
-					auto tex = UAssetCache::Load<UTexture>(path + opacity_tex.C_Str(), false);
+					auto tex = UTexture::Load(path + opacity_tex.C_Str(), true, true);
 					if (tex)
 					{
 						madMaterial.m_opacityMask = *tex;
@@ -324,11 +366,24 @@ namespace MAD
 					mesh->m_normals.emplace_back(nor.x, nor.y, nor.z);
 				}
 
-				if (hasNormalMap && aiMesh->HasTangentsAndBitangents())
+				if (aiMesh->HasTextureCoords(0) && aiMesh->HasNormals() && hasNormalMap && aiMesh->HasTangentsAndBitangents())
 				{
 					auto tangent = aiMesh->mTangents[v];
 					tangent.Normalize();
-					mesh->m_tangents.emplace_back(tangent.x, tangent.y, tangent.z);
+					mesh->m_tangents.emplace_back(tangent.x, tangent.y, tangent.z, 1.0f);
+
+					auto bitangent = aiMesh->mBitangents[v];
+					bitangent.Normalize();
+
+					Vector4& T = mesh->m_tangents.back();
+					Vector3  B = Vector3(bitangent.x, bitangent.y, bitangent.z);
+					Vector3& N = mesh->m_normals.back();
+
+					if (Vector3(T).Cross(N).Dot(B) < 0.0f)
+					{
+						// Mirrored UVs
+						T.w = -1.0f;
+					}
 				}
 
 				if (aiMesh->HasTextureCoords(0))

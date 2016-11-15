@@ -67,18 +67,6 @@ newmtl Material__298
 	map_bump textures\background_ddn.png
 	bump textures\background_ddn.png
 
-newmtl 16___Default
-	Ns 10.0000
-	Ni 1.5000
-	d 1.0000
-	Tr 0.0000
-	Tf 1.0000 1.0000 1.0000 
-	illum 2
-	Ka 0.5880 0.5880 0.5880
-	Kd 0.5880 0.5880 0.5880
-	Ks 0.0000 0.0000 0.0000
-	Ke 0.0000 0.0000 0.0000
-
 newmtl bricks
 	Ns 10.0000
 	Ni 1.5000
@@ -93,8 +81,8 @@ newmtl bricks
 	map_Ka textures\spnza_bricks_a_diff.png
 	map_Kd textures\spnza_bricks_a_diff.png
 	map_Ks textures\spnza_bricks_a_spec.png
-	map_bump textures\spnza_bricks_a_diff.png
-	bump textures\spnza_bricks_a_diff.png
+	map_bump textures\spnza_bricks_a_ddn.png
+	bump textures\spnza_bricks_a_ddn.png
 
 newmtl arch
 	Ns 10.0000

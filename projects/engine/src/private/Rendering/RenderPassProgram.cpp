@@ -6,6 +6,7 @@
 #include "Rendering/GraphicsDriver.h"
 #include "Core/GameEngine.h"
 #include "Core/GameWindow.h"
+#include "Misc/AssetCache.h"
 #include "Misc/ProgramPermutor.h"
 
 namespace MAD
@@ -50,12 +51,18 @@ namespace MAD
 		return false;
 	}
 
-	eastl::shared_ptr<URenderPassProgram> URenderPassProgram::Load(const eastl::string& inPath)
+	eastl::shared_ptr<URenderPassProgram> URenderPassProgram::Load(const eastl::string& inRelativePath)
 	{
-		eastl::shared_ptr<URenderPassProgram> newRenderPassProgram = eastl::make_shared<URenderPassProgram>();
-		
-		UProgramPermutor::PermuteProgram(inPath, newRenderPassProgram->m_programPermutations);
+		if (auto cachedProgram = UAssetCache::GetCachedResource<URenderPassProgram>(inRelativePath))
+		{
+			return cachedProgram;
+		}
 
+		eastl::shared_ptr<URenderPassProgram> newRenderPassProgram = eastl::make_shared<URenderPassProgram>();
+		UProgramPermutor::PermuteProgram(UAssetCache::GetAssetRoot() + inRelativePath, newRenderPassProgram->m_programPermutations);
+
+		LOG(LogDefault, Log, "Loaded program `%s`\n", inRelativePath.c_str());
+		UAssetCache::InsertResource<URenderPassProgram>(inRelativePath, newRenderPassProgram);
 		return newRenderPassProgram;
 	}
 

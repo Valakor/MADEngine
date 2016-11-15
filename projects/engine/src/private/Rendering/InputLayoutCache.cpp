@@ -43,7 +43,7 @@ namespace MAD
 	{
 		static const D3D11_INPUT_ELEMENT_DESC position = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, AsIntegral(EVertexBufferSlot::Position), 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
 		static const D3D11_INPUT_ELEMENT_DESC normal   = { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, AsIntegral(EVertexBufferSlot::Normal),   0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
-		static const D3D11_INPUT_ELEMENT_DESC tangent  = { "TANGENT",  0, DXGI_FORMAT_R32G32B32_FLOAT, AsIntegral(EVertexBufferSlot::Tangent),  0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+		static const D3D11_INPUT_ELEMENT_DESC tangent  = { "TANGENT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, AsIntegral(EVertexBufferSlot::Tangent),  0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
 		static const D3D11_INPUT_ELEMENT_DESC texcoord = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    AsIntegral(EVertexBufferSlot::UV),       0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
 
 		eastl::vector<D3D11_INPUT_ELEMENT_DESC> inputLayout;
