@@ -11,7 +11,7 @@ namespace MAD
 	{
 	public:
 		// Generates all the permutations of a shader based on the permutation flags that are specified within the shader file
-		static void PermuteProgram(const eastl::string& inProgramFilePath, ProgramPermutations_t& outProgramPermutations, bool inShouldGenPermutationFiles = true);
+		static void PermuteProgram(const eastl::string& inProgramFilePath, ProgramPermutations_t& outProgramPermutations, bool inShouldGenPermutationFiles = false);
 	private:
 		static const eastl::string s_shaderMetaFlagString;
 		static const eastl::hash_map<eastl::string, EMetaFlagType> s_metaFlagStringToTypeMap;

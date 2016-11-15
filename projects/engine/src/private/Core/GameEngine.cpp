@@ -130,6 +130,12 @@ namespace MAD
 			return false;
 		}
 
+		// Init networking manager
+		if (!m_NetworkManager.Init())
+		{
+			return false;
+		}
+
 		// Start the FrameTimer
 		mFrameTimer = eastl::make_shared<UFrameTimer>();
 		mFrameTimer->Start();
@@ -167,6 +173,8 @@ namespace MAD
 	{
 		mGameInstance->OnShutdown();
 		mGameInstance = nullptr;
+
+		m_NetworkManager.Shutdown();
 
 		mRenderer->Shutdown();
 		mRenderer = nullptr;
@@ -222,6 +230,7 @@ namespace MAD
 
 		UGameWorldLoader loader;
 		loader.LoadWorld("engine\\worlds\\default_world.json");
+		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
 	}
 
 	void UGameEngine::TEMPTestTransformHierarchy()
@@ -267,6 +276,9 @@ namespace MAD
 			// Moved simulating flag to engine because we want all worlds to only perform post simulation tasks
 			// once all worlds have had its chance to simulate
 			m_isSimulating = true;
+
+			// TEMP
+			m_NetworkManager.Tick(TARGET_DELTA_TIME);
 
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)

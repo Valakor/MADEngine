@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ObjectTypeInfo.h"
-#include "Networking/Networking.h"
+#include "Networking/Network.h"
 
 namespace MAD
 {

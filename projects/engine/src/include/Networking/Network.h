@@ -5,6 +5,12 @@
 
 namespace MAD
 {
+#define SERVER_DEFAULT_LISTEN_PORT 6000
+#define NETWORK_PROTOCOL_ID 0xdeadbeef
+
+	using NetworkPlayerID = int;
+	static const NetworkPlayerID InvalidPlayerID = -1;
+
 	enum class ENetRole : uint8_t
 	{
 		None = 0,
@@ -18,6 +24,13 @@ namespace MAD
 		Client = 0,
 		ListenServer,
 		DedicatedServer
+	};
+
+	enum ENetworkChannels
+	{
+		UNRELIABLE_CHANNEL,
+		RELIABLE_CHANNEL,
+		NUM_CHANNELS
 	};
 
 	struct SNetworkID

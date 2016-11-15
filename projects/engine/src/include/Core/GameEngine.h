@@ -6,6 +6,8 @@
 #include <EASTL/vector.h>
 #include <EASTL/type_traits.h>
 
+#include "Networking/NetworkManager.h"
+
 namespace MAD
 {
 	class TTypeInfo;
@@ -48,6 +50,7 @@ namespace MAD
 		class URenderer& GetRenderer() const { return *mRenderer; }
 		class UGameWindow& GetWindow() const { return *mGameWindow; }
 		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
+		UNetworkManager& GetNetworkManager() { return m_NetworkManager; }
 	private:
 		void TEMPInitializeGameContext();
 		void TEMPTestTransformHierarchy();
@@ -72,6 +75,7 @@ namespace MAD
 		eastl::shared_ptr<class UGameWindow> mGameWindow;
 		eastl::shared_ptr<class UPhysicsWorld> m_physicsWorld;
 		eastl::shared_ptr<class URenderer> mRenderer;
+		UNetworkManager m_NetworkManager;
 	};
 
 	template <typename WorldType>
@@ -87,7 +91,7 @@ namespace MAD
 		static_assert(eastl::is_base_of<OGameWorld, CommonAncestorWorldType>::value, "Error: You may only spawn game worlds that are of type UGameWorld or more derived");
 
 		// Pass nullptr to the owning UGameWorld because a UGameWorld isn't contained within another UGameWorld
-		eastl::shared_ptr<CommonAncestorWorldType> newWorld = inTypeInfo.CreateDefaultObject<CommonAncestorWorldType>(nullptr);
+		eastl::shared_ptr<CommonAncestorWorldType> newWorld = CreateDefaultObject<CommonAncestorWorldType>(inTypeInfo, nullptr);;
 
 		newWorld->SetWorldName(inWorldName);
 

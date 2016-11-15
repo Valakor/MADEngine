@@ -1,4 +1,4 @@
-#include "Core\SimpleMath.h"
+#include "Core/SimpleMath.h"
 
 namespace MAD
 {

@@ -1,6 +1,8 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+#endif
 #include <d3d11_2.h>
 __pragma(warning(push))
 __pragma(warning(disable:4838))

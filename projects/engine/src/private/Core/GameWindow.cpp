@@ -207,6 +207,7 @@ namespace MAD
 	{
 		switch (message)
 		{
+		case WM_CLOSE:
 		case WM_DESTROY:
 		{
 			PostQuitMessage(0);

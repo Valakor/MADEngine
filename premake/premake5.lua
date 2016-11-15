@@ -3,7 +3,7 @@ workspace "MAD"
 	language "C++"
 	architecture "x86_64"
 	configurations { "Debug", "Release" }
-	flags { "FloatFast", "EnableSSE2", "StaticRuntime" }
+	flags { "FloatFast", "EnableSSE2", "StaticRuntime", "MultiProcessorCompile" }
 	
 	filter { "configurations:Debug" }
 		defines { "_DEBUG", "DEBUG" }
@@ -105,6 +105,9 @@ project "engine"
 	kind "StaticLib"
 	files "../projects/engine/src/**"
 	includedirs { "../projects/engine/src/include" }
+	pchheader "stdafx.h"
+	pchsource "../projects/engine/src/private/stdafx.cpp"
+	forceincludes { "stdafx.h" }
 	commonSetup()
 
 function useEngine()
