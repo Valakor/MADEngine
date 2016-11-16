@@ -1,14 +1,44 @@
 #pragma once
 
+#include <EASTL/hash_map.h>
+#include <EASTL/weak_ptr.h>
+#include <EASTL/unique_ptr.h>
 #include <yojimbo/yojimbo.h>
 
 #include "Networking/NetworkTypes.h"
+#include "Networking/NetworkTransport.h"
+#include "Networking/NetworkPlayer.h"
 
 namespace MAD
 {
 	class UNetworkClient : public yojimbo::Client
 	{
-		using yojimbo::Client::Client;
+	public:
+
+		explicit UNetworkClient(eastl::unique_ptr<UNetworkTransport> inClientTransport, const yojimbo::ClientServerConfig& inClientConfig = yojimbo::ClientServerConfig());
+
+		void Tick(float inGameTime);
+
+		eastl::weak_ptr<ONetworkPlayer> GetLocalPlayer() const { return m_localPlayer; }
+
+		size_t GetNumPlayers() const { return m_players.size(); }
+		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;
+
+	private:
+		eastl::unique_ptr<UNetworkTransport> m_clientTransport;
+
+		eastl::weak_ptr<ONetworkPlayer> m_localPlayer;
+		eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<ONetworkPlayer>> m_players;
+
+		void ReceiveMessages();
+
+		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer);
+
+		void OnConnected();
+		void OnDisconnected();
+
+		void OnRemotePlayerConnected(NetworkPlayerID inNewPlayerID);
+		void OnRemotePlayerDisconnected(NetworkPlayerID inPlayerID);
 
 	protected:
 		virtual void OnConnect(const yojimbo::Address& address) override;

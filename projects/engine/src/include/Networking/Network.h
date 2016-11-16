@@ -28,8 +28,8 @@ namespace MAD
 
 	enum ENetworkChannels
 	{
-		UNRELIABLE_CHANNEL,
 		RELIABLE_CHANNEL,
+		UNRELIABLE_CHANNEL,
 		NUM_CHANNELS
 	};
 

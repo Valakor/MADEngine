@@ -1,14 +1,34 @@
 #pragma once
 
+#include <EASTL/hash_map.h>
+#include <EASTL/unique_ptr.h>
 #include <yojimbo/yojimbo.h>
 
 #include "Networking/NetworkTypes.h"
+#include "Networking/NetworkTransport.h"
+#include "Networking/NetworkPlayer.h"
 
 namespace MAD
 {
 	class UNetworkServer : public yojimbo::Server
 	{
-		using yojimbo::Server::Server;
+	public:
+		explicit UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, const yojimbo::ClientServerConfig& inConfig = yojimbo::ClientServerConfig());
+
+		void Tick(float inGameTime);
+
+		size_t GetNumConnectedPlayers() const { return m_players.size(); }
+		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;
+
+	private:
+		eastl::unique_ptr<UNetworkTransport> m_serverTransport;
+
+		eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<ONetworkPlayer>> m_players;
+
+		void AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID);
+		void RemoveNetworkPlayer(NetworkPlayerID inPlayerID);
+
+		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID);
 
 	protected:
 		virtual void OnStart(int maxClients) override;

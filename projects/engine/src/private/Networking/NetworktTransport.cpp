@@ -4,7 +4,6 @@ namespace MAD
 {
 	UNetworkTransport::~UNetworkTransport()
 	{
-		ClearSendQueue();
-		ClearReceiveQueue();
+		Reset();
 	}
 }

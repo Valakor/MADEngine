@@ -69,7 +69,7 @@ namespace MAD
 				{
 					case EMetaFlagType::EMetaFlagType_Usage:
 					{
-						LOG(LogProgramPermutor, Log, "Adding meta usage flag with values: %s - %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str(), currentMetaFlagInst.MetaFlagValues[1].c_str());
+						//LOG(LogProgramPermutor, Log, "Adding meta usage flag with values: %s - %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str(), currentMetaFlagInst.MetaFlagValues[1].c_str());
 
 						programUsageDescriptions.push_back({ currentMetaFlagInst.MetaFlagValues[0], currentMetaFlagInst.MetaFlagValues[1] });
 						break;
@@ -80,7 +80,7 @@ namespace MAD
 
 						if (permuteIdMask != EProgramIdMask::INVALID)
 						{
-							LOG(LogProgramPermutor, Log, "Adding meta permute flag with define: %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str());
+							//LOG(LogProgramPermutor, Log, "Adding meta permute flag with define: %s\n", currentMetaFlagInst.MetaFlagValues[0].c_str());
 							programPermutationDescriptions.push_back({ permuteIdMask });
 						}
 						else
@@ -181,7 +181,7 @@ namespace MAD
 								break;
 							}
 
-							LOG(LogProgramPermutor, Log, "Log: Size of compiled byte code: %d\n", compiledProgramByteCode.size());
+							//LOG(LogProgramPermutor, Log, "Log: Size of compiled byte code: %d\n", compiledProgramByteCode.size());
 							
 							if (inShouldGenPermutationFiles)
 							{

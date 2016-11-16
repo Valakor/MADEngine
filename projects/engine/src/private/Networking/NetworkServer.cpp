@@ -11,6 +11,61 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogNetworkServer);
 
+	UNetworkServer::UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, const yojimbo::ClientServerConfig& inConfig)
+		: Server(GetDefaultAllocator(), *inServerTransport, inConfig)
+		, m_serverTransport(eastl::move(inServerTransport))
+	{
+
+	}
+
+	void UNetworkServer::Tick(float inGameTime)
+	{
+		AdvanceTime(inGameTime);
+		m_serverTransport->AdvanceTime(inGameTime);
+
+		m_serverTransport->ReadPackets();
+		ReceivePackets();
+		CheckForTimeOut();
+
+		// Insert logic to create message for RPCs, state updates, etc.
+		SendPackets();
+		m_serverTransport->WritePackets();
+	}
+
+	eastl::weak_ptr<ONetworkPlayer> UNetworkServer::GetPlayerByID(NetworkPlayerID inID) const
+	{
+		auto iter = m_players.find(inID);
+		return (iter != m_players.end()) ? iter->second : nullptr;
+	}
+
+	void UNetworkServer::AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID)
+	{
+		auto newPlayer = CreateDefaultObject<ONetworkPlayer>(nullptr);
+		SetPlayerID(newPlayer, inNewPlayerID);
+	}
+
+	void UNetworkServer::RemoveNetworkPlayer(NetworkPlayerID inPlayerID)
+	{
+		MAD_ASSERT_DESC(m_players.find(inPlayerID) != m_players.end(), "Cannot remove player ID that does not exist in m_players");
+		m_players.erase(inPlayerID);
+	}
+
+	void UNetworkServer::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID)
+	{
+		MAD_ASSERT_DESC(m_players.find(inPlayerID) == m_players.end(), "Cannot assign a player to an already mapped playerID");
+
+		auto iter = m_players.find(inPlayer->GetPlayerID());
+		if (iter != m_players.end())
+		{
+			m_players.erase(iter);
+		}
+
+		inPlayer->SetPlayerID(inPlayerID);
+		inPlayer->SetIsLocalPlayer(false);
+
+		m_players.insert({ inPlayerID, inPlayer });
+	}
+
 	void UNetworkServer::OnStart(int maxClients)
 	{
 		(void)maxClients;
@@ -134,13 +189,12 @@ namespace MAD
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientConnect] Client %d connected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
 
-		UNetworkManager& netManager = gEngine->GetNetworkManager();
-		netManager.OnRemotePlayerConnected(clientIndex);
+		AddNewNetworkPlayer(clientIndex);
 
 		MInitializeNewPlayer* initMsg = static_cast<MInitializeNewPlayer*>(CreateMsg(clientIndex, INITIALIZE_NEW_PLAYER));
 
 		// Notify other clients about this new client
-		for (auto iter = netManager.PlayersBegin(); iter != netManager.PlayersEnd(); ++iter)
+		for (auto iter = m_players.cbegin(); iter != m_players.cend(); ++iter)
 		{
 			auto idx = iter->first;
 			if (idx != clientIndex)
@@ -164,19 +218,17 @@ namespace MAD
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientDisconnect] Client %d disconnected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
 
-		UNetworkManager& netManager = gEngine->GetNetworkManager();
-		netManager.OnRemotePlayerDisconnected(clientIndex);
+		RemoveNetworkPlayer(clientIndex);
+		MAD_ASSERT_DESC(m_players.find(clientIndex) == m_players.end(), "Disconnected client should no longer exist");
 
-		for (auto iter = netManager.PlayersBegin(); iter != netManager.PlayersEnd(); ++iter)
+		for (auto iter = m_players.cbegin(); iter != m_players.cend(); ++iter)
 		{
-			auto idx = iter->first;
-			if (idx != clientIndex)
-			{
-				MOtherPlayerConnectionChanged* msg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
-				msg->m_connect = false;
-				msg->m_playerID = clientIndex;
-				SendMsg(idx, msg);
-			}
+			int idx = iter->first;
+
+			MOtherPlayerConnectionChanged* msg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
+			msg->m_connect = false;
+			msg->m_playerID = clientIndex;
+			SendMsg(idx, msg);
 		}
 	}
 
