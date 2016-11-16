@@ -7,12 +7,12 @@
 
 namespace MAD
 {
-	class UNetworkTransport : public yojimbo::SocketTransport
+	class UNetworkTransport : public yojimbo::NetworkTransport
 	{
 	public:
 
-		UNetworkTransport(const yojimbo::Address& address = yojimbo::Address("0.0.0.0"))
-			: SocketTransport(yojimbo::GetDefaultAllocator(), address, NETWORK_PROTOCOL_ID)
+		UNetworkTransport(double inCurrentGameTime, const yojimbo::Address& address = yojimbo::Address("0.0.0.0"))
+			: NetworkTransport(yojimbo::GetDefaultAllocator(), address, NETWORK_PROTOCOL_ID, inCurrentGameTime)
 		{ }
 
 		~UNetworkTransport();

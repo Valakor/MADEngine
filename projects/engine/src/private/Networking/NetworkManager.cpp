@@ -112,17 +112,19 @@ namespace MAD
 
 	bool UNetworkManager::StartServer(int port)
 	{
+		float gameTime = gEngine->GetGameTime();
+
 		Address bindAddr("0.0.0.0", port);
 		Address publicAddr("127.0.0.1", port);
 
-		eastl::unique_ptr<UNetworkTransport> serverTransport = eastl::make_unique<UNetworkTransport>(bindAddr);
+		eastl::unique_ptr<UNetworkTransport> serverTransport = eastl::make_unique<UNetworkTransport>(gameTime, bindAddr);
 		if (serverTransport->GetError() != SOCKET_ERROR_NONE)
 		{
 			return false;
 		}
 
 		serverTransport->SetFlags(TRANSPORT_FLAG_INSECURE_MODE);
-		m_server = eastl::make_unique<UNetworkServer>(eastl::move(serverTransport), m_config);
+		m_server = eastl::make_unique<UNetworkServer>(eastl::move(serverTransport), gameTime, m_config);
 		m_server->SetServerAddress(publicAddr);
 		m_server->SetFlags(SERVER_FLAG_ALLOW_INSECURE_CONNECT);
 		m_server->Start();
@@ -132,7 +134,9 @@ namespace MAD
 
 	bool UNetworkManager::ConnectToServer(const Address& inServerAddress)
 	{
-		eastl::unique_ptr<UNetworkTransport> clientTransport = eastl::make_unique<UNetworkTransport>();
+		float gameTime = gEngine->GetGameTime();
+
+		eastl::unique_ptr<UNetworkTransport> clientTransport = eastl::make_unique<UNetworkTransport>(gameTime);
 		if (clientTransport->GetError() != SOCKET_ERROR_NONE)
 		{
 			return false;
@@ -140,8 +144,11 @@ namespace MAD
 
 		clientTransport->SetFlags(TRANSPORT_FLAG_INSECURE_MODE);
 
-		m_client = eastl::make_unique<UNetworkClient>(eastl::move(clientTransport), m_config);
-		m_client->InsecureConnect(inServerAddress);
+		uint64_t clientID = 0;
+		yojimbo::RandomBytes((uint8_t*)&clientID, 8); // TODO: Is there a better way to do this?
+
+		m_client = eastl::make_unique<UNetworkClient>(eastl::move(clientTransport), gameTime, m_config);
+		m_client->InsecureConnect(clientID, inServerAddress);
 
 		return true;
 	}

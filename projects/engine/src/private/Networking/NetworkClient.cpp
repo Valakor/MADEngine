@@ -9,8 +9,8 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogNetworkClient);
 
-	UNetworkClient::UNetworkClient(eastl::unique_ptr<UNetworkTransport> inClientTransport, const ClientServerConfig& inClientConfig)
-		: Client(GetDefaultAllocator(), *inClientTransport, inClientConfig)
+	UNetworkClient::UNetworkClient(eastl::unique_ptr<UNetworkTransport> inClientTransport, double inCurrentGameTime, const ClientServerConfig& inClientConfig)
+		: Client(GetDefaultAllocator(), *inClientTransport, inClientConfig, inCurrentGameTime)
 		, m_clientTransport(eastl::move(inClientTransport))
 	{
 
@@ -136,7 +136,7 @@ namespace MAD
 	{
 		char addressString[MaxAddressLength];
 		address.ToString(addressString, sizeof(addressString));
-		LOG(LogNetworkClient, Log, "[OnConnect] Client connecting to %s...\n", addressString);
+		LOG(LogNetworkClient, Log, "[OnConnect] Client (ID=%" PRIx64 ") connecting to %s...\n", GetClientId(), addressString);
 
 		// Create local player
 		eastl::shared_ptr<ONetworkPlayer> localPlayer = CreateDefaultObject<ONetworkPlayer>(nullptr);

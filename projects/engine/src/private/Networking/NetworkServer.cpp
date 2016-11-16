@@ -11,8 +11,8 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogNetworkServer);
 
-	UNetworkServer::UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, const yojimbo::ClientServerConfig& inConfig)
-		: Server(GetDefaultAllocator(), *inServerTransport, inConfig)
+	UNetworkServer::UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig)
+		: Server(GetDefaultAllocator(), *inServerTransport, inConfig, inCurrentGameTime)
 		, m_serverTransport(eastl::move(inServerTransport))
 	{
 

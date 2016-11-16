@@ -15,7 +15,7 @@ namespace MAD
 	{
 	public:
 
-		explicit UNetworkClient(eastl::unique_ptr<UNetworkTransport> inClientTransport, const yojimbo::ClientServerConfig& inClientConfig = yojimbo::ClientServerConfig());
+		explicit UNetworkClient(eastl::unique_ptr<UNetworkTransport> inClientTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inClientConfig = yojimbo::ClientServerConfig());
 
 		void Tick(float inGameTime);
 

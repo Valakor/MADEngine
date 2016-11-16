@@ -22,6 +22,10 @@ workspace "MAD"
 	targetdir ("%{prj.location}/build/bin/%{cfg.longname}")
 	objdir ("%{prj.location}/build/obj/%{cfg.longname}")
 
+	function useRapidjson()
+		includedirs { "../ThirdParty/rapidjson/include" }
+	end
+
 group "ThirdParty"
 
 	project "eastl"
@@ -36,6 +40,40 @@ group "ThirdParty"
 		includedirs "../projects/ThirdParty/eastl/src/include"
 		links "eastl"
 		defines { "NOMINMAX" }
+	end
+
+	project "yojimbo"
+		location "../projects/ThirdParty/yojimbo"
+		kind "StaticLib"
+		files "../projects/ThirdParty/yojimbo/src/**"
+		includedirs "../projects/ThirdParty/yojimbo/src/include/yojimbo"
+		rtti "Off"
+		useRapidjson()
+
+		if os.is "windows" then
+			includedirs "../projects/ThirdParty/yojimbo/windows"
+		else
+			includedirs "/usr/local/include"  -- for clang scan-build only. for some reason it needs this to work =p
+		end
+
+	function useYojimbo()
+		includedirs "../projects/ThirdParty/yojimbo/src/include"
+
+		libdirs { "../projects/ThirdParty/yojimbo/windows" }
+		if os.is "windows" then
+			debug_libs = { "sodium-debug", "mbedtls-debug", "mbedx509-debug", "mbedcrypto-debug" }
+			release_libs = { "sodium-release", "mbedtls-release", "mbedx509-release", "mbedcrypto-release" }
+		else
+			debug_libs = { "sodium", "mbedtls", "mbedx509", "mbedcrypto" }
+			release_libs = debug_libs
+		end
+
+		filter { "configurations:Debug" }
+			links { "yojimbo", debug_libs }
+		filter { "configurations:Release" }
+			links { "yojimbo", release_libs }
+
+		filter { }
 	end
 
 group ""
@@ -66,23 +104,6 @@ function useDirectXTK()
 
 	filter { "configurations:Release" }
 		links { "DirectXTK" }
-
-	filter { }
-end
-
-function useRapidjson()
-	includedirs { "../ThirdParty/rapidjson/include" }
-end
-
-function useYojimbo()
-	libdirs { "../ThirdParty/yojimbo/lib" }
-	includedirs { "../ThirdParty/yojimbo/include" }
-
-	filter { "configurations:Debug" }
-		links { "yojimboD", "sodium-debug", "mbedtls-debug", "mbedx509-debug", "mbedcrypto-debug" }
-
-	filter { "configurations:Release" }
-		links { "yojimbo", "sodium-release", "mbedtls-release", "mbedx509-release", "mbedcrypto-release" }
 
 	filter { }
 end

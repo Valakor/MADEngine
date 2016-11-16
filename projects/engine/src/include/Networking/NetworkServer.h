@@ -13,7 +13,7 @@ namespace MAD
 	class UNetworkServer : public yojimbo::Server
 	{
 	public:
-		explicit UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, const yojimbo::ClientServerConfig& inConfig = yojimbo::ClientServerConfig());
+		explicit UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig = yojimbo::ClientServerConfig());
 
 		void Tick(float inGameTime);
 
