@@ -22,7 +22,7 @@ namespace MAD
 
 		template <typename Stream> bool Serialize(Stream & stream)
 		{
-			serialize_int(stream, m_playerID, 0, 64);
+			serialize_int(stream, m_playerID, 0, yojimbo::MaxClients);
 			serialize_bool(stream, m_connect);
 			return true;
 		}
@@ -42,7 +42,7 @@ namespace MAD
 		template <typename Stream> bool Serialize(Stream & stream)
 		{
 			int numOtherPlayers = static_cast<int>(m_otherPlayers.size());
-			serialize_int(stream, numOtherPlayers, 0, 64);
+			serialize_int(stream, numOtherPlayers, 0, yojimbo::MaxClients);
 
 			if (Stream::IsReading)
 			{
@@ -51,7 +51,7 @@ namespace MAD
 
 			for (int i = 0; i < numOtherPlayers; ++i)
 			{
-				serialize_int(stream, m_otherPlayers[i], 0, 64);
+				serialize_int(stream, m_otherPlayers[i], 0, yojimbo::MaxClients);
 			}
 
 			return true;
