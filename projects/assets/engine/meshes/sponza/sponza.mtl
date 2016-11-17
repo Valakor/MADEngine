@@ -98,6 +98,8 @@ newmtl arch
 	map_Ka textures\sponza_arch_diff.png
 	map_Kd textures\sponza_arch_diff.png
 	map_Ks textures\sponza_arch_spec.png
+	map_bump textures\sponza_arch_ddn.png
+	bump textures\sponza_arch_ddn.png
 
 newmtl ceiling
 	Ns 10.0000
@@ -113,6 +115,8 @@ newmtl ceiling
 	map_Ka textures\sponza_ceiling_a_diff.png
 	map_Kd textures\sponza_ceiling_a_diff.png
 	map_Ks textures\sponza_ceiling_a_spec.png
+	map_bump textures\sponza_ceiling_a_ddn.png
+	bump textures\sponza_ceiling_a_ddn.png
 
 newmtl column_a
 	Ns 10.0000
