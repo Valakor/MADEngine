@@ -26,6 +26,7 @@ namespace MAD
 		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRotInitial) * Matrix::CreateTranslation(m_cameraPosInitial);
 		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
 		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
+		m_cameraInstance.m_exposure = 1.0f;
 
 		auto& cameraScheme = *UGameInput::Get().GetControlScheme("CameraDebug");
 		cameraScheme.BindAxis<CCameraComponent, &CCameraComponent::MoveForward>("Forward", this);
@@ -70,6 +71,7 @@ namespace MAD
 		inLoader.GetFloat("fov", m_cameraInstance.m_verticalFOV);
 		inLoader.GetFloat("near", m_cameraInstance.m_nearPlaneDistance);
 		inLoader.GetFloat("far", m_cameraInstance.m_farPlaneDistance);
+		inLoader.GetFloat("exposure", m_cameraInstance.m_exposure);
 
 		inLoader.GetFloat("moveSpeed", m_cameraMoveSpeed);
 		inLoader.GetFloat("lookSpeed", m_cameraLookSpeed);

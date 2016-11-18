@@ -138,8 +138,9 @@ namespace MAD
 		float m_cameraNearPlane;
 		float m_cameraFarPlane;
 
+		float m_cameraExposure;
+
 	private:
-		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
 	};
 	static_assert(sizeof(SPerFrameConstants) == 336, "");

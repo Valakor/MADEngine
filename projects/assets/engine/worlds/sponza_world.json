@@ -48,6 +48,7 @@
 								"fov": 60.0,
 								"near": 3.0,
 								"far": 100000.0,
+								"exposure": 1.0,
 								"moveSpeed": 500.0,
 								"lookSpeed": 1.0
 							}

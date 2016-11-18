@@ -42,6 +42,8 @@ cbuffer CBPerFrameConstants : register(b1)
 
 	float g_cameraNearPlane;
 	float g_cameraFarPlane;
+
+	float g_cameraExposure;
 };
 
 cbuffer CBPerPointLightConstants : register(b2)

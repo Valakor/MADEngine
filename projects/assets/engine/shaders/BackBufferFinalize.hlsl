@@ -36,8 +36,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 sampleColor = g_lightingBuffer.Load(texCoord).rgb;
 
 	// Exposure tone mapping
-	const float exposure = 1.0f;
-	float3 finalColor = 1.0f - exp(-sampleColor * exposure);
+	float3 finalColor = 1.0f - exp(-sampleColor * g_cameraExposure);
 
 	// Reinhard tone mapping
 	//float3 finalColor = sampleColor / (sampleColor + 1.0f);

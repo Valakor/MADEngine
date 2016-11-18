@@ -467,6 +467,7 @@ namespace MAD
 		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
 		m_perFrameConstants.m_cameraNearPlane = inCameraInstance.m_nearPlaneDistance;
 		m_perFrameConstants.m_cameraFarPlane = inCameraInstance.m_farPlaneDistance;
+		m_perFrameConstants.m_cameraExposure = inCameraInstance.m_exposure;
 	}
 
 	void URenderer::SetWorldAmbientColor(Color inColor)
