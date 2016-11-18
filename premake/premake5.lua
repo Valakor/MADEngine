@@ -13,7 +13,6 @@ workspace "MAD"
 	
 	filter { "configurations:Release" }
 		defines { "NDEBUG" }
-		symbols "Off"
 		optimize "Speed"
 		inlining "Auto"
 	
