@@ -35,8 +35,8 @@ namespace MAD
 
 	struct SNetworkID
 	{
-		typedef int32_t HandleType;
-		static const HandleType Invalid = -1;
+		typedef uint32_t HandleType;
+		static const HandleType Invalid = eastl::numeric_limits<HandleType>::max();
 
 		SNetworkID() :
 			mHandle(Invalid)
@@ -51,6 +51,8 @@ namespace MAD
 		HandleType mHandle;
 
 	public:
+		inline HandleType& GetUnderlyingHandleRef() { return mHandle; }
+
 		inline bool operator==(const SNetworkID& rhs) const noexcept
 		{
 			return mHandle == rhs.mHandle;
