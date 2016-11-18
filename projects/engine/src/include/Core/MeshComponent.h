@@ -15,6 +15,11 @@ namespace MAD
 		
 		virtual void Load(const UGameWorldLoader& inLoader) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
+
+		bool LoadFrom(const eastl::string& inAssetName);
+
+		bool IsVisible() const { return m_meshInstance.m_bVisible; }
+		void SetVisible(bool inIsVisible) { m_meshInstance.m_bVisible = inIsVisible; }
 	
 	private:
 		void ConstructDrawItem();

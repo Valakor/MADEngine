@@ -32,12 +32,16 @@ namespace MAD
 		}
 	}
 
+	bool CMeshComponent::LoadFrom(const eastl::string& inAssetName)
+	{
+		m_meshInstance.m_mesh = UMesh::Load(inAssetName);
+		return m_meshInstance.m_mesh != nullptr;
+	}
+
 	void CMeshComponent::ConstructDrawItem()
 	{
 		URenderer& targetRenderer = gEngine->GetRenderer();
 		eastl::vector<SDrawItem> constructedDrawItems;
-
-		memset(&constructedDrawItems, 0, sizeof(constructedDrawItems));
 
 		m_meshInstance.m_perDrawConstants.m_objectToWorldMatrix = GetWorldTransform().GetMatrix();
 		m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, m_meshInstance.m_perDrawConstants);
