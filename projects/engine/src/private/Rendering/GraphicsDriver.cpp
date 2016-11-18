@@ -287,8 +287,6 @@ namespace MAD
 			g_d3dDeviceContext->Flush();
 		}
 
-		g_dxgiSwapChain->SetFullscreenState(FALSE, nullptr);
-
 		g_dxgiSwapChain.Reset();
 		g_d3dDeviceContext.Reset();
 		g_d3dDevice.Reset();

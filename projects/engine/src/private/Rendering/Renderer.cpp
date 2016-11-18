@@ -131,8 +131,7 @@ namespace MAD
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
-		auto clientSize = m_window->GetClientSize();
-		SetViewport(clientSize.x, clientSize.y);
+		SetViewport(newSize.x, newSize.y);
 
 		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
 	}
