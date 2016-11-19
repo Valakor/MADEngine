@@ -25,6 +25,11 @@ namespace MAD
 
 		eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<ONetworkPlayer>> m_players;
 
+		SNetworkID::HandleType m_nextNetworkID;
+
+		void ReceiveMessages();
+		void ReceiveMessagesForPlayer(NetworkPlayerID inPlayerID);
+
 		void AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID);
 		void RemoveNetworkPlayer(NetworkPlayerID inPlayerID);
 

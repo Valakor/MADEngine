@@ -14,7 +14,6 @@
 
 // TESTING
 #include "Core/Character.h"
-#include "Rendering/Mesh.h"
 #include "Core/CameraComponent.h"
 #include "Core/MeshComponent.h"
 #include "Core/LightComponent.h"
@@ -71,15 +70,19 @@ namespace MAD
 		{
 			UObject::StaticClass();
 			OGameWorld::StaticClass();
+
 			AEntity::StaticClass();
 			ACharacter::StaticClass();
-			UComponent::StaticClass();
 
+			UComponent::StaticClass();
 			CCameraComponent::StaticClass();
 			CMeshComponent::StaticClass();
 			CLightComponent::StaticClass();
 			CDirectionalLightComponent::StaticClass();
 			CPointLightComponent::StaticClass();
+
+			Test::APointLightBullet::StaticClass();
+			Test::CTimedDeathComponent::StaticClass();
 		}
 	}
 
@@ -183,6 +186,21 @@ namespace MAD
 
 		LOG(LogGameEngine, Log, "Engine shutdown complete\n");
 		ULog::Get().Shutdown();
+	}
+
+	eastl::shared_ptr<OGameWorld> UGameEngine::GetWorld(const eastl::string& inWorldName)
+	{
+		eastl::shared_ptr<OGameWorld> world;
+
+		for (auto w : m_worlds)
+		{
+			if (w->GetWorldName() == inWorldName || inWorldName.empty())
+			{
+				return w;
+			}
+		}
+
+		return nullptr;
 	}
 
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test

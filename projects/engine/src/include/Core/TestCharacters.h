@@ -3,6 +3,9 @@
 #include "Core/Character.h"
 #include "Core/TestComponents.h"
 
+#include "Core/PointLightComponent.h"
+#include "Core/MeshComponent.h"
+
 namespace MAD
 {
 	namespace Test
@@ -32,6 +35,30 @@ namespace MAD
 			MAD_DECLARE_ACTOR(ASpatialCharacter, AEntity)
 		public:
 			explicit ASpatialCharacter(OGameWorld* inOwningWorld);
+		};
+
+		class APointLightBullet : public AEntity
+		{
+			MAD_DECLARE_ACTOR(APointLightBullet, AEntity)
+		public:
+			explicit APointLightBullet(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			{
+				auto mesh = AddComponent<CMeshComponent>();
+				mesh->LoadFrom("engine\\meshes\\primitives\\sphere.obj");
+				mesh->SetRelativeScale(10.0f);
+				mesh->SetVisible(true);
+				SetRootComponent(mesh);
+
+				auto pointLight = AddComponent<CPointLightComponent>();
+				pointLight->SetEnabled(true);
+				mesh->AttachComponent(pointLight);
+
+				auto destroyMe = AddComponent<CTimedDeathComponent>();
+				destroyMe->SetLifeTime(3.5f);
+				mesh->AttachComponent(destroyMe);
+
+				LOG(LogDefault, Warning, "APointLightBullet ctor\n");
+			}
 		};
 	}
 }

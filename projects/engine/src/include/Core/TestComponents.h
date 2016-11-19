@@ -3,6 +3,7 @@
 #include "Core/Component.h"
 #include "Core/Entity.h"
 #include "Core/ComponentPriorityInfo.h"
+#include "LightComponent.h"
 
 #define MAD_DEFINE_TEST_COMPONENT(TestComponentName)							\
 	DECLARE_LOG_CATEGORY(Log##TestComponentName);											\
@@ -61,5 +62,40 @@ namespace MAD
 		MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentH, 7);
 		MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentI, 8);
 		MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentJ, 9);
+
+		class CTimedDeathComponent : public UComponent
+		{
+			MAD_DECLARE_COMPONENT(CTimedDeathComponent, UComponent)
+		public:
+			explicit CTimedDeathComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			                                                         , m_lifeTime(-1.0f)
+			                                                         , m_lifeTimeOver(FLT_MAX) { }
+
+			virtual void UpdateComponent(float) override
+			{
+				float gameTime = gEngine->GetGameTime();
+
+				if (m_lifeTime > 0.0f)
+				{
+					m_lifeTimeOver = gameTime + m_lifeTime;
+					m_lifeTime = -1.0f;
+				}
+
+				if (gameTime >= m_lifeTimeOver)
+				{
+					GetOwningEntity().Destroy();
+					m_lifeTimeOver = FLT_MAX;
+				}
+			}
+
+			void SetLifeTime(float inLifeTime)
+			{
+				m_lifeTime = inLifeTime;
+			}
+
+		private:
+			float m_lifeTime;
+			float m_lifeTimeOver;
+		};
 	}
 }

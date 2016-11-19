@@ -7,10 +7,9 @@ namespace MAD
 	AEntity::AEntity(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 		, m_isPendingForKill(false)
-		, m_owningWorldLayer(nullptr)
 		, m_owningEntity(nullptr)
-		, m_rootComponent(nullptr)
-	{}
+		, m_owningWorldLayer(nullptr)
+		, m_rootComponent(nullptr) {}
 
 	void AEntity::Destroy()
 	{

@@ -5,6 +5,9 @@
 #include "Core/GameEngine.h"
 #include "Misc/Logging.h"
 
+// TESTING
+#include "Core/TestCharacters.h"
+
 using namespace yojimbo;
 
 namespace MAD
@@ -14,9 +17,7 @@ namespace MAD
 	UNetworkServer::UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig)
 		: Server(GetDefaultAllocator(), *inServerTransport, inConfig, inCurrentGameTime)
 		, m_serverTransport(eastl::move(inServerTransport))
-	{
-
-	}
+		, m_nextNetworkID(0) { }
 
 	void UNetworkServer::Tick(float inGameTime)
 	{
@@ -25,7 +26,30 @@ namespace MAD
 
 		m_serverTransport->ReadPackets();
 		ReceivePackets();
+		ReceiveMessages();
+
 		CheckForTimeOut();
+
+		// TODO: TEMP TESTING
+		// Spawn a point light bullet thing every 5 seconds
+		{
+			static int nextSpawnSeconds = 0;
+			int gameSeconds = static_cast<int>(inGameTime);
+
+			if (gameSeconds >= nextSpawnSeconds)
+			{
+				nextSpawnSeconds = gameSeconds + 5;
+				 
+				LOG(LogNetworkServer, Log, "Spawning a APointLightBullet on the network...\n");
+				for (const auto& player : m_players)
+				{
+					auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
+					msg->m_objectNetID.GetUnderlyingHandleRef() = m_nextNetworkID++;
+					msg->m_classTypeID = Test::APointLightBullet::StaticClass()->GetTypeID();
+					SendMsg(player.first, msg);
+				}
+			}
+		}
 
 		// Insert logic to create message for RPCs, state updates, etc.
 		SendPackets();
@@ -36,6 +60,29 @@ namespace MAD
 	{
 		auto iter = m_players.find(inID);
 		return (iter != m_players.end()) ? iter->second : nullptr;
+	}
+
+	void UNetworkServer::ReceiveMessages()
+	{
+		for (const auto& player : m_players)
+		{
+			ReceiveMessagesForPlayer(player.first);
+		}
+	}
+
+	void UNetworkServer::ReceiveMessagesForPlayer(NetworkPlayerID inPlayerID)
+	{
+		while (auto msg = ReceiveMsg(inPlayerID))
+		{
+			/*switch (msg->GetType())
+			{
+			default:
+				LOG(LogNetworkServer, Warning, "[ReceiveMessagesForPlayer] Received unhandled or unknown message from player %d. Type: %i\n", inPlayerID, msg->GetType());
+				break;
+			}*/
+
+			ReleaseMsg(inPlayerID, msg);
+		}
 	}
 
 	void UNetworkServer::AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID)

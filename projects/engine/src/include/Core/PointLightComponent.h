@@ -14,6 +14,8 @@ namespace MAD
 		virtual void Load(const UGameWorldLoader& inLoader) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 
+		inline void SetEnabled(bool inEnabled) { m_pointLight.m_isLightEnabled = inEnabled; }
+
 	private:
 		SPointLight m_pointLight;
 	};

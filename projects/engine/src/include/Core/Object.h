@@ -21,6 +21,9 @@ namespace MAD
 		inline SNetworkID GetNetID() const { return m_netID; }
 		inline OGameWorld* GetOwningWorld() { return m_owningGameWorld; }
 		inline const OGameWorld* GetOwningWorld() const { return m_owningGameWorld; }
+
+		void SetNetID(SNetworkID inNetID);
+
 	private:
 		static ObjectID s_objectRunningUID;
 

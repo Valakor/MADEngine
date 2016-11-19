@@ -11,16 +11,13 @@ namespace MAD
 		m_pointLight.m_isLightEnabled = false;
 		m_pointLight.m_gpuPointLight.m_lightColor = Color(1.0f, 1.0f, 1.0f, 1.0f);
 		m_pointLight.m_gpuPointLight.m_lightPosition = Vector3::Zero;
-		m_pointLight.m_gpuPointLight.m_lightIntensity = 1.0f;
+		m_pointLight.m_gpuPointLight.m_lightIntensity = 2.0f;
 		m_pointLight.m_gpuPointLight.m_lightInnerRadius = 50;
-		m_pointLight.m_gpuPointLight.m_lightOuterRadius = 500;
+		m_pointLight.m_gpuPointLight.m_lightOuterRadius = 300;
 	}
 
-	void CPointLightComponent::UpdateComponent(float inDeltaTime)
+	void CPointLightComponent::UpdateComponent(float)
 	{
-		(void)inDeltaTime;
-		// TODO Update transform properly
-
 		if (m_pointLight.m_isLightEnabled)
 		{
 			m_pointLight.m_gpuPointLight.m_lightPosition = GetWorldTranslation();

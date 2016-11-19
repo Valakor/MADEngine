@@ -9,6 +9,8 @@ __pragma(warning(disable:4838))
 #include <DirectXTK/SimpleMath.h>
 __pragma(warning(pop))
 
+#include <cmath>
+
 namespace MAD
 {
 	using namespace DirectX::SimpleMath;
@@ -21,6 +23,11 @@ namespace MAD
 	inline constexpr float ConvertToDegrees(float inRadians)
 	{
 		return inRadians * (180.0f / DirectX::XM_PI);
+	}
+
+	inline bool FloatEqual(float a, float b, float epsilon = 0.0001f)
+	{
+		return fabs(a - b) <= epsilon;
 	}
 
 	class ULinearTransform

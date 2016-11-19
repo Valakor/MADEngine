@@ -16,6 +16,17 @@ namespace MAD
 #define serialize_netID(stream, value) \
 	serialize_int(stream, value.GetUnderlyingHandleRef(), eastl::numeric_limits<SNetworkID::HandleType>::min(), eastl::numeric_limits<SNetworkID::HandleType>::max())
 
+	const size_t s_maxStateUpdateSize = 256 - 1;
+#define serialize_state(stream, state) \
+	do { \
+		static_assert(eastl::is_same<decltype(state), eastl::vector<uint8_t>>::value, "Expected state data to be of type eastl::vector<uint8_t>"); \
+		MAD_ASSERT_DESC(state.size() <= s_maxStateUpdateSize, "A state update must be <= 255 bytes"); \
+		int stateLength = static_cast<int>(state.size()); \
+		serialize_int(stream, stateLength, 0, s_maxStateUpdateSize); \
+		if (Stream::IsReading) state.resize(stateLength); \
+		if (stateLength > 0) serialize_bytes(stream, &state[0], stateLength); \
+	} while (0)
+
 	// Sent to every player except the player whose connection changed
 	struct MOtherPlayerConnectionChanged : public yojimbo::Message
 	{
@@ -74,11 +85,13 @@ namespace MAD
 	{
 		TypeID m_classTypeID;
 		SNetworkID m_objectNetID;
+		eastl::vector<uint8_t> m_initialStateData;
 
 		template <typename Stream> bool Serialize(Stream & stream)
 		{
 			serialize_typeID(stream, m_classTypeID);
 			serialize_netID(stream, m_objectNetID);
+			serialize_state(stream, m_initialStateData);
 			return true;
 		}
 
@@ -103,10 +116,12 @@ namespace MAD
 	struct MUpdateObject : public yojimbo::Message
 	{
 		SNetworkID m_objectNetID;
+		eastl::vector<uint8_t> m_stateData;
 
 		template <typename Stream> bool Serialize(Stream & stream)
 		{
 			serialize_netID(stream, m_objectNetID);
+			serialize_state(stream, m_stateData);
 			return true;
 		}
 

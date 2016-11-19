@@ -11,7 +11,7 @@ namespace MAD
 {
 	class OGameWorld;
 
-	using TypeID = uint32_t;
+	using TypeID = uint16_t;
 
 	class TTypeInfo
 	{
@@ -19,6 +19,7 @@ namespace MAD
 		using CreationFunction_t = eastl::shared_ptr<class UObject> (*) (OGameWorld*);
 	public:
 		static const TTypeInfo* GetTypeInfo(const eastl::string& inTypeName);
+		static const TTypeInfo* GetTypeInfo(TypeID inTypeID);
 		static void DumpTypeInfo();
 
 		TTypeInfo(const TTypeInfo* inParent, const char* inTypeName, CreationFunction_t inCreationFunc);
@@ -32,6 +33,7 @@ namespace MAD
 	private:
 		static TypeID s_currentTypeID;
 		static eastl::string_hash_map<const TTypeInfo*> s_typeNameToTypeInfoMap;
+		static eastl::hash_map<TypeID, const TTypeInfo*> s_typeIDToTypeInfoMap;
 
 		const CreationFunction_t m_creationFunction;
 		const char* const m_typeName;

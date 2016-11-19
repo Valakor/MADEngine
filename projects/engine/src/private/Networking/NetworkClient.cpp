@@ -62,12 +62,49 @@ namespace MAD
 				}
 				break;
 			}
+
 			case INITIALIZE_NEW_PLAYER:
+			{
 				MInitializeNewPlayer* message = static_cast<MInitializeNewPlayer*>(msg);
 				for (auto playerID : message->m_otherPlayers)
 				{
 					OnRemotePlayerConnected(playerID);
 				}
+				break;
+			}
+
+			case CREATE_OBJECT:
+			{
+				MCreateObject* message = static_cast<MCreateObject*>(msg);
+				const TTypeInfo* objTypeInfo = TTypeInfo::GetTypeInfo(message->m_classTypeID);
+				MAD_ASSERT_DESC(!!objTypeInfo, "Received invalid Type Info");
+
+				eastl::shared_ptr<UObject> newObj = nullptr;
+
+				if (IsA<AEntity>(*objTypeInfo))
+				{
+					// TODO A better way to identify what world to spawn the entity in?
+					auto world = gEngine->GetWorld();
+					auto entity = world->SpawnEntityDeferred<AEntity>(*objTypeInfo, "default");
+					entity->SetNetID(message->m_objectNetID);
+					world->FinalizeSpawnEntity(entity);
+
+					newObj = entity;
+				}
+				else
+				{
+					newObj = CreateDefaultObject<UObject>(*objTypeInfo, nullptr);
+					newObj->SetNetID(message->m_objectNetID);
+				}
+
+				// TODO store created object somewhere
+				// TODO have some form of network ownership (what player + with what authority owns this object?)
+
+				break;
+			}
+
+			default:
+				LOG(LogNetworkClient, Warning, "[ReceiveMessages] Received unhandled or unknown message type: %i\n", msg->GetType());
 				break;
 			}
 
