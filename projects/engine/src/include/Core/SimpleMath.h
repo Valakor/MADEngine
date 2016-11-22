@@ -30,6 +30,21 @@ namespace MAD
 		return fabs(a - b) <= epsilon;
 	}
 
+	inline constexpr float Clamp(float x, float min, float max)
+	{
+		return (x < min) ? min : (x > max) ? max : x;
+	}
+
+	inline constexpr float Saturate(float x)
+	{
+		return Clamp(x, 0.0f, 1.0f);
+	}
+
+	inline float Lerp(float a, float b, float t)
+	{
+		return a + (b - a) * Saturate(t);
+	}
+
 	class ULinearTransform
 	{
 	public:
@@ -48,6 +63,7 @@ namespace MAD
 
 		void operator*=(const ULinearTransform& inOtherTransform);
 
+		static ULinearTransform Lerp(const ULinearTransform& a, const ULinearTransform& b, float t);
 		friend ULinearTransform operator*(const ULinearTransform& inLeftTransform, const ULinearTransform& inRightTransform);
 	private:
 		void UpdateCachedTransform();

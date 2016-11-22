@@ -5,11 +5,8 @@
 #include "Core/GameWindow.h"
 #include "Misc/ProgramPermutor.h"
 #include "Misc/Logging.h"
-#include "Misc/utf8conv.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/InputLayoutCache.h"
-
-#include <EASTL/array.h>
 
 namespace MAD
 {
@@ -61,7 +58,9 @@ namespace MAD
 		}
 	}
 
-	URenderer::URenderer(): m_window(nullptr)
+	URenderer::URenderer(): m_frame(static_cast<decltype(m_frame)>(-1))
+	                      , m_window(nullptr)
+	                      , m_currentStateIndex(0)
 	                      , m_visualizeOption(EVisualizeOptions::None) { }
 
 	bool URenderer::Init(UGameWindow& inWindow)
@@ -95,7 +94,16 @@ namespace MAD
 
 	void URenderer::QueueDrawItem(const SDrawItem& inDrawItem)
 	{
-		m_queuedDrawItems.emplace_back(inDrawItem);
+		// Queue up this draw item
+		auto result = m_queuedDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
+		MAD_ASSERT_DESC(result.second, "Duplicate draw item detected. Either it was submitted twice, or there was a collision in generating its unique ID");
+
+		// Check if this draw item was submitted previously
+		auto iter = m_queuedDrawItems[1 - m_currentStateIndex].find(inDrawItem.m_uniqueID);
+		if (iter != m_queuedDrawItems[1 - m_currentStateIndex].end())
+		{
+			result.first->second.m_previousDrawTransform = &iter->second.m_transform;
+		}
 	}
 
 	void URenderer::QueueDirectionalLight(const SGPUDirectionalLight& inDirectionalLight)
@@ -120,6 +128,15 @@ namespace MAD
 		newLight.m_lightPosition = Vector3::Transform(newLight.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
 	}
 
+	void URenderer::ClearRenderItems()
+	{
+		m_currentStateIndex = 1 - m_currentStateIndex;
+
+		m_queuedDrawItems[m_currentStateIndex].clear();
+		m_queuedDirLights.clear();
+		m_queuedPointLights.clear();
+	}
+
 	void URenderer::OnScreenSizeChanged()
 	{
 		auto newSize = m_window->GetClientSize();
@@ -138,10 +155,17 @@ namespace MAD
 
 	void URenderer::Frame(float framePercent)
 	{
-		(void)framePercent;
+		m_frame++;
+		MAD_ASSERT_DESC(m_frame != eastl::numeric_limits<decltype(m_frame)>::max(), "");
 		
 		BeginFrame();
-		Draw();
+
+		if (m_frame > 0)
+		{
+			// We need at least one frame's worth of buffer for state interpolation
+			Draw(framePercent);
+		}
+		
 		EndFrame();
 	}
 
@@ -275,9 +299,10 @@ namespace MAD
 		}
 	}
 
-	void URenderer::Draw()
+	void URenderer::Draw(float inFramePercent)
 	{
 		// Bind per-frame constants
+		CalculateCameraConstants(inFramePercent);
 		BindPerFrameConstants();
 
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::LightingBuffer);
@@ -289,13 +314,13 @@ namespace MAD
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 		// Go through each draw item and bind input assembly data
-		for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
+		for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
 		{
 			// Before processing the draw item, we need to determine which program it should use and bind that
-			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem));
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem.second));
 
 			// Each individual DrawItem should issue it's own draw call
-			currentDrawItem.Draw(g_graphicsDriver, true);
+			currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
 		}
 
 		if (m_visualizeOption != EVisualizeOptions::None)
@@ -323,9 +348,9 @@ namespace MAD
 
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
 			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
-			for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
+			for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
 			{
-				currentDrawItem.Draw(g_graphicsDriver, true, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+				currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
 
 			// Shading + lighting
@@ -459,14 +484,27 @@ namespace MAD
 
 	void URenderer::UpdateCameraConstants(const SCameraInstance& inCameraInstance)
 	{
-		m_perFrameConstants.m_cameraViewMatrix = inCameraInstance.m_viewMatrix;
-		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
-		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
-		m_perFrameConstants.m_cameraInverseViewMatrix = inCameraInstance.m_viewMatrix.Invert();
-		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
-		m_perFrameConstants.m_cameraNearPlane = inCameraInstance.m_nearPlaneDistance;
-		m_perFrameConstants.m_cameraFarPlane = inCameraInstance.m_farPlaneDistance;
-		m_perFrameConstants.m_cameraExposure = inCameraInstance.m_exposure;
+		m_camera[m_currentStateIndex] = inCameraInstance;
+	}
+
+	void URenderer::CalculateCameraConstants(float inFramePercent)
+	{
+		SCameraInstance& currentCamera = m_camera[m_currentStateIndex];
+		ULinearTransform transform = ULinearTransform::Lerp(m_camera[1 - m_currentStateIndex].m_transform, currentCamera.m_transform, inFramePercent);
+
+		auto windowSize = gEngine->GetWindow().GetClientSize();
+		float aspectRatio = static_cast<float>(windowSize.x) / windowSize.y;
+
+		Matrix projection = Matrix::CreatePerspectiveFieldOfView(currentCamera.m_verticalFOV, aspectRatio, currentCamera.m_nearPlaneDistance, currentCamera.m_farPlaneDistance);
+
+		m_perFrameConstants.m_cameraViewMatrix = transform.GetMatrix().Invert();
+		m_perFrameConstants.m_cameraProjectionMatrix = projection;
+		m_perFrameConstants.m_cameraViewProjectionMatrix = m_perFrameConstants.m_cameraViewMatrix * m_perFrameConstants.m_cameraProjectionMatrix;
+		m_perFrameConstants.m_cameraInverseViewMatrix = transform.GetMatrix();
+		m_perFrameConstants.m_cameraInverseProjectionMatrix = projection.Invert();
+		m_perFrameConstants.m_cameraNearPlane = currentCamera.m_nearPlaneDistance;
+		m_perFrameConstants.m_cameraFarPlane = currentCamera.m_farPlaneDistance;
+		m_perFrameConstants.m_cameraExposure = currentCamera.m_exposure;
 	}
 
 	void URenderer::SetWorldAmbientColor(Color inColor)

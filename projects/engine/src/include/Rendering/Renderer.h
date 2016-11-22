@@ -1,13 +1,14 @@
 #pragma once
 
-#include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 #include <EASTl/vector.h>
 
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/RenderPassDescriptor.h"
+#include "Rendering/RenderPassProgram.h"
 #include "Rendering/DrawItem.h"
+#include "Rendering/CameraInstance.h"
 
 namespace MAD
 {
@@ -35,7 +36,7 @@ namespace MAD
 		void QueueDirectionalLight(const SGPUDirectionalLight& inDirectionalLight);
 		void QueuePointLight(const SGPUPointLight& inPointLight);
 
-		void ClearRenderItems() { m_queuedDrawItems.clear(); m_queuedDirLights.clear(); m_queuedPointLights.clear(); }
+		void ClearRenderItems();
 
 		void Frame(float framePercent);
 
@@ -43,10 +44,10 @@ namespace MAD
 
 		void SetFullScreen(bool inIsFullscreen) const;
 
-		const SPerFrameConstants& GetCameraConstants() const { return m_perFrameConstants; }
 		void UpdateCameraConstants(const struct SCameraInstance& inCameraInstance);
-		void SetWorldAmbientColor(DirectX::SimpleMath::Color inColor);
-		void SetBackBufferClearColor(DirectX::SimpleMath::Color inColor);
+		void CalculateCameraConstants(float inFramePercent);
+		void SetWorldAmbientColor(Color inColor);
+		void SetBackBufferClearColor(Color inColor);
 
 		class UGraphicsDriver& GetGraphicsDriver();
 		SRasterizerStateId GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
@@ -64,20 +65,26 @@ namespace MAD
 		void SetViewport(LONG inWidth, LONG inHeight);
 
 		void BeginFrame();
-		void Draw();
+		void Draw(float inFramePercent);
 		void EndFrame();
 
 		void DoVisualizeGBuffer();
 
 		ProgramId_t DetermineProgramId(const SDrawItem& inTargetDrawItem) const;
 	private:
+		uint32_t m_frame;
+
 		UGameWindow* m_window;
 		SRenderTargetId m_backBuffer;
 		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
 		Color m_clearColor;
 
-		eastl::vector<SDrawItem> m_queuedDrawItems;
+		// Double-buffer draw items for current and past frame for state interpolation
+		int m_currentStateIndex;
+		SCameraInstance m_camera[2];
+		eastl::hash_map<size_t, SDrawItem> m_queuedDrawItems[2];
+
 		eastl::vector<SGPUDirectionalLight> m_queuedDirLights;
 		eastl::vector<SGPUPointLight> m_queuedPointLights;
 		

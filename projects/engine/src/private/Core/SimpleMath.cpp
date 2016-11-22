@@ -44,6 +44,17 @@ namespace MAD
 		UpdateCachedTransform();
 	}
 
+	ULinearTransform ULinearTransform::Lerp(const ULinearTransform& a, const ULinearTransform& b, float t)
+	{
+		ULinearTransform ret;
+		ret.m_scale = ::MAD::Lerp(a.m_scale, b.m_scale, t);
+		ret.m_translation = Vector3::Lerp(a.m_translation, b.m_translation, t);
+		ret.m_rotation = Quaternion::Lerp(a.m_rotation, b.m_rotation, t);
+		ret.UpdateCachedTransform();
+
+		return ret;
+	}
+
 	ULinearTransform operator*(const ULinearTransform& inLeftTransform, const ULinearTransform& inRightTransform)
 	{
 		ULinearTransform outputTransform;

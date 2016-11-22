@@ -40,16 +40,16 @@ namespace MAD
 			{
 				nextSpawnSeconds = gameSeconds + 5;
 				 
-				LOG(LogNetworkServer, Log, "Spawning a APointLightBullet on the network...\n");
-				for (const auto& player : m_players)
-				{
-					// TODO: Discuss how we want to handle ListenServer here. Normally spawn on local server + remote client, but
-					// TODO: having two copies on a listen server would obviously be wrong
-					auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
-					msg->m_objectNetID.GetUnderlyingHandleRef() = m_nextNetworkID++;
-					msg->m_classTypeID = Test::APointLightBullet::StaticClass()->GetTypeID();
-					SendMsg(player.first, msg);
-				}
+				//LOG(LogNetworkServer, Log, "Spawning a APointLightBullet on the network...\n");
+				//for (const auto& player : m_players)
+				//{
+				//	// TODO: Discuss how we want to handle ListenServer here. Normally spawn on local server + remote client, but
+				//	// TODO: having two copies on a listen server would obviously be wrong
+				//	auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
+				//	msg->m_objectNetID.GetUnderlyingHandleRef() = m_nextNetworkID++;
+				//	msg->m_classTypeID = Test::APointLightBullet::StaticClass()->GetTypeID();
+				//	SendMsg(player.first, msg);
+				//}
 			}
 		}
 

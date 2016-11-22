@@ -19,7 +19,6 @@ namespace MAD
 	{
 		SMeshInstance() : m_bVisible(false) {}
 
-		SPerDrawConstants m_perDrawConstants;
 		eastl::shared_ptr<class UMesh> m_mesh;
 		bool m_bVisible;
 	};
@@ -35,7 +34,7 @@ namespace MAD
 		*/
 		static eastl::shared_ptr<UMesh> Load(const eastl::string& inRelativePath);
 
-		void BuildDrawItems(eastl::vector<struct SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const;
+		void BuildDrawItems(eastl::vector<struct SDrawItem>& inOutTargetDrawItems, const ULinearTransform& inMeshTransform) const;
 
 	//private:
 		static eastl::shared_ptr<UMesh> Load_Internal(const eastl::string& inRelativePath);

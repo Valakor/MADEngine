@@ -102,9 +102,9 @@ namespace MAD
 
 		defaultEntityObject->SetOwningWorldLayer(targetWorldLayerIter->second);
 
-		defaultEntityObject->PostInitializeComponents();
+		defaultEntityObject->PostInitialize();
 	
-		defaultEntityObject->OnBeginPlay();
+		defaultEntityObject->BeginPlay();
 
 		return defaultEntityObject;
 	}

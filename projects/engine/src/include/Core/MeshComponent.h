@@ -20,9 +20,11 @@ namespace MAD
 
 		bool IsVisible() const { return m_meshInstance.m_bVisible; }
 		void SetVisible(bool inIsVisible) { m_meshInstance.m_bVisible = inIsVisible; }
+
+		static size_t MakeDrawItemID(size_t inMeshObjectID, size_t inDrawItemIdx);
 	
 	private:
-		void ConstructDrawItem();
+		void ConstructDrawItem() const;
 	private:
 		SMeshInstance m_meshInstance;
 	};

@@ -11,6 +11,32 @@ namespace MAD
 		, m_owningWorldLayer(nullptr)
 		, m_rootComponent(nullptr) {}
 
+	void AEntity::PostInitialize()
+	{
+		// If the entity has already set it's root component, we should set the root component to the first component of the entity (if it exists)
+		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
+		{
+			m_rootComponent = m_entityComponents.front();
+		}
+
+		for (auto component : m_entityComponents)
+		{
+			component->PostInitializeComponents();
+		}
+
+		PostInitializeComponents();
+	}
+
+	void AEntity::BeginPlay()
+	{
+		for (auto component : m_entityComponents)
+		{
+			component->OnBeginPlay();
+		}
+
+		OnBeginPlay();
+	}
+
 	void AEntity::Destroy()
 	{
 		// Destroying an Entity means to basically destroy all of it's attached components
@@ -40,15 +66,6 @@ namespace MAD
 		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot print translation hierarchy for an entity that doesn't have a root component");
 
 		return m_rootComponent->PrintTranslationHierarchy(0);
-	}
-
-	void AEntity::PostInitializeComponents()
-	{
-		// If the entity has already set it's root component, we should set the root component to the first component of the entity (if it exists)
-		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
-		{
-			m_rootComponent = m_entityComponents.front();
-		}
 	}
 
 	bool AEntity::AttachEntity(eastl::shared_ptr<AEntity> inChildEntity)

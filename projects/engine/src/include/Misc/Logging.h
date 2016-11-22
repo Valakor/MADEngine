@@ -5,6 +5,11 @@
 
 namespace MAD
 {
+#define MAD_ENABLE_LOGGING 0
+#if _DEBUG | DEBUG | MAD_ENABLE_LOGGING
+#define MAD_DO_LOGGING 1
+#endif
+
 	enum class ELogVerbosity
 	{
 		Log,
@@ -51,7 +56,7 @@ namespace MAD
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
-#ifdef _DEBUG
+#if MAD_DO_LOGGING
 #define LOG(Category, Verbosity, Format, ...)																\
 	do																										\
 	{																										\

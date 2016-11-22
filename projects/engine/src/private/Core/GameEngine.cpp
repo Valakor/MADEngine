@@ -83,6 +83,7 @@ namespace MAD
 
 			Test::APointLightBullet::StaticClass();
 			Test::CTimedDeathComponent::StaticClass();
+			Test::CSinMoveComponent::StaticClass();
 		}
 	}
 
@@ -91,9 +92,10 @@ namespace MAD
 	UGameEngine::UGameEngine()
 		: bContinue(true)
 		, m_isSimulating(false)
-	    , mGameTime(0.0)
-	    , mFrameTime(0.0)
-	    , mFrameAccumulator(0.0) { }
+		, m_gameTick(0)
+		, mGameTime(0.0)
+		, mFrameTime(0.0)
+		, mFrameAccumulator(0.0) { }
 
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
@@ -247,8 +249,8 @@ namespace MAD
 		m_worlds.clear();
 
 		UGameWorldLoader loader;
-		loader.LoadWorld("engine\\worlds\\default_world.json");
-		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
+		//loader.LoadWorld("engine\\worlds\\default_world.json");
+		loader.LoadWorld("engine\\worlds\\sponza_world.json");
 	}
 
 	void UGameEngine::TEMPTestTransformHierarchy()
@@ -280,8 +282,15 @@ namespace MAD
 		int steps = eastl::min(static_cast<int>(floor(mFrameAccumulator / TARGET_DELTA_TIME)), MAX_SIMULATION_STEPS);
 		mFrameAccumulator -= steps * TARGET_DELTA_TIME;
 
-		while (steps > 0)
+		while (steps > 0 || m_gameTick == 0)
 		{
+			// Update current game tick
+			m_gameTick++;
+			MAD_ASSERT_DESC(m_gameTick != 0, "Game tick overflow detected");
+
+			// Actual frame time
+			float stepTime = eastl::min(TARGET_DELTA_TIME, mFrameAccumulator);
+
 			// Clear the old draw items
 			mRenderer->ClearRenderItems();
 
@@ -296,12 +305,12 @@ namespace MAD
 			m_isSimulating = true;
 
 			// TEMP
-			m_NetworkManager.Tick(TARGET_DELTA_TIME);
+			m_NetworkManager.Tick(stepTime);
 
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePrePhysics(stepTime);
 			}
 
 			//// Update the physics world
@@ -311,7 +320,7 @@ namespace MAD
 			//// Tick the post-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePostPhysics(stepTime);
 			}
 
 			m_isSimulating = false;
