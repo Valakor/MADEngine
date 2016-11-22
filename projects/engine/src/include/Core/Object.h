@@ -17,6 +17,8 @@ namespace MAD
 
 		virtual ~UObject();
 
+		virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const { (void)inOutReplInfo; }
+
 		inline ObjectID GetObjectID() const { return m_objectID; }
 		inline SNetworkID GetNetID() const { return m_netID; }
 		inline OGameWorld* GetOwningWorld() { return m_owningGameWorld; }

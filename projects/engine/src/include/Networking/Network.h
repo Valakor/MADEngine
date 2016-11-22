@@ -75,4 +75,60 @@ namespace MAD
 			return !operator==(h);
 		}
 	};
+
+	using ReplComparisonFunc_t = bool(*)(const void*, const void*);
+	using ReplAttrOffset_t = size_t;
+	using ReplAttrSize_t = size_t;
+
+	enum class EReplicationType : uint8_t
+	{
+		Always,
+		InitialOnly
+	};
+
+	struct SObjectReplInfo
+	{
+		static const int32_t InvalidIndex = -1;
+
+		EReplicationType m_replType;
+
+		int32_t						 m_replAttrOwnerIndex = InvalidIndex; // Owner is component is not -1 and either UObject or AEntity type if equal to -1
+		ReplAttrOffset_t			 m_replAttrOffset;
+		ReplAttrSize_t				 m_replAttrSize;
+
+		ReplComparisonFunc_t m_replComparisonFunc; // Returns true if equal
+	};
+
+	int32_t DetermineComponentIndex(class UComponent* inTargetComponent);
+	
+	template <typename T>
+	bool IsSame(const void* inLeftData, const void* inRightData)
+	{
+		const T* inLeftTypeData = reinterpret_cast<const T*>(inLeftData);
+		const T* inRightTypeData = reinterpret_cast<const T*>(inRightData);
+
+		return *inLeftTypeData == *inRightTypeData;
+	}
+
+#define MAD_ADD_REPLICATION_PROPERTY(OutPropContainer, ReplType, OwnerType, ReplVarName)						\
+		do																										\
+		{																										\
+			SObjectReplInfo outReplInfo;																		\
+																												\
+			outReplInfo.m_replType = ReplType;																	\
+																												\
+			if (UComponent* componentOwner = Cast<UComponent>(this))											\
+			{																									\
+				/* Find the index that this component is within it's owner */									\
+				outReplInfo.m_replAttrOwnerIndex = DetermineComponentIndex(componentOwner);						\
+			}																									\
+																												\
+			outReplInfo.m_replAttrOffset = offsetof(OwnerType, ReplVarName);									\
+			outReplInfo.m_replAttrSize = sizeof(ReplVarName);													\
+			outReplInfo.m_replComparisonFunc = &IsSame<decltype(ReplVarName), sizeof(ReplVarName)>;				\
+																												\
+			OutPropContainer.push_back(outReplInfo);															\
+																												\
+		} while (0)
+
 }

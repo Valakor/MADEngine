@@ -15,12 +15,12 @@ namespace MAD
 	class OGameWorld;
 	class OGameWorldLayer;
 
+	using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
+	using ConstComponentContainer = eastl::vector<eastl::weak_ptr<const UComponent>>;
+
 	class AEntity : public UObject
 	{
 		MAD_DECLARE_ACTOR(AEntity, UObject)
-	public:
-		using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
-		using ConstComponentContainer = eastl::vector<eastl::weak_ptr<const UComponent>>;
 	public:
 		explicit AEntity(OGameWorld* inOwningWorld);
 		virtual ~AEntity() {}
@@ -46,6 +46,9 @@ namespace MAD
 		UComponent* GetRootComponent() const { return m_rootComponent.get(); }
 		void GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const;
 		void GetEntityComponents(ComponentContainer& inOutEntityComponents);
+		eastl::weak_ptr<const UComponent> GetEntityComponentByIndex(size_t inIndex) const { return m_entityComponents[inIndex]; }
+		eastl::weak_ptr<UComponent> GetEntityComponentByIndex(size_t inIndex) { return m_entityComponents[inIndex]; }
+
 		size_t GetComponentCount() const { return m_entityComponents.size(); }
 
 		// Gets the first component of the input type. Returns weak_ptr because external users shouldn't maintain strong references
