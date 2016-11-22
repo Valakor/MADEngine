@@ -14,8 +14,7 @@ namespace MAD
 	class UNetworkClient : public yojimbo::Client
 	{
 	public:
-
-		explicit UNetworkClient(eastl::unique_ptr<UNetworkTransport> inClientTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inClientConfig = yojimbo::ClientServerConfig());
+		explicit UNetworkClient(class UNetworkManager& inNetworkManager, eastl::unique_ptr<UNetworkTransport> inClientTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inClientConfig = yojimbo::ClientServerConfig());
 
 		void Tick(float inGameTime);
 
@@ -25,12 +24,25 @@ namespace MAD
 		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;
 
 	private:
+		class UNetworkManager& m_networkManager;
+
 		eastl::unique_ptr<UNetworkTransport> m_clientTransport;
 
 		eastl::weak_ptr<ONetworkPlayer> m_localPlayer;
 		eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<ONetworkPlayer>> m_players;
 
+		struct UNetObject
+		{
+			eastl::shared_ptr<UObject> Object;
+			eastl::shared_ptr<UNetworkState> State;
+			eastl::shared_ptr<UNetworkObjectView> NetworkView;
+		};
+		eastl::hash_map<SNetworkID, UNetObject> m_netObjects;
+
 		void ReceiveMessages();
+		void HandleCreateObjectMessage(const MCreateObject& message);
+		void HandleUpdateObjectMessage(const MUpdateObject& message);
+		void HandleDestroyObjectMessage(const MDestroyObject& message);
 
 		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer);
 

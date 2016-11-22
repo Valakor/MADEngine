@@ -23,6 +23,8 @@ namespace MAD
 		// If our root component has a parent (i.e this entity is parented to another entity), we need to remove ourselves from their root component's
 		// child list
 		DetachFromParent();
+
+		Super::Destroy();
 	}
 
 	OGameWorld& AEntity::GetWorld()

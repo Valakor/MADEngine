@@ -176,7 +176,7 @@ namespace yojimbo
                 return false;                                                       \
         } while (0)
 
-    template <typename Stream> bool serialize_string_internal( Stream & stream, char* string, int buffer_size )
+    template <typename Stream> bool serialize_cstring_internal( Stream & stream, char* string, int buffer_size )
     {
         int length = 0;
         if ( Stream::IsWriting )
@@ -191,7 +191,7 @@ namespace yojimbo
         return true;
     }
 
-    #define serialize_string( stream, string, buffer_size )                                 \
+    #define serialize_cstring( stream, string, buffer_size )                                \
         do                                                                                  \
         {                                                                                   \
             if ( !yojimbo::serialize_string_internal( stream, string, buffer_size ) )       \

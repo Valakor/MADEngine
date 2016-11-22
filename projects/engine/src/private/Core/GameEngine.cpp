@@ -194,7 +194,7 @@ namespace MAD
 
 		for (auto w : m_worlds)
 		{
-			if (w->GetWorldName() == inWorldName || inWorldName.empty())
+			if (w->GetWorldName() == inWorldName)
 			{
 				return w;
 			}

@@ -22,10 +22,15 @@ namespace MAD
 		void Tick(float inDeltaTime);
 		void Shutdown();
 
+		ENetMode GetNetMode() const { return m_netMode; }
+
 		eastl::weak_ptr<ONetworkPlayer> GetLocalPlayer() const { return m_client ? m_client->GetLocalPlayer() : eastl::weak_ptr<ONetworkPlayer>(); }
 		size_t GetNumPlayers() const;
 
 	private:
+		friend class UNetworkClient;
+		friend class UNetworkServer;
+
 		ENetMode m_netMode;
 		yojimbo::ClientServerConfig m_config;
 

@@ -8,6 +8,7 @@ namespace MAD
 	class OGameWorld;
 
 	using ObjectID = uint64_t;
+	const ObjectID InvalidObjectID = eastl::numeric_limits<ObjectID>::max();
 	
 	class UObject
 	{
@@ -23,6 +24,13 @@ namespace MAD
 		inline const OGameWorld* GetOwningWorld() const { return m_owningGameWorld; }
 
 		void SetNetID(SNetworkID inNetID);
+		bool IsNetworkSpawned() const { return m_netID.IsValid(); }
+
+		bool IsValid() const { return !m_isDestroyed; }
+		virtual void Destroy();
+
+	protected:
+		virtual void OnDestroy() {}
 
 	private:
 		static ObjectID s_objectRunningUID;
@@ -30,5 +38,7 @@ namespace MAD
 		ObjectID m_objectID;
 		SNetworkID m_netID;
 		OGameWorld* m_owningGameWorld;
+
+		bool m_isDestroyed;
 	};
 }

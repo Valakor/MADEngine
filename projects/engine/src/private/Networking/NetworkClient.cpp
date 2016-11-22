@@ -9,8 +9,9 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogNetworkClient);
 
-	UNetworkClient::UNetworkClient(eastl::unique_ptr<UNetworkTransport> inClientTransport, double inCurrentGameTime, const ClientServerConfig& inClientConfig)
+	UNetworkClient::UNetworkClient(UNetworkManager& inNetworkManager, eastl::unique_ptr<UNetworkTransport> inClientTransport, double inCurrentGameTime, const ClientServerConfig& inClientConfig)
 		: Client(GetDefaultAllocator(), *inClientTransport, inClientConfig, inCurrentGameTime)
+		, m_networkManager(inNetworkManager)
 		, m_clientTransport(eastl::move(inClientTransport))
 	{
 
@@ -76,31 +77,20 @@ namespace MAD
 			case CREATE_OBJECT:
 			{
 				MCreateObject* message = static_cast<MCreateObject*>(msg);
-				const TTypeInfo* objTypeInfo = TTypeInfo::GetTypeInfo(message->m_classTypeID);
-				MAD_ASSERT_DESC(!!objTypeInfo, "Received invalid Type Info");
-
-				eastl::shared_ptr<UObject> newObj = nullptr;
-
-				if (IsA<AEntity>(*objTypeInfo))
-				{
-					// TODO A better way to identify what world to spawn the entity in?
-					auto world = gEngine->GetWorld();
-					auto entity = world->SpawnEntityDeferred<AEntity>(*objTypeInfo, "default");
-					entity->SetNetID(message->m_objectNetID);
-					world->FinalizeSpawnEntity(entity);
-
-					newObj = entity;
-				}
-				else
-				{
-					newObj = CreateDefaultObject<UObject>(*objTypeInfo, nullptr);
-					newObj->SetNetID(message->m_objectNetID);
-				}
-
-				// TODO store created object somewhere
-				// TODO have some form of network ownership (what player + with what authority owns this object?)
-
+				HandleCreateObjectMessage(*message);
 				break;
+			}
+
+			case UPDATE_OBJECT:
+			{
+				MUpdateObject* message = static_cast<MUpdateObject*>(msg);
+				HandleUpdateObjectMessage(*message);
+			}
+
+			case DESTROY_OBJECT:
+			{
+				MDestroyObject* message = static_cast<MDestroyObject*>(msg);
+				HandleDestroyObjectMessage(*message);
 			}
 
 			default:
@@ -110,6 +100,91 @@ namespace MAD
 
 			ReleaseMsg(msg);
 		}
+	}
+
+	void UNetworkClient::HandleCreateObjectMessage(const MCreateObject& message)
+	{
+		const TTypeInfo* objTypeInfo = TTypeInfo::GetTypeInfo(message.m_classTypeID);
+		MAD_ASSERT_DESC(!!objTypeInfo, "Received invalid Type Info");
+
+		UNetObject netObject;
+		netObject.State = eastl::make_shared<UNetworkState>();
+		netObject.NetworkView = eastl::make_shared<UNetworkObjectView>(*netObject.State);
+
+		if (m_networkManager.GetNetMode() == ENetMode::ListenServer)
+		{
+			// Don't create the object again, find it in the server object
+			MAD_ASSERT_DESC(m_networkManager.m_server != nullptr, "Must have a valid NetworkServer if in ListenServer mode");
+			auto serverObject = m_networkManager.m_server->GetNetworkObject(message.m_objectNetID);
+			MAD_ASSERT_DESC(serverObject != nullptr, "Server should have an object with this ID already");
+			netObject.Object = serverObject;
+		}
+		else
+		{
+			if (IsA<AEntity>(*objTypeInfo))
+			{
+				auto world = gEngine->GetWorld(message.m_worldName);
+				if (!world)
+				{
+					LOG(LogNetworkClient, Error, "Client should have a world loaded with the given name: %s\n", message.m_worldName.c_str());
+					return;
+				}
+
+				LOG(LogNetworkClient, Log, "Spawning a AEntity<%s> on the client with ID %d\n", objTypeInfo->GetTypeName(), message.m_objectNetID.GetUnderlyingHandle());
+
+				auto entity = world->SpawnEntityDeferred<AEntity>(*objTypeInfo, message.m_layerName);
+				entity->SetNetID(message.m_objectNetID);
+				// TODO: netObject.State->SerializeState(message.m_networkState, true);
+				world->FinalizeSpawnEntity(entity);
+
+				netObject.Object = entity;
+			}
+			else
+			{
+				LOG(LogNetworkClient, Log, "Spawning a UObject<%s> on the client with ID %d\n", objTypeInfo->GetTypeName(), message.m_objectNetID.GetUnderlyingHandle());
+
+				netObject.Object = CreateDefaultObject<UObject>(*objTypeInfo, nullptr);
+				netObject.Object->SetNetID(message.m_objectNetID);
+			}
+		}
+
+		m_netObjects.insert({ message.m_objectNetID, netObject });
+		// TODO have some form of network ownership (what player + with what authority owns this object?)
+	}
+
+	void UNetworkClient::HandleUpdateObjectMessage(const MUpdateObject& message)
+	{
+		MAD_ASSERT_DESC(m_networkManager.GetNetMode() != ENetMode::ListenServer, "Server shouldn't send this message to its local client");
+
+		auto netObject = m_netObjects.find(message.m_objectNetID);
+		if (netObject == m_netObjects.end())
+		{
+			LOG(LogNetworkClient, Warning, "Received UpdateObject message for unrecognized object ID: %i\n", message.m_objectNetID.GetUnderlyingHandle());
+			return;
+		}
+
+		// TODO: netObject->second.State->SerializeState(message.m_networkState, true);
+	}
+
+	void UNetworkClient::HandleDestroyObjectMessage(const MDestroyObject& message)
+	{
+		auto netObject = m_netObjects.find(message.m_objectNetID);
+		if (netObject == m_netObjects.end())
+		{
+			LOG(LogNetworkClient, Warning, "Received DestroyObject message for unrecognized object ID: %i\n", message.m_objectNetID.GetUnderlyingHandle());
+			return;
+		}
+
+		auto object = netObject->second.Object;
+		LOG(LogNetworkClient, Log, "Destroying a client object of type %s with ID %d\n", object->GetTypeInfo()->GetTypeName(), object->GetNetID().GetUnderlyingHandle());
+		
+		if (m_networkManager.GetNetMode() != ENetMode::ListenServer)
+		{
+			// Destroy is called by the Server already for a listen server
+			object->Destroy();
+		}
+
+		m_netObjects.erase(netObject);
 	}
 
 	void UNetworkClient::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer)
@@ -124,6 +199,12 @@ namespace MAD
 
 		inPlayer->SetPlayerID(inPlayerID);
 		inPlayer->SetIsLocalPlayer(inIsLocalPlayer);
+
+		if (m_networkManager.GetNetMode() == ENetMode::ListenServer && inPlayerID != InvalidPlayerID)
+		{
+			auto serverPlayer = m_networkManager.m_server->GetPlayerByID(inPlayerID);
+			serverPlayer.lock()->SetIsLocalPlayer(inIsLocalPlayer);
+		}
 
 		m_players.insert({ inPlayerID, inPlayer });
 

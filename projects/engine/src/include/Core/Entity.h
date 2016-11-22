@@ -30,7 +30,7 @@ namespace MAD
 
 		bool AttachEntity(eastl::shared_ptr<AEntity> inChildEntity);
 
-		void Destroy();
+		virtual void Destroy() override;
 		bool IsPendingForKill() const { return m_isPendingForKill; }
 	
 		const ULinearTransform& GetWorldTransform() const;

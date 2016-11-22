@@ -4,6 +4,7 @@ namespace MAD
 {
 	class UNetworkState
 	{
+	public:
 		UNetworkState();
 	};
 }

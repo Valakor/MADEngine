@@ -7,25 +7,76 @@
 #include "Networking/NetworkTypes.h"
 #include "Networking/NetworkTransport.h"
 #include "Networking/NetworkPlayer.h"
+#include "Networking/NetworkObjectView.h"
+#include "Networking/NetworkState.h"
 
 namespace MAD
 {
 	class UNetworkServer : public yojimbo::Server
 	{
 	public:
-		explicit UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig = yojimbo::ClientServerConfig());
+		explicit UNetworkServer(class UNetworkManager& inNetworkManager, eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig = yojimbo::ClientServerConfig());
 
 		void Tick(float inGameTime);
 
 		size_t GetNumConnectedPlayers() const { return m_players.size(); }
 		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;
 
+		eastl::shared_ptr<UObject> GetNetworkObject(SNetworkID inNetworkID) const;
+
+		template <typename ObjectType>
+		eastl::shared_ptr<ObjectType> SpawnNetworkObject()
+		{
+			static_assert(eastl::is_base_of<UObject, ObjectType>::value, "Spawned ObjectType must be of type UObject or more derived");
+			const TTypeInfo* objectTypeInfo = ObjectType::StaticClass();
+			return eastl::static_pointer_cast<ObjectType>(SpawnNetworkObject_Internal(*objectTypeInfo));
+		}
+
+		template <typename ObjectType>
+		eastl::shared_ptr<ObjectType> SpawnNetworkObject(const TTypeInfo& inTypeInfo)
+		{
+			static_assert(eastl::is_base_of<UObject, ObjectType>::value, "Spawned ObjectType must be of type UObject or more derived");
+			MAD_ASSERT_DESC(IsA<ObjectType>(inTypeInfo), "Given type info must be a derived class of UObject");
+			return eastl::static_pointer_cast<ObjectType>(SpawnNetworkObject_Internal(inTypeInfo));
+		}
+
+		template <typename EntityType>
+		eastl::shared_ptr<EntityType> SpawnNetworkEntity(OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+		{
+			static_assert(eastl::is_base_of<AEntity, EntityType>::value, "Spawned EntityType must be of type AEntity or more derived");
+			const TTypeInfo* entityTypeInfo = EntityType::StaticClass();
+			return eastl::static_pointer_cast<EntityType>(SpawnNetworkEntity_Internal(*entityTypeInfo, inOwningGameWorld, inWorldLayer));
+		}
+
+		template <typename EntityType>
+		eastl::shared_ptr<EntityType> SpawnNetworkObject(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+		{
+			static_assert(eastl::is_base_of<AEntity, EntityType>::value, "Spawned EntityType must be of type AEntity or more derived");
+			MAD_ASSERT_DESC(IsA<EntityType>(inTypeInfo), "Given type info must be a derived class of AEntity");
+			return eastl::static_pointer_cast<ObjectType>(SpawnNetworkEntity_Internal(inTypeInfo, inOwningGameWorld, inWorldLayer));
+		}
+
+		void DestroyNetworkObject(eastl::shared_ptr<UObject> inObject);
+
 	private:
+		class UNetworkManager& m_networkManager;
+
 		eastl::unique_ptr<UNetworkTransport> m_serverTransport;
 
 		eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<ONetworkPlayer>> m_players;
 
 		SNetworkID::HandleType m_nextNetworkID;
+
+		struct UNetObject
+		{
+			eastl::shared_ptr<UObject> Object;
+			eastl::shared_ptr<UNetworkState> State;
+			eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<UNetworkObjectView>> NetworkViews;
+		};
+		eastl::hash_map<SNetworkID, UNetObject> m_netObjects;
+
+		void SendNetworkStateUpdates();
+		void UpdateNetworkStates();
 
 		void ReceiveMessages();
 		void ReceiveMessagesForPlayer(NetworkPlayerID inPlayerID);
@@ -34,6 +85,10 @@ namespace MAD
 		void RemoveNetworkPlayer(NetworkPlayerID inPlayerID);
 
 		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID);
+
+		eastl::shared_ptr<UObject> SpawnNetworkObject_Internal(const TTypeInfo& inTypeInfo);
+		eastl::shared_ptr<UObject> SpawnNetworkEntity_Internal(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer);
+		void NetworkSpawn(eastl::shared_ptr<UObject> inObject, const TTypeInfo& inTypeInfo);
 
 	protected:
 		virtual void OnStart(int maxClients) override;

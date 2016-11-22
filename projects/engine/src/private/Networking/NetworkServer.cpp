@@ -4,9 +4,7 @@
 
 #include "Core/GameEngine.h"
 #include "Misc/Logging.h"
-
-// TESTING
-#include "Core/TestCharacters.h"
+#include "Networking/NetworkManager.h"
 
 using namespace yojimbo;
 
@@ -14,8 +12,9 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogNetworkServer);
 
-	UNetworkServer::UNetworkServer(eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig)
+	UNetworkServer::UNetworkServer(UNetworkManager& inNetworkManager, eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig)
 		: Server(GetDefaultAllocator(), *inServerTransport, inConfig, inCurrentGameTime)
+		, m_networkManager(inNetworkManager)
 		, m_serverTransport(eastl::move(inServerTransport))
 		, m_nextNetworkID(0) { }
 
@@ -30,38 +29,72 @@ namespace MAD
 
 		CheckForTimeOut();
 
-		// TODO: TEMP TESTING
-		// Spawn a point light bullet thing every 5 seconds
-		{
-			static int nextSpawnSeconds = 0;
-			int gameSeconds = static_cast<int>(inGameTime);
+		SendNetworkStateUpdates();
 
-			if (gameSeconds >= nextSpawnSeconds)
-			{
-				nextSpawnSeconds = gameSeconds + 5;
-				 
-				LOG(LogNetworkServer, Log, "Spawning a APointLightBullet on the network...\n");
-				for (const auto& player : m_players)
-				{
-					// TODO: Discuss how we want to handle ListenServer here. Normally spawn on local server + remote client, but
-					// TODO: having two copies on a listen server would obviously be wrong
-					auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
-					msg->m_objectNetID.GetUnderlyingHandleRef() = m_nextNetworkID++;
-					msg->m_classTypeID = Test::APointLightBullet::StaticClass()->GetTypeID();
-					SendMsg(player.first, msg);
-				}
-			}
-		}
-
-		// Insert logic to create message for RPCs, state updates, etc.
 		SendPackets();
 		m_serverTransport->WritePackets();
+
+		UpdateNetworkStates();
 	}
 
 	eastl::weak_ptr<ONetworkPlayer> UNetworkServer::GetPlayerByID(NetworkPlayerID inID) const
 	{
 		auto iter = m_players.find(inID);
 		return (iter != m_players.end()) ? iter->second : nullptr;
+	}
+
+	eastl::shared_ptr<UObject> UNetworkServer::GetNetworkObject(SNetworkID inNetworkID) const
+	{
+		auto iter = m_netObjects.find(inNetworkID);
+		if (iter == m_netObjects.end())
+		{
+			return nullptr;
+		}
+
+		return iter->second.Object;
+	}
+
+	void UNetworkServer::SendNetworkStateUpdates()
+	{
+		for (auto& netObject : m_netObjects)
+		{
+			auto  object = netObject.second.Object;
+			auto  state  = netObject.second.State;
+			auto& views  = netObject.second.NetworkViews;
+
+			for (auto player : m_players)
+			{
+				auto playerID = player.first;
+
+				// Don't bother sending state updates to local players (Listen servers)
+				if (player.second->IsLocalPlayer()) continue;
+
+				// TODO If object should be visible but does not have a network view, create one for this player and send Create message
+				// TODO If object should not be visible and is currently visible, remove the network view for this player and send Destroy message
+
+				// If object should be visible and should remain visible, serialize state for this player's network view into State message
+				auto view = views.find(playerID);
+				if (view != views.end())
+				{
+					auto msg = static_cast<MUpdateObject*>(CreateMsg(playerID, UPDATE_OBJECT));
+					msg->m_objectNetID = object->GetNetID();
+					// TODO: state->SerializeState(msg->m_networkState, false);
+					SendMsg(playerID, msg);
+				}
+			}
+		}
+	}
+
+	void UNetworkServer::UpdateNetworkStates()
+	{
+		for (auto& netObject : m_netObjects)
+		{
+			auto state = netObject.second.State;
+			(void)state;
+
+			// TODO Update the network state
+			// state.Update();
+		}
 	}
 
 	void UNetworkServer::ReceiveMessages()
@@ -96,6 +129,13 @@ namespace MAD
 	void UNetworkServer::RemoveNetworkPlayer(NetworkPlayerID inPlayerID)
 	{
 		MAD_ASSERT_DESC(m_players.find(inPlayerID) != m_players.end(), "Cannot remove player ID that does not exist in m_players");
+
+		// Clean up all their network views
+		for (auto& netObject : m_netObjects)
+		{
+			netObject.second.NetworkViews.erase(inPlayerID);
+		}
+
 		m_players.erase(inPlayerID);
 	}
 
@@ -113,6 +153,99 @@ namespace MAD
 		inPlayer->SetIsLocalPlayer(false);
 
 		m_players.insert({ inPlayerID, inPlayer });
+	}
+
+	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkObject_Internal(const TTypeInfo& inTypeInfo)
+	{
+		SNetworkID netID;
+		netID.GetUnderlyingHandleRef() = m_nextNetworkID++;
+
+		LOG(LogNetworkServer, Log, "Spawning a UObject<%s> on the server with ID %d\n", inTypeInfo.GetTypeName(), netID.GetUnderlyingHandleRef());
+
+		eastl::shared_ptr<UObject> object = CreateDefaultObject<UObject>(inTypeInfo, nullptr);
+		object->SetNetID(netID);
+
+		NetworkSpawn(object, inTypeInfo);
+
+		return object;
+	}
+
+	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkEntity_Internal(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+	{
+		MAD_ASSERT_DESC(!!inOwningGameWorld, "Spawning a networked Entity requires a target game world");
+		if (!inOwningGameWorld) return nullptr;
+
+		SNetworkID netID;
+		netID.GetUnderlyingHandleRef() = m_nextNetworkID++;
+
+		LOG(LogNetworkServer, Log, "Spawning a AEntity<%s> on the server with ID %d\n", inTypeInfo.GetTypeName(), netID.GetUnderlyingHandleRef());
+
+		auto entity = inOwningGameWorld->SpawnEntityDeferred<AEntity>(inTypeInfo, inWorldLayer);
+		entity->SetNetID(netID);
+		inOwningGameWorld->FinalizeSpawnEntity(entity);
+
+		NetworkSpawn(entity, inTypeInfo);
+
+		return entity;
+	}
+
+	void UNetworkServer::NetworkSpawn(eastl::shared_ptr<UObject> inObject, const TTypeInfo& inTypeInfo)
+	{
+		UNetObject netObject;
+		netObject.Object = inObject;
+		netObject.State = eastl::make_shared<UNetworkState>(); // TODO : Set viewed entity on State after merging with Derek
+
+		for (const auto& player : m_players)
+		{
+			auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
+			msg->m_objectNetID = inObject->GetNetID();
+			msg->m_classTypeID = inTypeInfo.GetTypeID();
+
+			if (auto entity = Cast<AEntity>(inObject.get()))
+			{
+				msg->m_worldName = entity->GetOwningWorld()->GetWorldName();
+				msg->m_layerName = entity->GetOwningWorldLayer().GetLayerName();
+			}
+
+			if (!player.second->IsLocalPlayer())
+			{
+				// Don't bother sending state data to a local player (for Listen servers)
+				// TODO: state->SerializeState(msg->m_networkState, false);
+			}
+
+			SendMsg(player.first, msg);
+
+			netObject.NetworkViews.insert({ player.first, eastl::make_shared<UNetworkObjectView>(*netObject.State) });
+		}
+
+		m_netObjects.insert({ inObject->GetNetID(), netObject });
+	}
+
+	void UNetworkServer::DestroyNetworkObject(eastl::shared_ptr<UObject> inObject)
+	{
+		if (!inObject) return;
+
+		SNetworkID netID = inObject->GetNetID();
+		if (!netID.IsValid())
+		{
+			LOG(LogNetworkServer, Warning, "Cannot destroy a non-networked object\n");
+			return;
+		}
+
+		auto netObject = m_netObjects.find(netID);
+		MAD_ASSERT_DESC(netObject != m_netObjects.end(), "An object with valid network ID must exist in the server's map");
+
+		LOG(LogNetworkServer, Log, "Destroying server object of type %s with ID %d...\n", inObject->GetTypeInfo()->GetTypeName(), netID.GetUnderlyingHandleRef());
+
+		for (const auto& player : m_players)
+		{
+			auto msg = static_cast<MDestroyObject*>(CreateMsg(player.first, DESTROY_OBJECT));
+			msg->m_objectNetID = netID;
+			SendMsg(player.first, msg);
+		}
+
+		inObject->Destroy();
+		m_netObjects.erase(netObject);
 	}
 
 	void UNetworkServer::OnStart(int maxClients)
