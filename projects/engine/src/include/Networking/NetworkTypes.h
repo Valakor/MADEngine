@@ -19,11 +19,11 @@ namespace MAD
 #define serialize_netID(stream, value) \
 	serialize_int(stream, value.GetUnderlyingHandleRef(), eastl::numeric_limits<SNetworkID::HandleType>::min(), eastl::numeric_limits<SNetworkID::HandleType>::max())
 
-	const size_t MaxStateUpdateSize = 255;
+	const size_t MaxStateUpdateSize = 252; // Needs to be 4 byte aligned for scratch memory in libyojimbo stream
 #define serialize_state(stream, state) \
 	do { \
 		static_assert(eastl::is_same<decltype(state), eastl::vector<uint8_t>>::value, "Expected state data to be of type eastl::vector<uint8_t>"); \
-		MAD_ASSERT_DESC(state.size() <= MaxStateUpdateSize, "A state update must be <= 255 bytes"); \
+		MAD_ASSERT_DESC(state.size() <= MaxStateUpdateSize, "A state update must be <= 252 bytes"); \
 		int stateLength = static_cast<int>(state.size()); \
 		serialize_int(stream, stateLength, 0, MaxStateUpdateSize); \
 		if (Stream::IsReading) state.resize(stateLength); \

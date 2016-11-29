@@ -78,7 +78,7 @@ namespace MAD
 				{
 					auto msg = static_cast<MUpdateObject*>(CreateMsg(playerID, UPDATE_OBJECT));
 					msg->m_objectNetID = object->GetNetID();
-					// TODO: state->SerializeState(msg->m_networkState, false);
+					state->SerializeState(msg->m_networkState, false);
 					SendMsg(playerID, msg);
 				}
 			}
@@ -193,7 +193,8 @@ namespace MAD
 	{
 		UNetObject netObject;
 		netObject.Object = inObject;
-		netObject.State = eastl::make_shared<UNetworkState>(); // TODO : Set viewed entity on State after merging with Derek
+		netObject.State = eastl::make_shared<UNetworkState>();
+		netObject.State->TargetObject(inObject.get(), true);
 
 		for (const auto& player : m_players)
 		{
@@ -210,7 +211,7 @@ namespace MAD
 			if (!player.second->IsLocalPlayer())
 			{
 				// Don't bother sending state data to a local player (for Listen servers)
-				// TODO: state->SerializeState(msg->m_networkState, false);
+				netObject.State->SerializeState(msg->m_networkState, false);
 			}
 
 			SendMsg(player.first, msg);

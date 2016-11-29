@@ -21,6 +21,8 @@
 #include "Core/PointLightComponent.h"
 #include "Core/TestCharacters.h"
 
+#include "Networking/NetworkState.h"
+
 using eastl::string;
 
 namespace MAD
@@ -156,6 +158,8 @@ namespace MAD
 		// In the future, update defaults by configuration file
 		TEMPInitializeGameContext();
 
+		//TEMPSerializeObject();
+
 		//TEMPTestTransformHierarchy();
 
 		while (bContinue)
@@ -249,6 +253,39 @@ namespace MAD
 		UGameWorldLoader loader;
 		loader.LoadWorld("engine\\worlds\\default_world.json");
 		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
+	}
+
+	void UGameEngine::TEMPSerializeObject()
+	{
+		eastl::shared_ptr<OGameWorld> defaultWorld = m_worlds[0];
+
+		MAD_ASSERT_DESC(defaultWorld != nullptr, "Error: The first default world needs to be created!\n");
+
+		auto networkedEntity = defaultWorld->SpawnEntity<MAD::Test::ANetworkedEntity>();
+
+		if (networkedEntity)
+		{
+			eastl::vector<uint8_t> serializationBuffer;
+			eastl::vector<uint8_t> deserializationBuffer;
+
+			networkedEntity->m_networkedFloat = 5.0f;
+			networkedEntity->m_networkedUInt = 1337;
+
+			// Create a network state to view this networked entity
+			UNetworkState activeNetworkState;
+
+			activeNetworkState.TargetObject(networkedEntity.get(), true);
+
+			networkedEntity->m_networkedFloat = -1.0f;
+			networkedEntity->m_networkedUInt = 0xdeadbeef;
+
+			// Simulate serialization of the entity data
+			activeNetworkState.SerializeState(serializationBuffer, false);
+
+			deserializationBuffer = serializationBuffer;
+
+			activeNetworkState.SerializeState(deserializationBuffer, true);
+		}
 	}
 
 	void UGameEngine::TEMPTestTransformHierarchy()

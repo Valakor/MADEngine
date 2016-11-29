@@ -6,6 +6,8 @@
 #include "Core/PointLightComponent.h"
 #include "Core/MeshComponent.h"
 
+#include "Networking/Network.h"
+
 namespace MAD
 {
 	namespace Test
@@ -59,6 +61,26 @@ namespace MAD
 
 				LOG(LogDefault, Warning, "APointLightBullet ctor\n");
 			}
+		};
+
+		class ANetworkedEntity : public AEntity
+		{
+			MAD_DECLARE_ACTOR(ANetworkedEntity, AEntity)
+		public:
+			explicit ANetworkedEntity(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			{
+			}
+
+			virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override
+			{
+				Super::GetReplicatedProperties(inOutReplInfo);
+
+				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, ANetworkedEntity, m_networkedFloat);
+				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, ANetworkedEntity, m_networkedUInt);
+			}
+
+			float m_networkedFloat;
+			uint32_t m_networkedUInt;
 		};
 	}
 }

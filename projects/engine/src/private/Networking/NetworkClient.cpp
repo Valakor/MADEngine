@@ -102,7 +102,7 @@ namespace MAD
 		}
 	}
 
-	void UNetworkClient::HandleCreateObjectMessage(const MCreateObject& message)
+	void UNetworkClient::HandleCreateObjectMessage(MCreateObject& message)
 	{
 		const TTypeInfo* objTypeInfo = TTypeInfo::GetTypeInfo(message.m_classTypeID);
 		MAD_ASSERT_DESC(!!objTypeInfo, "Received invalid Type Info");
@@ -118,6 +118,7 @@ namespace MAD
 			auto serverObject = m_networkManager.m_server->GetNetworkObject(message.m_objectNetID);
 			MAD_ASSERT_DESC(serverObject != nullptr, "Server should have an object with this ID already");
 			netObject.Object = serverObject;
+			netObject.State->TargetObject(netObject.Object.get(), false);
 		}
 		else
 		{
@@ -134,7 +135,8 @@ namespace MAD
 
 				auto entity = world->SpawnEntityDeferred<AEntity>(*objTypeInfo, message.m_layerName);
 				entity->SetNetID(message.m_objectNetID);
-				// TODO: netObject.State->SerializeState(message.m_networkState, true);
+				netObject.State->TargetObject(entity.get(), false);
+				netObject.State->SerializeState(message.m_networkState, true);
 				world->FinalizeSpawnEntity(entity);
 
 				netObject.Object = entity;
@@ -145,6 +147,8 @@ namespace MAD
 
 				netObject.Object = CreateDefaultObject<UObject>(*objTypeInfo, nullptr);
 				netObject.Object->SetNetID(message.m_objectNetID);
+				netObject.State->TargetObject(netObject.Object.get(), false);
+				netObject.State->SerializeState(message.m_networkState, true);
 			}
 		}
 
@@ -152,7 +156,7 @@ namespace MAD
 		// TODO have some form of network ownership (what player + with what authority owns this object?)
 	}
 
-	void UNetworkClient::HandleUpdateObjectMessage(const MUpdateObject& message)
+	void UNetworkClient::HandleUpdateObjectMessage(MUpdateObject& message)
 	{
 		MAD_ASSERT_DESC(m_networkManager.GetNetMode() != ENetMode::ListenServer, "Server shouldn't send this message to its local client");
 
@@ -163,10 +167,10 @@ namespace MAD
 			return;
 		}
 
-		// TODO: netObject->second.State->SerializeState(message.m_networkState, true);
+		netObject->second.State->SerializeState(message.m_networkState, true);
 	}
 
-	void UNetworkClient::HandleDestroyObjectMessage(const MDestroyObject& message)
+	void UNetworkClient::HandleDestroyObjectMessage(MDestroyObject& message)
 	{
 		auto netObject = m_netObjects.find(message.m_objectNetID);
 		if (netObject == m_netObjects.end())
