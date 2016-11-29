@@ -31,4 +31,9 @@ namespace MAD
 		MAD_ASSERT_DESC(!m_netID.IsValid(), "Cannot set a new network ID after one has already been set");
 		m_netID = inNetID;
 	}
+
+	ENetMode UObject::GetNetMode() const
+	{
+		return gEngine->GetNetworkManager().GetNetMode();
+	}
 }

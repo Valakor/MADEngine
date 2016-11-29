@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "Core/GameEngine.h"
+#include "Core/TestCharacters.h"
 #include "Misc/Logging.h"
 #include "Networking/NetworkManager.h"
 
@@ -29,12 +30,25 @@ namespace MAD
 
 		CheckForTimeOut();
 
+		// TODO Temporary testing
+		{
+			static int nextTime = 0;
+
+			int time = static_cast<int>(inGameTime);
+			if (time >= nextTime)
+			{
+				nextTime = time + 5;
+
+				// Network-spawn a point light bullet
+				auto world = gEngine->GetWorld(0);
+				SpawnNetworkEntity<Test::APointLightBullet>(world.get(), "default");
+			}
+		}
+
 		SendNetworkStateUpdates();
 
 		SendPackets();
 		m_serverTransport->WritePackets();
-
-		UpdateNetworkStates();
 	}
 
 	eastl::weak_ptr<ONetworkPlayer> UNetworkServer::GetPlayerByID(NetworkPlayerID inID) const
@@ -82,18 +96,6 @@ namespace MAD
 					SendMsg(playerID, msg);
 				}
 			}
-		}
-	}
-
-	void UNetworkServer::UpdateNetworkStates()
-	{
-		for (auto& netObject : m_netObjects)
-		{
-			auto state = netObject.second.State;
-			(void)state;
-
-			// TODO Update the network state
-			// state.Update();
 		}
 	}
 
@@ -222,11 +224,9 @@ namespace MAD
 		m_netObjects.insert({ inObject->GetNetID(), netObject });
 	}
 
-	void UNetworkServer::DestroyNetworkObject(eastl::shared_ptr<UObject> inObject)
+	void UNetworkServer::DestroyNetworkObject(UObject& inObject)
 	{
-		if (!inObject) return;
-
-		SNetworkID netID = inObject->GetNetID();
+		SNetworkID netID = inObject.GetNetID();
 		if (!netID.IsValid())
 		{
 			LOG(LogNetworkServer, Warning, "Cannot destroy a non-networked object\n");
@@ -236,7 +236,7 @@ namespace MAD
 		auto netObject = m_netObjects.find(netID);
 		MAD_ASSERT_DESC(netObject != m_netObjects.end(), "An object with valid network ID must exist in the server's map");
 
-		LOG(LogNetworkServer, Log, "Destroying server object of type %s with ID %d...\n", inObject->GetTypeInfo()->GetTypeName(), netID.GetUnderlyingHandleRef());
+		LOG(LogNetworkServer, Log, "Destroying server object of type %s with ID %d...\n", inObject.GetTypeInfo()->GetTypeName(), netID.GetUnderlyingHandleRef());
 
 		for (const auto& player : m_players)
 		{
@@ -245,7 +245,7 @@ namespace MAD
 			SendMsg(player.first, msg);
 		}
 
-		inObject->Destroy();
+		inObject.Destroy();
 		m_netObjects.erase(netObject);
 	}
 

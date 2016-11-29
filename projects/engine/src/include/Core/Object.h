@@ -28,6 +28,8 @@ namespace MAD
 		void SetNetID(SNetworkID inNetID);
 		bool IsNetworkSpawned() const { return m_netID.IsValid(); }
 
+		ENetMode GetNetMode() const;
+
 		bool IsValid() const { return !m_isDestroyed; }
 		virtual void Destroy();
 

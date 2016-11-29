@@ -15,6 +15,10 @@ namespace MAD
 		virtual void UpdateComponent(float inDeltaTime) override;
 
 		inline void SetEnabled(bool inEnabled) { m_pointLight.m_isLightEnabled = inEnabled; }
+		inline void SetColor(Color inColor) { m_pointLight.m_gpuPointLight.m_lightColor = inColor; }
+		inline void SetIntensity(float inIntensity) { m_pointLight.m_gpuPointLight.m_lightIntensity = inIntensity; }
+		inline void SetInnerRadius(float inInnerRadius) { m_pointLight.m_gpuPointLight.m_lightInnerRadius = inInnerRadius; }
+		inline void SetOuterRadius(float inOuterRadius) { m_pointLight.m_gpuPointLight.m_lightOuterRadius = inOuterRadius; }
 
 	private:
 		SPointLight m_pointLight;

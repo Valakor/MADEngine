@@ -48,6 +48,7 @@ namespace MAD
 		float GetGameTime() const { return static_cast<float>(mGameTime); }
 
 		eastl::shared_ptr<class OGameWorld> GetWorld(const eastl::string& inWorldName);
+		eastl::shared_ptr<class OGameWorld> GetWorld(size_t inIndex);
 
 		class URenderer& GetRenderer() const { return *mRenderer; }
 		class UGameWindow& GetWindow() const { return *mGameWindow; }

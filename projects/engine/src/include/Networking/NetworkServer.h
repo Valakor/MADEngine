@@ -49,14 +49,14 @@ namespace MAD
 		}
 
 		template <typename EntityType>
-		eastl::shared_ptr<EntityType> SpawnNetworkObject(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+		eastl::shared_ptr<EntityType> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
 		{
 			static_assert(eastl::is_base_of<AEntity, EntityType>::value, "Spawned EntityType must be of type AEntity or more derived");
 			MAD_ASSERT_DESC(IsA<EntityType>(inTypeInfo), "Given type info must be a derived class of AEntity");
 			return eastl::static_pointer_cast<ObjectType>(SpawnNetworkEntity_Internal(inTypeInfo, inOwningGameWorld, inWorldLayer));
 		}
 
-		void DestroyNetworkObject(eastl::shared_ptr<UObject> inObject);
+		void DestroyNetworkObject(UObject& inObject);
 
 	private:
 		class UNetworkManager& m_networkManager;
@@ -76,7 +76,6 @@ namespace MAD
 		eastl::hash_map<SNetworkID, UNetObject> m_netObjects;
 
 		void SendNetworkStateUpdates();
-		void UpdateNetworkStates();
 
 		void ReceiveMessages();
 		void ReceiveMessagesForPlayer(NetworkPlayerID inPlayerID);

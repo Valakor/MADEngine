@@ -32,7 +32,7 @@
 							"scale": 50.0,
 							"type": "CMeshComponent",
 							"properties": {
-								"visible": true,
+								"visible": false,
 								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						},

@@ -192,7 +192,7 @@ namespace MAD
 		ULog::Get().Shutdown();
 	}
 
-	eastl::shared_ptr<OGameWorld> UGameEngine::GetWorld(const eastl::string& inWorldName)
+	eastl::shared_ptr<OGameWorld> UGameEngine::GetWorld(const string& inWorldName)
 	{
 		eastl::shared_ptr<OGameWorld> world;
 
@@ -205,6 +205,17 @@ namespace MAD
 		}
 
 		return nullptr;
+	}
+
+	eastl::shared_ptr<OGameWorld> UGameEngine::GetWorld(size_t inIndex)
+	{
+		if (inIndex >= m_worlds.size())
+		{
+			LOG(LogGameEngine, Warning, "World with index '%i' does not exist\n", inIndex);
+			return nullptr;
+		}
+
+		return m_worlds[inIndex];
 	}
 
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test

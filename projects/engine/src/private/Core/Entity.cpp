@@ -53,6 +53,19 @@ namespace MAD
 		}
 	}
 
+	void AEntity::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const
+	{
+		Super::GetReplicatedProperties(inOutReplInfo);
+
+		// Replicate any Entity properties (probably none by default?)
+
+		// Replicate all component properties
+		for (const auto component : m_entityComponents)
+		{
+			component->GetReplicatedProperties(inOutReplInfo);
+		}
+	}
+
 	bool AEntity::AttachEntity(eastl::shared_ptr<AEntity> inChildEntity)
 	{
 		if (m_rootComponent && inChildEntity && inChildEntity->m_rootComponent)

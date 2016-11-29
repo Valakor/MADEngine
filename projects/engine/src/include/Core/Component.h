@@ -41,6 +41,8 @@ namespace MAD
 		const AEntity& GetOwningEntity() const { return *m_owningEntity; }
 		UComponent* GetParent() const { return m_parentComponent; }
 
+		ENetMode GetNetMode() const;
+
 		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
 
 		void PrintTranslationHierarchy(uint8_t inDepth) const;

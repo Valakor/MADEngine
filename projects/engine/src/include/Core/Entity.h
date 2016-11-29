@@ -28,6 +28,8 @@ namespace MAD
 		virtual void OnBeginPlay() {}
 		virtual void PostInitializeComponents();
 
+		virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override;
+
 		bool AttachEntity(eastl::shared_ptr<AEntity> inChildEntity);
 
 		virtual void Destroy() override;

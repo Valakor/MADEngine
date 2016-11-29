@@ -159,16 +159,21 @@ namespace MAD
 		{
 		case ENetMode::DedicatedServer:
 			return m_server->GetNumConnectedPlayers();
-			break;
 
 		case ENetMode::ListenServer:
 		case ENetMode::Client:
 			return m_client->GetNumPlayers();
-			break;
 
 		default:
 			UNREACHABLE("Unrecognized Net Mode");
 			break;
 		}
+	}
+
+	void UNetworkManager::DestroyNetworkObject(UObject& inObject)
+	{
+		if (!m_server) return;
+
+		m_server->DestroyNetworkObject(inObject);
 	}
 }

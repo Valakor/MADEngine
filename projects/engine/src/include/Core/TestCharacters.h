@@ -55,11 +55,13 @@ namespace MAD
 				pointLight->SetEnabled(true);
 				mesh->AttachComponent(pointLight);
 
+				auto pointLightBullet = AddComponent<CPointLightBulletComponent>();
+				mesh->AttachComponent(pointLightBullet);
+
 				auto destroyMe = AddComponent<CTimedDeathComponent>();
 				destroyMe->SetLifeTime(3.5f);
+				destroyMe->SetServerOnly(true);
 				mesh->AttachComponent(destroyMe);
-
-				LOG(LogDefault, Warning, "APointLightBullet ctor\n");
 			}
 		};
 

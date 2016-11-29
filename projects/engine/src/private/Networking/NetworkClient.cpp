@@ -85,12 +85,14 @@ namespace MAD
 			{
 				MUpdateObject* message = static_cast<MUpdateObject*>(msg);
 				HandleUpdateObjectMessage(*message);
+				break;
 			}
 
 			case DESTROY_OBJECT:
 			{
 				MDestroyObject* message = static_cast<MDestroyObject*>(msg);
 				HandleDestroyObjectMessage(*message);
+				break;
 			}
 
 			default:

@@ -1,15 +1,12 @@
 #pragma once
 
-#include <EASTL/hash_map.h>
 #include <EASTL/shared_ptr.h>
-#include <EASTL/vector.h>
 #include <yojimbo/yojimbo.h>
 
 #include "Networking/Network.h"
 #include "Networking/NetworkClient.h"
 #include "Networking/NetworkPlayer.h"
 #include "Networking/NetworkServer.h"
-#include "Networking/NetworkTransport.h"
 
 namespace MAD
 {
@@ -26,6 +23,8 @@ namespace MAD
 
 		eastl::weak_ptr<ONetworkPlayer> GetLocalPlayer() const { return m_client ? m_client->GetLocalPlayer() : eastl::weak_ptr<ONetworkPlayer>(); }
 		size_t GetNumPlayers() const;
+
+		void DestroyNetworkObject(UObject& inObject);
 
 	private:
 		friend class UNetworkClient;
