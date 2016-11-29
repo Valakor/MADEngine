@@ -107,7 +107,7 @@ namespace MAD
 	int32_t DetermineComponentIndex(const class UComponent* inTargetComponent);
 	
 	template <typename T>
-	bool IsSame(const void* inLHS, const void* inRHS)
+	inline bool IsSame(const void* inLHS, const void* inRHS)
 	{
 		const T* inLeftTypeData = reinterpret_cast<const T*>(inLHS);  // Actual object
 		const T* inRightTypeData = reinterpret_cast<const T*>(inRHS); // Local state buffer
@@ -116,7 +116,7 @@ namespace MAD
 	}
 
 	template <>
-	bool IsSame<float>(const void* inLHS, const void* inRHS)
+	inline bool IsSame<float>(const void* inLHS, const void* inRHS)
 	{
 		const float inLeftTypeData = *reinterpret_cast<const float*>(inLHS);  // Actual object
 		const float inRightTypeData = *reinterpret_cast<const float*>(inRHS); // Local state buffer
