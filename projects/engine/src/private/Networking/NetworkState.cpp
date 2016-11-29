@@ -189,6 +189,8 @@ namespace MAD
 
 					serialize_bytes(inOutRStream, targetReplData, static_cast<int>(currentReplInfo.m_replAttrSize));
 				}
+
+				currentReplInfo.m_replCallback.ExecuteIfBound();
 			}
 		}
 

@@ -40,25 +40,25 @@ namespace MAD
 	struct SDelegate
 	{
 	private:
-		using FunctionStub_t = Ret(*)(void*, Params...);
+		using FunctionStub_t = Ret(*)(const void*, Params...);
 
 		template<Ret(Func)(Params...)>
-		static inline Ret StaticFuncStub(void* inObj, Params... p)
+		static inline Ret StaticFuncStub(const void* inObj, Params... p)
 		{
 			(void)inObj;
 			return (Func)(p...);
 		}
 
 		template<class T, Ret(T::*Func)(Params...)>
-		static inline Ret MemberFuncStub(void* inObj, Params... p)
+		static inline Ret MemberFuncStub(const void* inObj, Params... p)
 		{
-			return (static_cast<T*>(inObj)->*Func)(p...);
+			return (const_cast<T*>(static_cast<const T*>(inObj))->*Func)(p...);
 		}
 
 		template<class T, Ret(T::*Func)(Params...) const>
-		static inline Ret ConstMemberFuncStub(void* inObj, Params... p)
+		static inline Ret ConstMemberFuncStub(const void* inObj, Params... p)
 		{
-			return (static_cast<T*>(inObj)->*Func)(p...);
+			return (static_cast<const T*>(inObj)->*Func)(p...);
 		}
 
 	public:
@@ -94,7 +94,7 @@ namespace MAD
 
 
 		template <class T, Ret(T::* Func)(Params...)>
-		inline void BindMember(T* inObj)
+		inline void BindMember(const T* inObj)
 		{
 			MAD_ASSERT_DESC(inObj != nullptr, "Cannot bind a delegate to nullptr.");
 			mObj = inObj;
@@ -102,7 +102,7 @@ namespace MAD
 		}
 
 		template <class T, Ret(T::* Func)(Params...) const>
-		inline void BindMember(T* inObj)
+		inline void BindMember(const T* inObj)
 		{
 			MAD_ASSERT_DESC(inObj != nullptr, "Cannot bind a delegate to nullptr.");
 			mObj = inObj;
@@ -170,7 +170,7 @@ namespace MAD
 	private:
 		template <typename ...Ps> friend struct SMulticastDelegateBase;
 
-		void* mObj;
+		const void* mObj;
 		FunctionStub_t mFuncStub;
 	};
 

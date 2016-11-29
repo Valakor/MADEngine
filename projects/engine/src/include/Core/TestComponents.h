@@ -133,18 +133,14 @@ namespace MAD
 			{
 				Super::GetReplicatedProperties(inOutReplInfo);
 
-				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_lightColor);
+				MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_lightColor, OnRep_LightColor);
 			}
 
 			virtual void UpdateComponent(float) override
 			{
-				auto pointLight = GetOwningEntity().GetFirstComponentByType<CPointLightComponent>().lock();
-				if (!pointLight) return;
-
-				// Client simply sets the light's color to the replicated light color
+				// Client sets the light's color in the OnRep callback
 				if (GetNetMode() == ENetMode::Client)
 				{
-					pointLight->SetColor(m_lightColor);
 					return;
 				}
 
@@ -157,13 +153,11 @@ namespace MAD
 
 				m_nextCycleTime = time + 0.5f;
 
-				if (pointLight)
-				{
-					// Cycle through Red -> Green -> Blue every half second
-					//->SetColor();
-					m_lightColor = Color(1.0f * !m_colorIndex, 1.0f * (m_colorIndex & 1), 1.0f * (m_colorIndex & 2));
-					pointLight->SetColor(m_lightColor);
-				}
+				// Cycle through Red -> Green -> Blue every half second
+				m_lightColor = Color(1.0f * !m_colorIndex, 1.0f * (m_colorIndex & 1), 1.0f * (m_colorIndex & 2));
+
+				// Manually call this for servers since it isn't actually replicated
+				OnRep_LightColor();
 
 				m_colorIndex = (m_colorIndex + 1) % 3;
 			}
@@ -172,6 +166,14 @@ namespace MAD
 			Color m_lightColor;
 			float m_nextCycleTime;
 			int m_colorIndex;
+
+			void OnRep_LightColor()
+			{
+				auto pointLight = GetOwningEntity().GetFirstComponentByType<CPointLightComponent>().lock();
+				if (!pointLight) return;
+
+				pointLight->SetColor(m_lightColor);
+			}
 		};
 	}
 }

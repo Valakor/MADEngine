@@ -4,6 +4,7 @@
 #include <EASTL/numeric_limits.h>
 
 #include "Core/SimpleMath.h"
+#include "Misc/Delegate.h"
 
 namespace MAD
 {
@@ -91,6 +92,8 @@ namespace MAD
 		InitialOnly
 	};
 
+	DECLARE_DELEGATE(OnRepDelegate, void);
+
 	struct SObjectReplInfo
 	{
 		static const int32_t InvalidIndex = -1;
@@ -102,6 +105,7 @@ namespace MAD
 		ReplAttrSize_t				 m_replAttrSize;
 
 		ReplComparisonFunc_t m_replComparisonFunc; // Returns true if equal
+		OnRepDelegate m_replCallback;
 	};
 
 	int32_t DetermineComponentIndex(const class UComponent* inTargetComponent);
@@ -140,6 +144,28 @@ namespace MAD
 			outReplInfo.m_replAttrOffset = offsetof(OwnerType, ReplVarName);									\
 			outReplInfo.m_replAttrSize = sizeof(ReplVarName);													\
 			outReplInfo.m_replComparisonFunc = &IsSame<decltype(ReplVarName)>;									\
+																												\
+			OutPropContainer.push_back(outReplInfo);															\
+																												\
+		} while (0)
+
+#define MAD_ADD_REPLICATION_PROPERTY_CALLBACK(OutPropContainer, ReplType, OwnerType, ReplVarName, OnRepFunc)	\
+		do																										\
+		{																										\
+			SObjectReplInfo outReplInfo;																		\
+																												\
+			outReplInfo.m_replType = ReplType;																	\
+																												\
+			if (const UComponent* componentOwner = Cast<const UComponent>(this))								\
+			{																									\
+				/* Find the index that this component is within it's owner */									\
+				outReplInfo.m_replAttrOwnerIndex = DetermineComponentIndex(componentOwner);						\
+			}																									\
+																												\
+			outReplInfo.m_replAttrOffset = offsetof(OwnerType, ReplVarName);									\
+			outReplInfo.m_replAttrSize = sizeof(ReplVarName);													\
+			outReplInfo.m_replComparisonFunc = &IsSame<decltype(ReplVarName)>;									\
+			outReplInfo.m_replCallback.BindMember<OwnerType, &OwnerType::OnRepFunc>(this);						\
 																												\
 			OutPropContainer.push_back(outReplInfo);															\
 																												\
