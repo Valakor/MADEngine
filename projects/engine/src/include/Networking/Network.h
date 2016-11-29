@@ -99,7 +99,7 @@ namespace MAD
 		ReplComparisonFunc_t m_replComparisonFunc; // Returns true if equal
 	};
 
-	int32_t DetermineComponentIndex(class UComponent* inTargetComponent);
+	int32_t DetermineComponentIndex(const class UComponent* inTargetComponent);
 	
 	template <typename T>
 	bool IsSame(const void* inLeftData, const void* inRightData)
@@ -117,7 +117,7 @@ namespace MAD
 																												\
 			outReplInfo.m_replType = ReplType;																	\
 																												\
-			if (UComponent* componentOwner = Cast<UComponent>(this))											\
+			if (const UComponent* componentOwner = Cast<const UComponent>(this))								\
 			{																									\
 				/* Find the index that this component is within it's owner */									\
 				outReplInfo.m_replAttrOwnerIndex = DetermineComponentIndex(componentOwner);						\
@@ -125,7 +125,7 @@ namespace MAD
 																												\
 			outReplInfo.m_replAttrOffset = offsetof(OwnerType, ReplVarName);									\
 			outReplInfo.m_replAttrSize = sizeof(ReplVarName);													\
-			outReplInfo.m_replComparisonFunc = &IsSame<decltype(ReplVarName), sizeof(ReplVarName)>;				\
+			outReplInfo.m_replComparisonFunc = &IsSame<decltype(ReplVarName)>;									\
 																												\
 			OutPropContainer.push_back(outReplInfo);															\
 																												\

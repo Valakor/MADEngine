@@ -4,7 +4,7 @@
 
 namespace MAD
 {
-	int32_t DetermineComponentIndex(UComponent* inTargetComponent)
+	int32_t DetermineComponentIndex(const UComponent* inTargetComponent)
 	{
 		if (!inTargetComponent)
 		{

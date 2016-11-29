@@ -16,11 +16,11 @@ namespace MAD
 #define serialize_netID(stream, value) \
 	serialize_int(stream, value.GetUnderlyingHandleRef(), eastl::numeric_limits<SNetworkID::HandleType>::min(), eastl::numeric_limits<SNetworkID::HandleType>::max())
 
-	const size_t s_maxStateUpdateSize = 256 - 1;
+	const size_t s_maxStateUpdateSize = 252; // Needs to be multiple of 4 bytes (?)
 #define serialize_state(stream, state) \
 	do { \
 		static_assert(eastl::is_same<decltype(state), eastl::vector<uint8_t>>::value, "Expected state data to be of type eastl::vector<uint8_t>"); \
-		MAD_ASSERT_DESC(state.size() <= s_maxStateUpdateSize, "A state update must be <= 255 bytes"); \
+		MAD_ASSERT_DESC(state.size() <= s_maxStateUpdateSize, "A state update must be <= 252 bytes"); \
 		int stateLength = static_cast<int>(state.size()); \
 		serialize_int(stream, stateLength, 0, s_maxStateUpdateSize); \
 		if (Stream::IsReading) state.resize(stateLength); \

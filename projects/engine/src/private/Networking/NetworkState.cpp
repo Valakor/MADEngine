@@ -30,6 +30,49 @@ namespace MAD
 		// Retrieve the replication info of the target object
 		m_targetObject->GetReplicatedProperties(m_stateReplInfo);
 
+		// TODO Anything after this is only done by the server
+
+		size_t totalReplSize = 0;
+
+		for (const auto& currentReplInfo : m_stateReplInfo)
+		{
+			totalReplSize += currentReplInfo.m_replAttrSize;
+		}
+
+		m_stateBuffer.resize(totalReplSize);
+
+		size_t currentBufferOffset = 0;
+
+		for (const auto& currentReplInfo : m_stateReplInfo)
+		{
+			uint8_t* stateBufferData = reinterpret_cast<uint8_t*>(m_stateBuffer.data()) + currentBufferOffset;
+			uint8_t* targetReplData = nullptr;
+
+			if (currentReplInfo.m_replAttrOwnerIndex != SObjectReplInfo::InvalidIndex)
+			{
+				if (AEntity* entityOwner = Cast<AEntity>(m_targetObject))
+				{
+					// If the owner of the attribute is a component, the target object must be an entity and we need to retrieve the index of
+					// component within the entity's component array
+					auto targetCompWeakPtr = entityOwner->GetEntityComponentByIndex(currentReplInfo.m_replAttrOwnerIndex);
+
+					if (!targetCompWeakPtr.expired())
+					{
+						targetReplData = reinterpret_cast<uint8_t*>(targetCompWeakPtr.lock().get()) + currentReplInfo.m_replAttrOffset;
+					}
+				}
+			}
+			else
+			{
+				// Else, we're trying to replicate data within a UObject itself and can perform regular serialization
+				targetReplData = reinterpret_cast<uint8_t*>(m_targetObject) + currentReplInfo.m_replAttrOffset;
+			}
+
+				// Copy dirty data back to local buffer to detect subsequent data changes
+			memcpy(stateBufferData, targetReplData, currentReplInfo.m_replAttrSize);
+
+			currentBufferOffset += currentReplInfo.m_replAttrSize;
+		}
 	}
 
 	void UNetworkState::SerializeState(eastl::vector<uint8_t>& inOutByteBuffer, bool inIsReading)
@@ -64,7 +107,7 @@ namespace MAD
 
 		for (const auto& currentReplInfo : m_stateReplInfo)
 		{
-			const uint8_t* stateBufferData = reinterpret_cast<const uint8_t*>(m_stateBuffer.data()) + currentBufferOffset;
+			uint8_t* stateBufferData = reinterpret_cast<uint8_t*>(m_stateBuffer.data()) + currentBufferOffset;
 			uint8_t* targetReplData = nullptr;
 
 			if (currentReplInfo.m_replAttrOwnerIndex != SObjectReplInfo::InvalidIndex)
@@ -84,7 +127,7 @@ namespace MAD
 			else
 			{
 				// Else, we're trying to replicate data within a UObject itself and can perform regular serialization
-				targetReplData = reinterpret_cast<uint8_t*>(m_targetObject) + currentReplInfo.m_replAttrOffset;;
+				targetReplData = reinterpret_cast<uint8_t*>(m_targetObject) + currentReplInfo.m_replAttrOffset;
 			}
 
 			bool isAttrDirty = !currentReplInfo.m_replComparisonFunc(targetReplData, stateBufferData);
@@ -94,10 +137,15 @@ namespace MAD
 			if (isAttrDirty)
 			{
 				serialize_bytes(inOutWStream, targetReplData, static_cast<int>(currentReplInfo.m_replAttrSize));
+
+				// Copy dirty data back to local buffer to detect subsequent data changes
+				memcpy(stateBufferData, targetReplData, currentReplInfo.m_replAttrSize);
 			}
 
 			currentBufferOffset += currentReplInfo.m_replAttrSize;
 		}
+
+		inOutWStream.Flush();
 
 		return true;
 	}
@@ -133,7 +181,7 @@ namespace MAD
 				else
 				{
 					// Else, we're trying to replicate data within a UObject itself and can perform regular serialization
-					uint8_t* targetReplData = reinterpret_cast<uint8_t*>(m_targetObject) + currentReplInfo.m_replAttrOffset;;
+					uint8_t* targetReplData = reinterpret_cast<uint8_t*>(m_targetObject) + currentReplInfo.m_replAttrOffset;
 
 					serialize_bytes(inOutRStream, targetReplData, static_cast<int>(currentReplInfo.m_replAttrSize));
 				}
