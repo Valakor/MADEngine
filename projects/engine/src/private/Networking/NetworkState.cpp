@@ -91,9 +91,9 @@ namespace MAD
 		}
 		else
 		{
-			inOutByteBuffer.resize(s_maxStateUpdateSize); // Reserve enough memory for the maximum size of message
+			inOutByteBuffer.resize(MaxStateUpdateSize); // Reserve enough memory for the maximum size of message
 
-			yojimbo::WriteStream writeStream(inOutByteBuffer.data(), s_maxStateUpdateSize);
+			yojimbo::WriteStream writeStream(inOutByteBuffer.data(), MaxStateUpdateSize);
 		
 			SerializeState_Internal(writeStream);
 		}

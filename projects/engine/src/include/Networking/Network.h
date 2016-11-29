@@ -52,8 +52,11 @@ namespace MAD
 
 	public:
 		inline HandleType& GetUnderlyingHandleRef() { return mHandle; }
+		inline HandleType GetUnderlyingHandle() const { return mHandle; }
 
 		inline bool IsValid() const { return mHandle != Invalid; }
+
+		inline void Invalidate() { mHandle = Invalid; }
 
 		inline bool operator==(const SNetworkID& rhs) const noexcept
 		{
@@ -131,4 +134,16 @@ namespace MAD
 																												\
 		} while (0)
 
+}
+
+namespace eastl
+{
+	using namespace MAD;
+	template <> struct hash<SNetworkID>
+	{
+		size_t operator()(SNetworkID val) const
+		{
+			return hash<SNetworkID::HandleType>{}(val.GetUnderlyingHandleRef());
+		}
+	};
 }

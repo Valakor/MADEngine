@@ -124,7 +124,7 @@ namespace MAD
 		}
 
 		serverTransport->SetFlags(TRANSPORT_FLAG_INSECURE_MODE);
-		m_server = eastl::make_unique<UNetworkServer>(eastl::move(serverTransport), gameTime, m_config);
+		m_server = eastl::make_unique<UNetworkServer>(*this, eastl::move(serverTransport), gameTime, m_config);
 		m_server->SetServerAddress(publicAddr);
 		m_server->SetFlags(SERVER_FLAG_ALLOW_INSECURE_CONNECT);
 		m_server->Start();
@@ -147,7 +147,7 @@ namespace MAD
 		uint64_t clientID = 0;
 		yojimbo::RandomBytes((uint8_t*)&clientID, 8); // TODO: Is there a better way to do this?
 
-		m_client = eastl::make_unique<UNetworkClient>(eastl::move(clientTransport), gameTime, m_config);
+		m_client = eastl::make_unique<UNetworkClient>(*this, eastl::move(clientTransport), gameTime, m_config);
 		m_client->InsecureConnect(clientID, inServerAddress);
 
 		return true;
