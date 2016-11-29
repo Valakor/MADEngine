@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <EASTL/numeric_limits.h>
 
+#include "Core/SimpleMath.h"
+
 namespace MAD
 {
 #define SERVER_DEFAULT_LISTEN_PORT 6000
