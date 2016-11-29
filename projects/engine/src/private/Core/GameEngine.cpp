@@ -274,7 +274,7 @@ namespace MAD
 			// Create a network state to view this networked entity
 			UNetworkState activeNetworkState;
 
-			activeNetworkState.TargetObject(networkedEntity.get());
+			activeNetworkState.TargetObject(networkedEntity.get(), true);
 
 			networkedEntity->m_networkedFloat = -1.0f;
 			networkedEntity->m_networkedUInt = 0xdeadbeef;

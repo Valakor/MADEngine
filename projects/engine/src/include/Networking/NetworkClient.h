@@ -40,9 +40,9 @@ namespace MAD
 		eastl::hash_map<SNetworkID, UNetObject> m_netObjects;
 
 		void ReceiveMessages();
-		void HandleCreateObjectMessage(const MCreateObject& message);
-		void HandleUpdateObjectMessage(const MUpdateObject& message);
-		void HandleDestroyObjectMessage(const MDestroyObject& message);
+		void HandleCreateObjectMessage(MCreateObject& message);
+		void HandleUpdateObjectMessage(MUpdateObject& message);
+		void HandleDestroyObjectMessage(MDestroyObject& message);
 
 		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer);
 

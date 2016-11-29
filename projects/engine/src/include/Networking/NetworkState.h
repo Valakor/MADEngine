@@ -16,7 +16,7 @@ namespace MAD
 		UNetworkState(const UNetworkState&) = delete;
 		UNetworkState& operator=(const UNetworkState&) = delete;
 
-		void TargetObject(class UObject* inTargetObject);
+		void TargetObject(class UObject* inTargetObject, bool inCreateStateBuffer);
 
 		void SerializeState(eastl::vector<uint8_t>& inOutByteBuffer, bool inIsReading);
 	private:

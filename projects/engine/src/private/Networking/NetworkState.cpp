@@ -16,7 +16,7 @@ namespace MAD
 		: m_targetObject(nullptr)
 	{}
 
-	void UNetworkState::TargetObject(UObject* inTargetObject)
+	void UNetworkState::TargetObject(UObject* inTargetObject, bool inCreateStateBuffer)
 	{
 		if (!inTargetObject)
 		{
@@ -30,7 +30,11 @@ namespace MAD
 		// Retrieve the replication info of the target object
 		m_targetObject->GetReplicatedProperties(m_stateReplInfo);
 
-		// TODO Anything after this is only done by the server
+		if (!inCreateStateBuffer)
+		{
+			// Don't bother creating and populating a local state buffer (usually reserved for servers only)
+			return;
+		}
 
 		size_t totalReplSize = 0;
 
