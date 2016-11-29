@@ -105,12 +105,21 @@ namespace MAD
 	int32_t DetermineComponentIndex(const class UComponent* inTargetComponent);
 	
 	template <typename T>
-	bool IsSame(const void* inLeftData, const void* inRightData)
+	bool IsSame(const void* inLHS, const void* inRHS)
 	{
-		const T* inLeftTypeData = reinterpret_cast<const T*>(inLeftData);
-		const T* inRightTypeData = reinterpret_cast<const T*>(inRightData);
+		const T* inLeftTypeData = reinterpret_cast<const T*>(inLHS);  // Actual object
+		const T* inRightTypeData = reinterpret_cast<const T*>(inRHS); // Local state buffer
 
 		return *inLeftTypeData == *inRightTypeData;
+	}
+
+	template <>
+	bool IsSame<float>(const void* inLHS, const void* inRHS)
+	{
+		const float inLeftTypeData = *reinterpret_cast<const float*>(inLHS);  // Actual object
+		const float inRightTypeData = *reinterpret_cast<const float*>(inRHS); // Local state buffer
+
+		return FloatEqual(inLeftTypeData, inRightTypeData);
 	}
 
 #define MAD_ADD_REPLICATION_PROPERTY(OutPropContainer, ReplType, OwnerType, ReplVarName)						\
