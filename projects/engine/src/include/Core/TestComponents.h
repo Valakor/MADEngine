@@ -63,6 +63,69 @@ namespace MAD
 		MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentI, 8);
 		MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentJ, 9);
 
+		class CDemoCharacterController : public UComponent
+		{
+			MAD_DECLARE_COMPONENT(CDemoCharacterController, UComponent)
+		public:
+			explicit CDemoCharacterController(OGameWorld* inOwningWorld)
+				: Super(inOwningWorld)
+				, m_lookSpeed(1.0f)
+				, m_moveSpeed(250.0f)
+			{
+				UGameInput::Get().SetMouseMode(EMouseMode::MM_Game);
+
+				auto& demoCharacterScheme = *UGameInput::Get().GetControlScheme("DemoCharacter");
+				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveForward>("Forward", this);
+				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveRight>("Horizontal", this);
+				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveUp>("Vertical", this);
+				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::LookRight>("LookX", this);
+				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::LookUp>("LookY", this);
+
+				demoCharacterScheme.BindEvent<CDemoCharacterController, &CDemoCharacterController::OnShoot>("Shoot", EInputEvent::IE_KeyDown, this);
+			}
+
+			virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
+		private:
+			void MoveRight(float inVal)
+			{
+				Vector3 right = Vector3::Transform(Vector3::Right, GetOwningEntity().GetWorldRotation());
+				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + right * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
+			}
+
+			void MoveForward(float inVal)
+			{
+				Vector3 forward = Vector3::Transform(Vector3::Forward, GetOwningEntity().GetWorldRotation());
+				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + forward * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
+			}
+
+			void MoveUp(float inVal)
+			{
+				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + Vector3::Up * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
+			}
+
+			void LookRight(float inVal)
+			{
+				auto rot = Quaternion::CreateFromAxisAngle(Vector3::Up, -inVal * gEngine->GetDeltaTime() * m_lookSpeed);
+				GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * rot);
+			}
+
+			void LookUp(float inVal)
+			{
+				Vector3 right = Vector3::Transform(Vector3::Right, GetOwningEntity().GetWorldRotation());
+				auto rot = Quaternion::CreateFromAxisAngle(right, -inVal * gEngine->GetDeltaTime() * m_lookSpeed);
+				GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * rot);
+			}
+
+			void OnShoot()
+			{
+				// Send event to spawn point light
+				gEngine->GetNetworkManager().SendNetworkEvent(EEventTarget::Server, SHOOT_BULLET, *this, nullptr, 0);
+			}
+
+			float m_lookSpeed;
+			float m_moveSpeed;
+		};
+
 		class CTimedDeathComponent : public UComponent
 		{
 			MAD_DECLARE_COMPONENT(CTimedDeathComponent, UComponent)
@@ -134,10 +197,17 @@ namespace MAD
 				Super::GetReplicatedProperties(inOutReplInfo);
 
 				MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_lightColor, OnRep_LightColor);
+				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_velocity);
 			}
 
-			virtual void UpdateComponent(float) override
+			virtual void UpdateComponent(float inDeltaTime) override
 			{
+				auto position = GetOwningEntity().GetWorldTranslation();
+				
+				position += m_velocity * inDeltaTime;
+
+				GetOwningEntity().SetWorldTranslation(position);
+
 				// Client sets the light's color in the OnRep callback
 				if (GetNetMode() == ENetMode::Client)
 				{
@@ -162,11 +232,13 @@ namespace MAD
 				m_colorIndex = (m_colorIndex + 1) % 3;
 			}
 
+			void SetBulletVelocity(const Vector3& inVelocity) { m_velocity = inVelocity; }
 		private:
 			Color m_lightColor;
 			float m_nextCycleTime;
 			int m_colorIndex;
-
+			Vector3 m_velocity;
+			
 			void OnRep_LightColor()
 			{
 				auto pointLight = GetOwningEntity().GetFirstComponentByType<CPointLightComponent>().lock();

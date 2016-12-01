@@ -176,4 +176,52 @@ namespace MAD
 
 		m_server->DestroyNetworkObject(inObject);
 	}
+
+	void UNetworkManager::SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer /*= InvalidPlayerID*/)
+	{
+		if (!inEventData && inEventSize > 0)
+		{
+			LOG(LogNetworkManager, Warning, "Trying to send event with invalid data\n");
+			return;
+		}
+
+		if (!inTargetObject.IsNetworkSpawned())
+		{
+			LOG(LogNetworkManager, Warning, "Trying to send event to non-networked object!\n");
+			return;
+		}
+
+		if (m_netMode == ENetMode::Client || (m_netMode == ENetMode::ListenServer && inEventTarget == EEventTarget::Server))
+		{
+			if (inEventTarget != EEventTarget::Server)
+			{
+				LOG(LogNetworkManager, Warning, "Attempting to send non-server event from client\n");
+				return;
+			}
+
+			m_client->SendNetworkEvent(inEventType, inTargetObject, inEventData, inEventSize);
+
+			return;
+		}
+		else if (m_netMode == ENetMode::DedicatedServer || (m_netMode == ENetMode::ListenServer && inEventTarget != EEventTarget::Server))
+		{
+			if (inEventTarget == EEventTarget::Server)
+			{
+				LOG(LogNetworkManager, Warning, "Attempting to send non-client event from server\n");
+				return;
+			}
+
+			if (inEventTarget == EEventTarget::Client && m_server->GetPlayerByID(inTargetPlayer).expired())
+			{
+				LOG(LogNetworkManager, Warning, "Attempting to send client event with invalid player ID\n");
+				return;
+			}
+
+			m_server->SendNetworkEvent(inEventTarget, inEventType, inTargetObject, inEventData, inEventSize, inTargetPlayer);
+
+			return;
+		}
+		
+		UNREACHABLE("Our logic is wrong if you got here!!!");
+	}
 }

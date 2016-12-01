@@ -5,6 +5,7 @@
 
 #include "Core/PointLightComponent.h"
 #include "Core/MeshComponent.h"
+#include "Core/CameraComponent.h"
 
 #include "Networking/Network.h"
 
@@ -59,9 +60,28 @@ namespace MAD
 				mesh->AttachComponent(pointLightBullet);
 
 				auto destroyMe = AddComponent<CTimedDeathComponent>();
-				destroyMe->SetLifeTime(3.5f);
+				destroyMe->SetLifeTime(5.0f);
 				destroyMe->SetServerOnly(true);
 				mesh->AttachComponent(destroyMe);
+			}
+		};
+
+		class ADemoCharacter : public AEntity
+		{
+			MAD_DECLARE_ACTOR(ADemoCharacter, AEntity)
+		public:
+			explicit ADemoCharacter(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			{
+				auto characterMesh = AddComponent<CMeshComponent>();
+				characterMesh->LoadFrom("engine\\meshes\\primitives\\cube.obj");
+				characterMesh->SetRelativeScale(100.0f);
+
+				SetRootComponent(characterMesh);
+
+				auto cameraComponent = AddComponent<CCameraComponent>();
+				cameraComponent->SetRelativeTranslation(Vector3(0.0f, 200.f, 300.0f));
+
+				characterMesh->AttachComponent(cameraComponent);
 			}
 		};
 

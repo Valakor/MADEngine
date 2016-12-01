@@ -41,6 +41,10 @@ namespace MAD
 		const Quaternion& GetRotation() const { return m_rotation; }
 		const Vector3& GetTranslation() const { return m_translation; }
 		const Matrix& GetMatrix() const { return m_cachedTransform; }
+		
+		Vector3 GetForward() const { return m_cachedTransform.Forward(); }
+		Vector3 GetRight() const { return m_cachedTransform.Right(); }
+		Vector3 GetUp() const { return m_cachedTransform.Up(); }
 
 		void SetScale(float inScale);
 		void SetRotation(const Quaternion& inRotation);

@@ -157,6 +157,7 @@ namespace MAD
 		YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
 	};
 
+
 	enum EMessageTypes
 	{
 		OTHER_PLAYER_CONNECTION_CHANGED,
@@ -164,10 +165,27 @@ namespace MAD
 		CREATE_OBJECT,
 		DESTROY_OBJECT,
 		UPDATE_OBJECT,
-
+		EVENT,
 		NUM_MESSAGE_TYPES
 	};
 
+	struct MEvent : public yojimbo::Message
+	{
+		EEventTypes m_eventType;
+		SNetworkID m_targetObjectID;
+		eastl::vector<uint8_t> m_eventData;
+
+		template <typename Stream> bool Serialize(Stream& stream)
+		{
+			serialize_enum(stream, m_eventType, EEventTypes, NUM_EVENT_TYPES);
+			serialize_netID(stream, m_targetObjectID);
+			serialize_state(stream, m_eventData);
+			return true;
+		}
+
+		YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
+	};
+	
 	YOJIMBO_MESSAGE_FACTORY_START(UGameMessageFactory, yojimbo::MessageFactory, NUM_MESSAGE_TYPES);
 		YOJIMBO_DECLARE_MESSAGE_TYPE(OTHER_PLAYER_CONNECTION_CHANGED, MOtherPlayerConnectionChanged);
 		YOJIMBO_DECLARE_MESSAGE_TYPE(INITIALIZE_NEW_PLAYER, MInitializeNewPlayer);

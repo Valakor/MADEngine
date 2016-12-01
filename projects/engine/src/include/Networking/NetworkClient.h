@@ -23,6 +23,8 @@ namespace MAD
 		size_t GetNumPlayers() const { return m_players.size(); }
 		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;
 
+		void SendNetworkEvent(EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize);
+
 	private:
 		class UNetworkManager& m_networkManager;
 
@@ -43,6 +45,7 @@ namespace MAD
 		void HandleCreateObjectMessage(MCreateObject& message);
 		void HandleUpdateObjectMessage(MUpdateObject& message);
 		void HandleDestroyObjectMessage(MDestroyObject& message);
+		void HandleEventMessage(MEvent& message);
 
 		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer);
 

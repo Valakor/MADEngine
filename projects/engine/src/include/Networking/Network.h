@@ -29,6 +29,19 @@ namespace MAD
 		DedicatedServer
 	};
 
+	enum class EEventTarget : uint8_t
+	{
+		Client,
+		Server,
+		NetMulticast
+	};
+
+	enum EEventTypes
+	{
+		SHOOT_BULLET,
+		NUM_EVENT_TYPES
+	};
+
 	enum ENetworkChannels
 	{
 		RELIABLE_CHANNEL,

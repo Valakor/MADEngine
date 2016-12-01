@@ -41,7 +41,7 @@ namespace MAD
 
 				// Network-spawn a point light bullet
 				auto world = gEngine->GetWorld(0);
-				SpawnNetworkEntity<Test::APointLightBullet>(world.get(), "default");
+				SpawnNetworkEntity(*Test::APointLightBullet::StaticClass(), world.get(), "default");
 			}
 		}
 
@@ -157,7 +157,7 @@ namespace MAD
 		m_players.insert({ inPlayerID, inPlayer });
 	}
 
-	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkObject_Internal(const TTypeInfo& inTypeInfo)
+	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkObject(const TTypeInfo& inTypeInfo)
 	{
 		SNetworkID netID;
 		netID.GetUnderlyingHandleRef() = m_nextNetworkID++;
@@ -172,7 +172,7 @@ namespace MAD
 		return object;
 	}
 
-	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkEntity_Internal(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkEntity(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
 	{
 		MAD_ASSERT_DESC(!!inOwningGameWorld, "Spawning a networked Entity requires a target game world");
 		if (!inOwningGameWorld) return nullptr;
@@ -247,6 +247,40 @@ namespace MAD
 
 		inObject.Destroy();
 		m_netObjects.erase(netObject);
+	}
+
+	void UNetworkServer::SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer)
+	{
+		if (inEventTarget == EEventTarget::NetMulticast)
+		{
+			for (const auto& player : m_players)
+			{
+				// We don't want to resend this event to local player because server will execute anywhere
+				if (player.second->IsLocalPlayer())
+				{
+					// TODO If NetMulticast on listen server, execute event locally
+					continue;
+				}
+
+				auto msg = static_cast<MEvent*>(CreateMsg(player.first, EVENT));
+				msg->m_eventType = inEventType;
+				msg->m_targetObjectID = inTargetObject.GetNetID();
+				msg->m_eventData.resize(inEventSize);
+				memcpy(msg->m_eventData.data(), inEventData, inEventSize);
+
+				SendMsg(player.first, msg);
+			}
+		}
+		else if (inEventTarget == EEventTarget::Client)
+		{
+			auto msg = static_cast<MEvent*>(CreateMsg(inTargetPlayer, EVENT));
+			msg->m_eventType = inEventType;
+			msg->m_targetObjectID = inTargetObject.GetNetID();
+			msg->m_eventData.resize(inEventSize);
+			memcpy(msg->m_eventData.data(), inEventData, inEventSize);
+
+			SendMsg(inTargetPlayer, msg);
+		}
 	}
 
 	void UNetworkServer::OnStart(int maxClients)

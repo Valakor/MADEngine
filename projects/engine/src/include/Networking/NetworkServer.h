@@ -24,40 +24,12 @@ namespace MAD
 
 		eastl::shared_ptr<UObject> GetNetworkObject(SNetworkID inNetworkID) const;
 
-		template <typename ObjectType>
-		eastl::shared_ptr<ObjectType> SpawnNetworkObject()
-		{
-			static_assert(eastl::is_base_of<UObject, ObjectType>::value, "Spawned ObjectType must be of type UObject or more derived");
-			const TTypeInfo* objectTypeInfo = ObjectType::StaticClass();
-			return eastl::static_pointer_cast<ObjectType>(SpawnNetworkObject_Internal(*objectTypeInfo));
-		}
-
-		template <typename ObjectType>
-		eastl::shared_ptr<ObjectType> SpawnNetworkObject(const TTypeInfo& inTypeInfo)
-		{
-			static_assert(eastl::is_base_of<UObject, ObjectType>::value, "Spawned ObjectType must be of type UObject or more derived");
-			MAD_ASSERT_DESC(IsA<ObjectType>(inTypeInfo), "Given type info must be a derived class of UObject");
-			return eastl::static_pointer_cast<ObjectType>(SpawnNetworkObject_Internal(inTypeInfo));
-		}
-
-		template <typename EntityType>
-		eastl::shared_ptr<EntityType> SpawnNetworkEntity(OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
-		{
-			static_assert(eastl::is_base_of<AEntity, EntityType>::value, "Spawned EntityType must be of type AEntity or more derived");
-			const TTypeInfo* entityTypeInfo = EntityType::StaticClass();
-			return eastl::static_pointer_cast<EntityType>(SpawnNetworkEntity_Internal(*entityTypeInfo, inOwningGameWorld, inWorldLayer));
-		}
-
-		template <typename EntityType>
-		eastl::shared_ptr<EntityType> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
-		{
-			static_assert(eastl::is_base_of<AEntity, EntityType>::value, "Spawned EntityType must be of type AEntity or more derived");
-			MAD_ASSERT_DESC(IsA<EntityType>(inTypeInfo), "Given type info must be a derived class of AEntity");
-			return eastl::static_pointer_cast<ObjectType>(SpawnNetworkEntity_Internal(inTypeInfo, inOwningGameWorld, inWorldLayer));
-		}
-
 		void DestroyNetworkObject(UObject& inObject);
 
+		void SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer);
+	
+		eastl::shared_ptr<UObject> SpawnNetworkObject(const TTypeInfo& inTypeInfo);
+		eastl::shared_ptr<UObject> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer);
 	private:
 		class UNetworkManager& m_networkManager;
 
@@ -85,8 +57,6 @@ namespace MAD
 
 		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID);
 
-		eastl::shared_ptr<UObject> SpawnNetworkObject_Internal(const TTypeInfo& inTypeInfo);
-		eastl::shared_ptr<UObject> SpawnNetworkEntity_Internal(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer);
 		void NetworkSpawn(eastl::shared_ptr<UObject> inObject, const TTypeInfo& inTypeInfo);
 
 	protected:

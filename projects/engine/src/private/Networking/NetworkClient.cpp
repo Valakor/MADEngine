@@ -42,6 +42,18 @@ namespace MAD
 		return (iter != m_players.end()) ? iter->second : nullptr;
 	}
 
+	void UNetworkClient::SendNetworkEvent(EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize)
+	{
+		auto msg = static_cast<MEvent*>(CreateMsg(EVENT));
+
+		msg->m_eventType = inEventType;
+		msg->m_targetObjectID = inTargetObject.GetNetID();
+		msg->m_eventData.resize(inEventSize);
+		memcpy(msg->m_eventData.data(), inEventData, inEventSize);
+
+		SendMsg(msg);
+	}
+
 	void UNetworkClient::ReceiveMessages()
 	{
 		MAD_ASSERT_DESC(IsConnected(), "Need a connected client to call this");
@@ -92,6 +104,13 @@ namespace MAD
 			{
 				MDestroyObject* message = static_cast<MDestroyObject*>(msg);
 				HandleDestroyObjectMessage(*message);
+				break;
+			}
+
+			case EVENT:
+			{
+				MEvent* message = static_cast<MEvent*>(msg);
+				HandleEventMessage(*message);
 				break;
 			}
 
@@ -191,6 +210,19 @@ namespace MAD
 		}
 
 		m_netObjects.erase(netObject);
+	}
+
+	void UNetworkClient::HandleEventMessage(MEvent& message)
+	{
+		auto targetObject = m_netObjects.find(message.m_targetObjectID);
+
+		if (targetObject == m_netObjects.cend())
+		{
+			LOG(LogNetworkClient, Warning, "Received event for invalid target network object!\n");
+			return;
+		}
+
+		targetObject->second.Object->OnEvent(message.m_eventType, message.m_eventData.data());
 	}
 
 	void UNetworkClient::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer)

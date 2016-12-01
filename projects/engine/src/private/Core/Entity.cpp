@@ -66,6 +66,16 @@ namespace MAD
 		}
 	}
 
+	void AEntity::OnEvent(EEventTypes inEventType, void* inEventData)
+	{
+		Super::OnEvent(inEventType, inEventData);
+
+		for (auto& currentChildComp : m_entityComponents)
+		{
+			currentChildComp->OnEvent(inEventType, inEventData);
+		}
+	}
+
 	bool AEntity::AttachEntity(eastl::shared_ptr<AEntity> inChildEntity)
 	{
 		if (m_rootComponent && inChildEntity && inChildEntity->m_rootComponent)

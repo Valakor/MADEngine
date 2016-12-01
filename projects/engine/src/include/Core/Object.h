@@ -19,6 +19,7 @@ namespace MAD
 		virtual ~UObject();
 
 		virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const { (void)inOutReplInfo; }
+		virtual void OnEvent(EEventTypes inEventType, void* inEventData) { (void)inEventType; (void)inEventData; }
 
 		inline ObjectID GetObjectID() const { return m_objectID; }
 		inline SNetworkID GetNetID() const { return m_netID; }

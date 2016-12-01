@@ -30,6 +30,8 @@ namespace MAD
 
 		virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override;
 
+		virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
+
 		bool AttachEntity(eastl::shared_ptr<AEntity> inChildEntity);
 
 		virtual void Destroy() override;
