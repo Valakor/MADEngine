@@ -194,6 +194,20 @@ namespace MAD
 		return{ rect.right - rect.left, rect.bottom - rect.top };
 	}
 
+	eastl::string UGameWindow::GetWindowName() const
+	{
+		wchar_t title[128];
+		GetWindowTextW(hWnd, title, 128);
+
+		return utf8util::UTF8FromUTF16(title);
+	}
+
+	void UGameWindow::SetWindowName(const eastl::string& inWindowName)
+	{
+		auto wWindowName = utf8util::UTF16FromUTF8(inWindowName);
+		SetWindowTextW(hWnd, wWindowName.c_str());
+	}
+
 	//
 	//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 	//
