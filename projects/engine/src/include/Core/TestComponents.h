@@ -4,6 +4,7 @@
 #include "Core/Entity.h"
 #include "Core/ComponentPriorityInfo.h"
 #include "Core/PointLightComponent.h"
+#include "Core/GameWorldLoader.h"
 
 #define MAD_DEFINE_TEST_COMPONENT(TestComponentName)							\
 	DECLARE_LOG_CATEGORY(Log##TestComponentName);											\
@@ -252,6 +253,41 @@ namespace MAD
 
 				pointLight->SetColor(m_lightColor);
 			}
+		};
+
+		class CSinMoveComponent : public UComponent
+		{
+			MAD_DECLARE_COMPONENT(CSinMoveComponent, UComponent)
+		public:
+			explicit CSinMoveComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			                                                      , m_moveSpeed(1.0f)
+			                                                      , m_distance(1.0f) { }
+
+			virtual void UpdateComponent(float) override
+			{
+				auto root = GetOwningEntity().GetRootComponent();
+				
+				float gameTime = gEngine->GetGameTime();
+				Vector3 offset = Vector3::Up * sinf(gameTime * m_moveSpeed) * m_distance;
+
+				root->SetWorldTranslation(m_initialPosition + offset);
+			}
+
+			virtual void Load(const UGameWorldLoader& inLoader) override
+			{
+				inLoader.GetFloat("speed", m_moveSpeed);
+				inLoader.GetFloat("distance", m_distance);
+			}
+
+			virtual void OnBeginPlay() override
+			{
+				m_initialPosition = GetOwningEntity().GetRootComponent()->GetWorldTranslation();
+			}
+
+		private:
+			float m_moveSpeed;
+			float m_distance;
+			Vector3 m_initialPosition;
 		};
 	}
 }

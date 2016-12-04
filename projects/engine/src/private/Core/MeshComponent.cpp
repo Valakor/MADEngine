@@ -15,7 +15,6 @@ namespace MAD
 		: Super(inOwningWorld)
 	{
 		m_meshInstance.m_bVisible = false;
-		m_meshInstance.m_perDrawConstants.m_objectToWorldMatrix = Matrix::Identity;
 	}
 
 	void CMeshComponent::UpdateComponent(float inDeltaTime)
@@ -38,19 +37,32 @@ namespace MAD
 		return m_meshInstance.m_mesh != nullptr;
 	}
 
-	void CMeshComponent::ConstructDrawItem()
+	void CMeshComponent::ConstructDrawItem() const
 	{
 		URenderer& targetRenderer = gEngine->GetRenderer();
 		eastl::vector<SDrawItem> constructedDrawItems;
 
-		m_meshInstance.m_perDrawConstants.m_objectToWorldMatrix = GetWorldTransform().GetMatrix();
-		m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, m_meshInstance.m_perDrawConstants);
+		m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, GetWorldTransform());
 
 		// Set the draw item properties
-		for (const auto& currentDrawItem : constructedDrawItems)
+		for (size_t i = 0; i < constructedDrawItems.size(); ++i)
 		{
+			auto& currentDrawItem = constructedDrawItems[i];
+
+			GetOwningEntity().GetObjectID();
+			currentDrawItem.m_uniqueID = MakeDrawItemID(GetOwningEntity().GetObjectID(), i);
 			targetRenderer.QueueDrawItem(currentDrawItem);
 		}
+	}
+
+	size_t CMeshComponent::MakeDrawItemID(size_t inMeshObjectID, size_t inDrawItemIdx)
+	{
+		size_t a = eastl::hash<size_t>{}(inMeshObjectID);
+		size_t b = eastl::hash<size_t>{}(inDrawItemIdx);
+
+		// Boost reference implementation of hash_combine
+		a ^= b + 0x9e3779b9 + (a << 6) + (a >> 2);
+		return a;
 	}
 
 	void CMeshComponent::Load(const UGameWorldLoader& inLoader)

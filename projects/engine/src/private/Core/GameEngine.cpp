@@ -89,6 +89,7 @@ namespace MAD
 			Test::CTimedDeathComponent::StaticClass();
 			Test::CPointLightBulletComponent::StaticClass();
 			Test::CDemoCharacterController::StaticClass();
+			Test::CSinMoveComponent::StaticClass();
 		}
 	}
 
@@ -97,9 +98,10 @@ namespace MAD
 	UGameEngine::UGameEngine()
 		: bContinue(true)
 		, m_isSimulating(false)
-	    , mGameTime(0.0)
-	    , mFrameTime(0.0)
-	    , mFrameAccumulator(0.0) { }
+		, m_gameTick(0)
+		, mGameTime(0.0)
+		, mFrameTime(0.0)
+		, mFrameAccumulator(0.0) { }
 
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
@@ -275,8 +277,8 @@ namespace MAD
 		m_worlds.clear();
 
 		UGameWorldLoader loader;
-		loader.LoadWorld("engine\\worlds\\default_world.json");
-		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
+		//loader.LoadWorld("engine\\worlds\\default_world.json");
+		loader.LoadWorld("engine\\worlds\\sponza_world.json");
 	}
 
 	void UGameEngine::TEMPSerializeObject()
@@ -338,11 +340,15 @@ namespace MAD
 
 		mFrameAccumulator += frameTime;
 
-		int steps = eastl::min(static_cast<int>(floor(mFrameAccumulator / TARGET_DELTA_TIME)), MAX_SIMULATION_STEPS);
+		int steps = eastl::min(static_cast<int>(mFrameAccumulator / TARGET_DELTA_TIME), MAX_SIMULATION_STEPS);
 		mFrameAccumulator -= steps * TARGET_DELTA_TIME;
 
 		while (steps > 0)
 		{
+			// Update current game tick
+			m_gameTick++;
+			MAD_ASSERT_DESC(m_gameTick != 0, "Game tick overflow detected");
+
 			// Clear the old draw items
 			mRenderer->ClearRenderItems();
 
@@ -356,23 +362,22 @@ namespace MAD
 			// once all worlds have had its chance to simulate
 			m_isSimulating = true;
 
-			// TEMP
+			// TODO TEMP
 			m_NetworkManager.Tick(TARGET_DELTA_TIME);
 
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePrePhysics(TARGET_DELTA_TIME);
 			}
 
 			//// Update the physics world
 			m_physicsWorld->SimulatePhysics();
 
-
 			//// Tick the post-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePostPhysics(TARGET_DELTA_TIME);
 			}
 
 			m_isSimulating = false;

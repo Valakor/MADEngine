@@ -77,7 +77,7 @@ namespace MAD
 		return mesh;
 	}
 
-	void UMesh::BuildDrawItems(eastl::vector<SDrawItem>& inOutTargetDrawItems, const SPerDrawConstants& inPerMeshDrawConstants) const
+	void UMesh::BuildDrawItems(eastl::vector<SDrawItem>& inOutTargetDrawItems, const ULinearTransform& inMeshTransform) const
 	{
 		const size_t subMeshCount = m_subMeshes.size();
 
@@ -120,9 +120,11 @@ namespace MAD
 			currentDrawItem.m_indexBuffer = m_gpuIndexBuffer;
 			currentDrawItem.m_indexOffset = m_subMeshes[i].m_indexStart;
 			currentDrawItem.m_indexCount = m_subMeshes[i].m_indexCount;
+
+			// Object transform
+			currentDrawItem.m_transform = inMeshTransform;
 			
 			// Constant buffers
-			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerDraw, { &inPerMeshDrawConstants, static_cast<UINT>(sizeof(SPerDrawConstants)) } });
 			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerMaterial, { &currentGPUMaterial, static_cast<UINT>(sizeof(SGPUMaterial)) } });
 
 			// Textures

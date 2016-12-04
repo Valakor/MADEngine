@@ -18,6 +18,9 @@ namespace MAD
 
 		virtual ~UComponent() { }
 
+		virtual void PostInitializeComponents() {}
+		virtual void OnBeginPlay() {}
+
 		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };
 
 		void AttachComponent(eastl::shared_ptr<UComponent> inChildComponent);

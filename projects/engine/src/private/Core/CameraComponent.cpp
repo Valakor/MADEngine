@@ -14,18 +14,12 @@ namespace MAD
 	CCameraComponent::CCameraComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 	{
-		auto clientWindow = gEngine->GetWindow().GetClientSize();
-		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
-
 		m_cameraPosInitial = Vector3::Zero;
 		m_cameraRotInitial = Quaternion::Identity;
 
 		m_cameraInstance.m_verticalFOV = ConvertToRadians(60.0f);
 		m_cameraInstance.m_nearPlaneDistance = 3.0f;
 		m_cameraInstance.m_farPlaneDistance = 10000.0f;
-		m_cameraInstance.m_viewMatrix = Matrix::CreateFromQuaternion(m_cameraRotInitial) * Matrix::CreateTranslation(m_cameraPosInitial);
-		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
-		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
 		m_cameraInstance.m_exposure = 1.0f;
 
 		auto& cameraScheme = *UGameInput::Get().GetControlScheme("CameraDebug");
@@ -44,21 +38,12 @@ namespace MAD
 		m_cameraLookSpeed = 1.0f;
 	}
 
-	void CCameraComponent::UpdateComponent(float inDeltaTime)
+	void CCameraComponent::UpdateComponent(float)
 	{
-		(void)inDeltaTime;
-
-		Matrix translation = Matrix::CreateTranslation(GetWorldTranslation());
-		Matrix rotation = Matrix::CreateFromQuaternion(GetWorldRotation());
-
-		auto clientWindow = gEngine->GetWindow().GetClientSize();
-		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
-
-		m_cameraInstance.m_viewMatrix = (rotation * translation).Invert();
-		m_cameraInstance.m_projectionMatrix = Matrix::CreatePerspectiveFieldOfView(m_cameraInstance.m_verticalFOV, aspectRatio, m_cameraInstance.m_nearPlaneDistance, m_cameraInstance.m_farPlaneDistance);
-		m_cameraInstance.m_viewProjectionMatrix = m_cameraInstance.m_viewMatrix * m_cameraInstance.m_projectionMatrix;
-
 		// Update the renderer's camera's per camera constant buffer values
+		m_cameraInstance.m_transform = GetWorldTransform();
+		m_cameraInstance.m_transform.SetScale(1.0f);
+
 		auto& renderer = gEngine->GetRenderer();
 		renderer.UpdateCameraConstants(m_cameraInstance);
 	}

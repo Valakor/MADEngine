@@ -5,11 +5,8 @@
 #include "Core/GameWindow.h"
 #include "Misc/ProgramPermutor.h"
 #include "Misc/Logging.h"
-#include "Misc/utf8conv.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/InputLayoutCache.h"
-
-#include <EASTL/array.h>
 
 namespace MAD
 {
@@ -61,7 +58,9 @@ namespace MAD
 		}
 	}
 
-	URenderer::URenderer(): m_window(nullptr)
+	URenderer::URenderer(): m_frame(static_cast<decltype(m_frame)>(-1))
+	                      , m_window(nullptr)
+	                      , m_currentStateIndex(0)
 	                      , m_visualizeOption(EVisualizeOptions::None) { }
 
 	bool URenderer::Init(UGameWindow& inWindow)
@@ -95,29 +94,46 @@ namespace MAD
 
 	void URenderer::QueueDrawItem(const SDrawItem& inDrawItem)
 	{
-		m_queuedDrawItems.emplace_back(inDrawItem);
+		// Queue up this draw item
+		auto result = m_queuedDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
+		MAD_ASSERT_DESC(result.second, "Duplicate draw item detected. Either it was submitted twice, or there was a collision in generating its unique ID");
+
+		// Check if this draw item was submitted previously
+		auto iter = m_queuedDrawItems[1 - m_currentStateIndex].find(inDrawItem.m_uniqueID);
+		if (iter != m_queuedDrawItems[1 - m_currentStateIndex].end())
+		{
+			result.first->second.m_previousDrawTransform = &iter->second.m_transform;
+		}
 	}
 
-	void URenderer::QueueDirectionalLight(const SGPUDirectionalLight& inDirectionalLight)
+	void URenderer::QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight)
 	{
-		m_queuedDirLights.push_back(inDirectionalLight);
+		auto result = m_queuedDirLights[m_currentStateIndex].insert({ inID, inDirectionalLight });
+		MAD_ASSERT_DESC(result.second, "Duplicate directional light detected. Either it was submitted twice, or there was a collision in generating its unique ID");
 
-		SGPUDirectionalLight& newLight = m_queuedDirLights.back();
+		SGPUDirectionalLight& newLight = result.first->second;
 
 		const float sceneRadius = 2000.0f;
 		const Matrix view = Matrix::CreateLookAt(-newLight.m_lightDirection, Vector3::Zero, Vector3::Up);
 		const Matrix proj = Matrix::CreateOrthographic(2 * sceneRadius, 2 * sceneRadius, -1750.0f, 500.0f);
 
 		newLight.m_viewProjectionMatrix = view * proj;
-		newLight.m_lightDirection = Vector3::TransformNormal(inDirectionalLight.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
 	}
 
-	void URenderer::QueuePointLight(const SGPUPointLight& inPointLight)
+	void URenderer::QueuePointLight(size_t inID, const SGPUPointLight& inPointLight)
 	{
-		m_queuedPointLights.push_back(inPointLight);
+		auto result = m_queuedPointLights[m_currentStateIndex].insert({ inID, inPointLight });
+		MAD_ASSERT_DESC(result.second, "Duplicate point light detected. Either it was submitted twice, or there was a collision in generating its unique ID");
+		(void)result;
+	}
 
-		auto& newLight = m_queuedPointLights.back();
-		newLight.m_lightPosition = Vector3::Transform(newLight.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
+	void URenderer::ClearRenderItems()
+	{
+		m_currentStateIndex = 1 - m_currentStateIndex;
+
+		m_queuedDrawItems[m_currentStateIndex].clear();
+		m_queuedDirLights[m_currentStateIndex].clear();
+		m_queuedPointLights[m_currentStateIndex].clear();
 	}
 
 	void URenderer::OnScreenSizeChanged()
@@ -138,10 +154,17 @@ namespace MAD
 
 	void URenderer::Frame(float framePercent)
 	{
-		(void)framePercent;
+		m_frame++;
+		MAD_ASSERT_DESC(m_frame != eastl::numeric_limits<decltype(m_frame)>::max(), "");
 		
 		BeginFrame();
-		Draw();
+
+		if (m_frame > 0)
+		{
+			// We need at least one frame's worth of buffer for state interpolation
+			Draw(framePercent);
+		}
+		
 		EndFrame();
 	}
 
@@ -275,9 +298,10 @@ namespace MAD
 		}
 	}
 
-	void URenderer::Draw()
+	void URenderer::Draw(float inFramePercent)
 	{
 		// Bind per-frame constants
+		CalculateCameraConstants(inFramePercent);
 		BindPerFrameConstants();
 
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::LightingBuffer);
@@ -289,13 +313,13 @@ namespace MAD
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 		// Go through each draw item and bind input assembly data
-		for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
+		for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
 		{
 			// Before processing the draw item, we need to determine which program it should use and bind that
-			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem));
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem.second));
 
-			// Each individual DrawItem should issue it's own draw call
-			currentDrawItem.Draw(g_graphicsDriver, true);
+			// Each individual DrawItem should issue its own draw call
+			currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
 		}
 
 		if (m_visualizeOption != EVisualizeOptions::None)
@@ -312,9 +336,23 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DepthBuffer);
 
-		for (const SGPUDirectionalLight& currentDirLight : m_queuedDirLights)
+		SGPUDirectionalLight directionalLightConstants;
+		for (const auto& currentDirLight : m_queuedDirLights[m_currentStateIndex])
 		{
-			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &currentDirLight, sizeof(SGPUDirectionalLight));
+			// Interpolate the light's properties
+			const auto previousDirLight = m_queuedDirLights[1 - m_currentStateIndex].find(currentDirLight.first);
+			if (previousDirLight != m_queuedDirLights[1 - m_currentStateIndex].end())
+			{
+				directionalLightConstants = SGPUDirectionalLight::Lerp(previousDirLight->second, currentDirLight.second, inFramePercent);
+			}
+			else
+			{
+				directionalLightConstants = currentDirLight.second;
+			}
+
+			// Transform the light's direction into view space
+			directionalLightConstants.m_lightDirection = Vector3::TransformNormal(directionalLightConstants.m_lightDirection, m_perFrameConstants.m_cameraViewMatrix);
+			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &directionalLightConstants, sizeof(SGPUDirectionalLight));
 
 			// Render shadow map
 			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
@@ -323,9 +361,9 @@ namespace MAD
 
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
 			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
-			for (const SDrawItem& currentDrawItem : m_queuedDrawItems)
+			for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
 			{
-				currentDrawItem.Draw(g_graphicsDriver, true, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+				currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
 
 			// Shading + lighting
@@ -339,10 +377,25 @@ namespace MAD
 		// Do point lighting
 		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
-		for (const SGPUPointLight& currentPointLight : m_queuedPointLights)
+
+		SGPUPointLight pointLightConstants;
+		for (const auto& currentPointLight : m_queuedPointLights[m_currentStateIndex])
 		{
-			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &currentPointLight, sizeof(SGPUPointLight));
-			DrawFullscreenQuad();
+			// Interpolate the light's properties
+			const auto previousPointLight = m_queuedPointLights[1 - m_currentStateIndex].find(currentPointLight.first);
+			if (previousPointLight != m_queuedPointLights[1 - m_currentStateIndex].end())
+			{
+				pointLightConstants = SGPUPointLight::Lerp(previousPointLight->second, currentPointLight.second, inFramePercent);
+			}
+			else
+			{
+				pointLightConstants = currentPointLight.second;
+			}
+
+			// Transform the light's position into view space
+			pointLightConstants.m_lightPosition = Vector3::Transform(pointLightConstants.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
+			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(SGPUPointLight));
+			DrawFullscreenQuad(); // TODO
 		}
 	}
 
@@ -459,14 +512,27 @@ namespace MAD
 
 	void URenderer::UpdateCameraConstants(const SCameraInstance& inCameraInstance)
 	{
-		m_perFrameConstants.m_cameraViewMatrix = inCameraInstance.m_viewMatrix;
-		m_perFrameConstants.m_cameraProjectionMatrix = inCameraInstance.m_projectionMatrix;
-		m_perFrameConstants.m_cameraViewProjectionMatrix = inCameraInstance.m_viewProjectionMatrix;
-		m_perFrameConstants.m_cameraInverseViewMatrix = inCameraInstance.m_viewMatrix.Invert();
-		m_perFrameConstants.m_cameraInverseProjectionMatrix = inCameraInstance.m_projectionMatrix.Invert();
-		m_perFrameConstants.m_cameraNearPlane = inCameraInstance.m_nearPlaneDistance;
-		m_perFrameConstants.m_cameraFarPlane = inCameraInstance.m_farPlaneDistance;
-		m_perFrameConstants.m_cameraExposure = inCameraInstance.m_exposure;
+		m_camera[m_currentStateIndex] = inCameraInstance;
+	}
+
+	void URenderer::CalculateCameraConstants(float inFramePercent)
+	{
+		SCameraInstance& currentCamera = m_camera[m_currentStateIndex];
+		ULinearTransform transform = ULinearTransform::Lerp(m_camera[1 - m_currentStateIndex].m_transform, currentCamera.m_transform, inFramePercent);
+
+		auto windowSize = gEngine->GetWindow().GetClientSize();
+		float aspectRatio = static_cast<float>(windowSize.x) / windowSize.y;
+
+		Matrix projection = Matrix::CreatePerspectiveFieldOfView(currentCamera.m_verticalFOV, aspectRatio, currentCamera.m_nearPlaneDistance, currentCamera.m_farPlaneDistance);
+
+		m_perFrameConstants.m_cameraViewMatrix = transform.GetMatrix().Invert();
+		m_perFrameConstants.m_cameraProjectionMatrix = projection;
+		m_perFrameConstants.m_cameraViewProjectionMatrix = m_perFrameConstants.m_cameraViewMatrix * m_perFrameConstants.m_cameraProjectionMatrix;
+		m_perFrameConstants.m_cameraInverseViewMatrix = transform.GetMatrix();
+		m_perFrameConstants.m_cameraInverseProjectionMatrix = projection.Invert();
+		m_perFrameConstants.m_cameraNearPlane = currentCamera.m_nearPlaneDistance;
+		m_perFrameConstants.m_cameraFarPlane = currentCamera.m_farPlaneDistance;
+		m_perFrameConstants.m_cameraExposure = currentCamera.m_exposure;
 	}
 
 	void URenderer::SetWorldAmbientColor(Color inColor)

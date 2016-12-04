@@ -10,6 +10,69 @@
 					"type": "AEntity",
 					"newComponents": [
 						{
+							"position": [150.0, 0.0, 0.0],
+							"scale": 50.0,
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties": {
+								"speed": 0.8,
+								"distance": 200.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
+							"position": [0.0, 0.0, 0.0],
+							"scale": 50.0,
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": false,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties": {
+								"speed": 0.8,
+								"distance": 200.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
+							"position": [-150.0, 0.0, 0.0],
+							"scale": 50.0,
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties": {
+								"speed": 0.8,
+								"distance": 200.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
 								"enabled": true,
@@ -20,38 +83,12 @@
 						},
 						{
 							"type": "CCameraComponent",
-							"position": [0.0, 300.0, 500.0],
-							"rotation": [-30.0, 0.0, 0.0],
+							"position": [0.0, 0.0, 500.0],
+							"rotation": [0.0, 0.0, 0.0],
 							"properties": {
 								"fov": 60.0,
 								"near": 3.0,
 								"far": 100000.0
-							}
-						},
-						{
-							"scale": 50.0,
-							"type": "CMeshComponent",
-							"properties": {
-								"visible": false,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"position": [150.0, 0.0, 0.0],
-							"scale": 50.0,
-							"type": "CMeshComponent",
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"position": [-150.0, 0.0, 0.0],
-							"scale": 50.0,
-							"type": "CMeshComponent",
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						}
 					],

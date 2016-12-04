@@ -23,7 +23,7 @@ namespace MAD
 			m_pointLight.m_gpuPointLight.m_lightPosition = GetWorldTranslation();
 
 			URenderer& targetRenderer = gEngine->GetRenderer();
-			targetRenderer.QueuePointLight(m_pointLight.m_gpuPointLight);
+			targetRenderer.QueuePointLight(GetObjectID(), m_pointLight.m_gpuPointLight);
 		}
 	}
 

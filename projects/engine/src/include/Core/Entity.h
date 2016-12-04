@@ -25,8 +25,8 @@ namespace MAD
 		explicit AEntity(OGameWorld* inOwningWorld);
 		virtual ~AEntity() {}
 
-		virtual void OnBeginPlay() {}
-		virtual void PostInitializeComponents();
+		void PostInitialize();
+		void BeginPlay();
 
 		virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override;
 
@@ -78,6 +78,9 @@ namespace MAD
 
 		void PrintTranslationHierarchy() const;
 	protected:
+		virtual void PostInitializeComponents() {}
+		virtual void OnBeginPlay() {}
+
 		// Component creation API
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater
 		// as a progress of the entity construction process. If you try to add components outside of the constructor, they will not update.

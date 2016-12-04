@@ -19,8 +19,8 @@ namespace MAD
 		LOG(LogDefault, Log, "Finalizing spawning entity of type %s at Layer: %s\n", inEntity->GetTypeInfo()->GetTypeName(), inEntity->GetOwningWorldLayer().GetLayerName().c_str());
 
 		inEntity->GetOwningWorldLayer().AddEntityToLayer(inEntity);
-		inEntity->PostInitializeComponents();
-		inEntity->OnBeginPlay();
+		inEntity->PostInitialize();
+		inEntity->BeginPlay();
 	}
 
 	void OGameWorld::CleanupEntities()

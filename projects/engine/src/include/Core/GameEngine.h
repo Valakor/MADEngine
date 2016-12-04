@@ -46,6 +46,7 @@ namespace MAD
 		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
 		float GetFrameTime() const { return static_cast<float>(mFrameTime); }
 		float GetGameTime() const { return static_cast<float>(mGameTime); }
+		uint32_t GetGameTick() const { return m_gameTick; }
 
 		eastl::shared_ptr<class OGameWorld> GetWorld(const eastl::string& inWorldName);
 		eastl::shared_ptr<class OGameWorld> GetWorld(size_t inIndex);
@@ -61,14 +62,15 @@ namespace MAD
 		void TEMPSerializeObject();
 	private:
 		const int MAX_SIMULATION_STEPS = 10;
-		const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
+		//const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
+		const double TARGET_DELTA_TIME = 0.05; // 20 FPS
 
 		void Tick();
-
 
 		bool bContinue;
 		bool m_isSimulating;
 
+		uint32_t m_gameTick; // Enough bits for 19,884 hours of gameplay @ 60Hz simulation
 		double mGameTime;
 		double mFrameTime;
 		double mFrameAccumulator;

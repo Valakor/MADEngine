@@ -94,6 +94,9 @@ namespace MAD
 	private:
 		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
+
+	public:
+		static SGPUPointLight Lerp(const SGPUPointLight& a, const SGPUPointLight& b, float t);
 	};
 	static_assert(sizeof(SGPUPointLight) == 48, "");
 
@@ -104,6 +107,11 @@ namespace MAD
 		Color m_lightColor;
 
 		Matrix m_viewProjectionMatrix;
+
+	public:
+		static SGPUDirectionalLight Lerp(const SGPUDirectionalLight& a, const SGPUDirectionalLight& b, float t);
+
+		void CalculateViewProjection(float inOrthoWidth, float inOrthoHeight, float inNear, float inFar);
 	};
 	static_assert(sizeof(SGPUDirectionalLight) == 96, "");
 
@@ -147,8 +155,8 @@ namespace MAD
 
 	struct SPerSceneConstants
 	{
-		DirectX::SimpleMath::Color m_ambientColor;
-		DirectX::SimpleMath::Vector2 m_screenDimensions;
+		Color m_ambientColor;
+		Vector2 m_screenDimensions;
 
 	private:
 		float __pad1 = 0.0f;
@@ -163,9 +171,9 @@ namespace MAD
 
 	struct SPerDrawConstants
 	{
-		DirectX::SimpleMath::Matrix m_objectToWorldMatrix;
-		DirectX::SimpleMath::Matrix m_objectToViewMatrix;
-		DirectX::SimpleMath::Matrix m_objectToProjectionMatrix;
+		Matrix m_objectToWorldMatrix;
+		Matrix m_objectToViewMatrix;
+		Matrix m_objectToProjectionMatrix;
 	};
 
 	struct SPerPointLightConstants
