@@ -50,7 +50,9 @@ namespace MAD
 
 		outputTransform.m_scale = inLeftTransform.m_scale * inRightTransform.m_scale;
 		outputTransform.m_rotation = inLeftTransform.m_rotation * inRightTransform.m_rotation;
-		outputTransform.m_translation = inLeftTransform.m_translation + inRightTransform.m_translation;
+
+		Vector3 t = Vector3::Transform(inLeftTransform.m_translation, inRightTransform.m_rotation);
+		outputTransform.m_translation = t + inRightTransform.m_translation;
 
 		outputTransform.UpdateCachedTransform();
 

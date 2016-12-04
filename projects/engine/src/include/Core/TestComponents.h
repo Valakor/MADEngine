@@ -66,15 +66,17 @@ namespace MAD
 		class CDemoCharacterController : public UComponent
 		{
 			MAD_DECLARE_COMPONENT(CDemoCharacterController, UComponent)
+
 		public:
 			explicit CDemoCharacterController(OGameWorld* inOwningWorld)
 				: Super(inOwningWorld)
 				, m_lookSpeed(1.0f)
-				, m_moveSpeed(250.0f)
+				, m_moveSpeed(300.0f)
 			{
 				UGameInput::Get().SetMouseMode(EMouseMode::MM_Game);
 
 				auto& demoCharacterScheme = *UGameInput::Get().GetControlScheme("DemoCharacter");
+
 				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveForward>("Forward", this);
 				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveRight>("Horizontal", this);
 				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveUp>("Vertical", this);
@@ -85,16 +87,17 @@ namespace MAD
 			}
 
 			virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
+
 		private:
 			void MoveRight(float inVal)
 			{
-				Vector3 right = Vector3::Transform(Vector3::Right, GetOwningEntity().GetWorldRotation());
+				Vector3 right = GetOwningEntity().GetWorldTransform().GetRight();
 				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + right * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
 			}
 
 			void MoveForward(float inVal)
 			{
-				Vector3 forward = Vector3::Transform(Vector3::Forward, GetOwningEntity().GetWorldRotation());
+				Vector3 forward = GetOwningEntity().GetWorldTransform().GetForward();
 				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + forward * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
 			}
 
@@ -111,7 +114,7 @@ namespace MAD
 
 			void LookUp(float inVal)
 			{
-				Vector3 right = Vector3::Transform(Vector3::Right, GetOwningEntity().GetWorldRotation());
+				Vector3 right = GetOwningEntity().GetWorldTransform().GetRight();
 				auto rot = Quaternion::CreateFromAxisAngle(right, -inVal * gEngine->GetDeltaTime() * m_lookSpeed);
 				GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * rot);
 			}
@@ -119,7 +122,7 @@ namespace MAD
 			void OnShoot()
 			{
 				// Send event to spawn point light
-				gEngine->GetNetworkManager().SendNetworkEvent(EEventTarget::Server, SHOOT_BULLET, *this, nullptr, 0);
+				gEngine->GetNetworkManager().SendNetworkEvent(EEventTarget::Server, SHOOT_BULLET, GetOwningEntity(), nullptr, 0);
 			}
 
 			float m_lookSpeed;
@@ -129,6 +132,7 @@ namespace MAD
 		class CTimedDeathComponent : public UComponent
 		{
 			MAD_DECLARE_COMPONENT(CTimedDeathComponent, UComponent)
+
 		public:
 			explicit CTimedDeathComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
 			                                                         , m_lifeTime(-1.0f)
@@ -184,35 +188,35 @@ namespace MAD
 		class CPointLightBulletComponent : public UComponent
 		{
 			MAD_DECLARE_COMPONENT(CPointLightBulletComponent, UComponent)
+
 		public:
 			explicit CPointLightBulletComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
-			                                                               , m_nextCycleTime(0)
-			                                                               , m_colorIndex(0)
-			{
-				m_lightColor = Color(1, 1, 1);
-			}
+				, m_nextCycleTime(0)
+				, m_colorIndex(0)
+				, m_lightColor(Color(1, 1, 1))
+			{ }
 
 			virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override
 			{
 				Super::GetReplicatedProperties(inOutReplInfo);
 
 				MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_lightColor, OnRep_LightColor);
-				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_velocity);
+				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_position);
 			}
 
 			virtual void UpdateComponent(float inDeltaTime) override
 			{
-				auto position = GetOwningEntity().GetWorldTranslation();
-				
-				position += m_velocity * inDeltaTime;
-
-				GetOwningEntity().SetWorldTranslation(position);
-
 				// Client sets the light's color in the OnRep callback
 				if (GetNetMode() == ENetMode::Client)
 				{
+					GetOwningEntity().SetWorldTranslation(m_position);
 					return;
 				}
+
+				auto position = GetOwningEntity().GetWorldTranslation();
+				position += m_velocity * inDeltaTime;
+				m_position = position;
+				GetOwningEntity().SetWorldTranslation(position);
 
 				// Server changes the light color every half a second
 				float time = gEngine->GetGameTime();
@@ -233,11 +237,13 @@ namespace MAD
 			}
 
 			void SetBulletVelocity(const Vector3& inVelocity) { m_velocity = inVelocity; }
+
 		private:
 			Color m_lightColor;
 			float m_nextCycleTime;
 			int m_colorIndex;
 			Vector3 m_velocity;
+			Vector3 m_position;
 			
 			void OnRep_LightColor()
 			{

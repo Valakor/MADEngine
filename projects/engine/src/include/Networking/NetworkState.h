@@ -18,9 +18,9 @@ namespace MAD
 
 		void TargetObject(class UObject* inTargetObject, bool inCreateStateBuffer);
 
-		void SerializeState(eastl::vector<uint8_t>& inOutByteBuffer, bool inIsReading);
+		void SerializeState(eastl::vector<uint8_t>& inOutByteBuffer, bool inIsReading, bool inForceDirty = false);
 	private:
-		bool SerializeState_Internal(yojimbo::WriteStream& inOutWStream);
+		bool SerializeState_Internal(yojimbo::WriteStream& inOutWStream, bool inForceDirty);
 		bool DeserializeState_Internal(yojimbo::ReadStream& inOutRStream);
 	private:
 		class UObject* m_targetObject;

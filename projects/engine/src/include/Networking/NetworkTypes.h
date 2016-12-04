@@ -177,7 +177,7 @@ namespace MAD
 
 		template <typename Stream> bool Serialize(Stream& stream)
 		{
-			serialize_enum(stream, m_eventType, EEventTypes, NUM_EVENT_TYPES);
+			serialize_enum(stream, m_eventType, EEventTypes, NUM_EVENT_TYPES + 1);
 			serialize_netID(stream, m_targetObjectID);
 			serialize_state(stream, m_eventData);
 			return true;
@@ -192,5 +192,6 @@ namespace MAD
 		YOJIMBO_DECLARE_MESSAGE_TYPE(CREATE_OBJECT, MCreateObject);
 		YOJIMBO_DECLARE_MESSAGE_TYPE(DESTROY_OBJECT, MDestroyObject);
 		YOJIMBO_DECLARE_MESSAGE_TYPE(UPDATE_OBJECT, MUpdateObject);
+		YOJIMBO_DECLARE_MESSAGE_TYPE(EVENT, MEvent);
 	YOJIMBO_MESSAGE_FACTORY_FINISH();
 }

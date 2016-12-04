@@ -30,21 +30,6 @@ namespace MAD
 
 		CheckForTimeOut();
 
-		// TODO Temporary testing
-		{
-			static int nextTime = 0;
-
-			int time = static_cast<int>(inGameTime);
-			if (time >= nextTime)
-			{
-				nextTime = time + 5;
-
-				// Network-spawn a point light bullet
-				auto world = gEngine->GetWorld(0);
-				SpawnNetworkEntity(*Test::APointLightBullet::StaticClass(), world.get(), "default");
-			}
-		}
-
 		SendNetworkStateUpdates();
 
 		SendPackets();
@@ -103,29 +88,54 @@ namespace MAD
 	{
 		for (const auto& player : m_players)
 		{
-			ReceiveMessagesForPlayer(player.first);
+			ReceiveMessagesForPlayer(*player.second);
 		}
 	}
 
-	void UNetworkServer::ReceiveMessagesForPlayer(NetworkPlayerID inPlayerID)
+	void UNetworkServer::ReceiveMessagesForPlayer(const ONetworkPlayer& inPlayer)
 	{
-		while (auto msg = ReceiveMsg(inPlayerID))
-		{
-			/*switch (msg->GetType())
-			{
-			default:
-				LOG(LogNetworkServer, Warning, "[ReceiveMessagesForPlayer] Received unhandled or unknown message from player %d. Type: %i\n", inPlayerID, msg->GetType());
-				break;
-			}*/
+		auto playerID = inPlayer.GetPlayerID();
 
-			ReleaseMsg(inPlayerID, msg);
+		while (auto msg = ReceiveMsg(playerID))
+		{
+			switch (msg->GetType())
+			{
+			case EVENT:
+			{
+				MEvent* message = static_cast<MEvent*>(msg);
+				HandleEventMessage(*message, inPlayer);
+				break;
+			}
+
+			default:
+				LOG(LogNetworkServer, Warning, "[ReceiveMessagesForPlayer] Received unhandled or unknown message from player %d. Type: %i\n", playerID, msg->GetType());
+				break;
+			}
+
+			ReleaseMsg(playerID, msg);
 		}
 	}
 
-	void UNetworkServer::AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID)
+	void UNetworkServer::HandleEventMessage(MEvent& message, const ONetworkPlayer&)
+	{
+		// TODO: Probably want to verify that the player actually owns the target object
+
+		auto targetObject = m_netObjects.find(message.m_targetObjectID);
+
+		if (targetObject == m_netObjects.end())
+		{
+			LOG(LogNetworkServer, Warning, "Received event for invalid target network object!\n");
+			return;
+		}
+
+		targetObject->second.Object->OnEvent(message.m_eventType, message.m_eventData.data());
+	}
+
+	eastl::shared_ptr<ONetworkPlayer> UNetworkServer::AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID)
 	{
 		auto newPlayer = CreateDefaultObject<ONetworkPlayer>(nullptr);
 		SetPlayerID(newPlayer, inNewPlayerID);
+		return newPlayer;
 	}
 
 	void UNetworkServer::RemoveNetworkPlayer(NetworkPlayerID inPlayerID)
@@ -153,6 +163,11 @@ namespace MAD
 
 		inPlayer->SetPlayerID(inPlayerID);
 		inPlayer->SetIsLocalPlayer(false);
+
+		if (m_networkManager.GetNetMode() == ENetMode::ListenServer && inPlayerID == 0)
+		{
+			inPlayer->SetIsLocalPlayer(true);
+		}
 
 		m_players.insert({ inPlayerID, inPlayer });
 	}
@@ -222,6 +237,37 @@ namespace MAD
 		}
 
 		m_netObjects.insert({ inObject->GetNetID(), netObject });
+	}
+
+	void UNetworkServer::SendNetObjectsToNewPlayer(const ONetworkPlayer& inPlayer)
+	{
+		NetworkPlayerID playerID = inPlayer.GetPlayerID();
+
+		for (auto& pair : m_netObjects)
+		{
+			SNetworkID netID = pair.first;
+			UNetObject& netObject = pair.second;
+
+			auto msg = static_cast<MCreateObject*>(CreateMsg(playerID, CREATE_OBJECT));
+			msg->m_objectNetID = netID;
+			msg->m_classTypeID = netObject.Object->GetTypeInfo()->GetTypeID();
+
+			if (auto entity = Cast<AEntity>(netObject.Object.get()))
+			{
+				msg->m_worldName = entity->GetOwningWorld()->GetWorldName();
+				msg->m_layerName = entity->GetOwningWorldLayer().GetLayerName();
+			}
+
+			if (!inPlayer.IsLocalPlayer())
+			{
+				// Don't bother sending state data to a local player (for Listen servers)
+				netObject.State->SerializeState(msg->m_networkState, false, true);
+			}
+
+			SendMsg(playerID, msg);
+
+			netObject.NetworkViews.insert({ playerID, eastl::make_shared<UNetworkObjectView>(*netObject.State) });
+		}
 	}
 
 	void UNetworkServer::DestroyNetworkObject(UObject& inObject)
@@ -406,7 +452,7 @@ namespace MAD
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientConnect] Client %d connected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
 
-		AddNewNetworkPlayer(clientIndex);
+		auto newPlayer = AddNewNetworkPlayer(clientIndex);
 
 		MInitializeNewPlayer* initMsg = static_cast<MInitializeNewPlayer*>(CreateMsg(clientIndex, INITIALIZE_NEW_PLAYER));
 
@@ -427,6 +473,13 @@ namespace MAD
 
 		// Tell this new client about other existing clients on the server
 		SendMsg(clientIndex, initMsg);
+
+		// Tell this new client about existing network objects on the server
+		SendNetObjectsToNewPlayer(*newPlayer);
+
+		// Spawn the player's character
+		auto world = gEngine->GetWorld(0);
+		SpawnNetworkEntity(*Test::ADemoCharacter::StaticClass(), world.get(), "default");
 	}
 
 	void UNetworkServer::OnClientDisconnect(int clientIndex)

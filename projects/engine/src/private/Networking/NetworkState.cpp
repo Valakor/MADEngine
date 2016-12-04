@@ -79,7 +79,7 @@ namespace MAD
 		}
 	}
 
-	void UNetworkState::SerializeState(eastl::vector<uint8_t>& inOutByteBuffer, bool inIsReading)
+	void UNetworkState::SerializeState(eastl::vector<uint8_t>& inOutByteBuffer, bool inIsReading, bool inForceDirty /* = false */)
 	{
 		if (!m_targetObject)
 		{
@@ -99,11 +99,11 @@ namespace MAD
 
 			yojimbo::WriteStream writeStream(inOutByteBuffer.data(), MaxStateUpdateSize);
 		
-			SerializeState_Internal(writeStream);
+			SerializeState_Internal(writeStream, inForceDirty);
 		}
 	}
 
-	bool UNetworkState::SerializeState_Internal(yojimbo::WriteStream& inOutWStream)
+	bool UNetworkState::SerializeState_Internal(yojimbo::WriteStream& inOutWStream, bool inForceDirty)
 	{
 		size_t currentBufferOffset = 0;
 
@@ -134,7 +134,7 @@ namespace MAD
 				targetReplData = reinterpret_cast<uint8_t*>(m_targetObject) + currentReplInfo.m_replAttrOffset;
 			}
 
-			bool isAttrDirty = !currentReplInfo.m_replComparisonFunc(targetReplData, stateBufferData);
+			bool isAttrDirty = inForceDirty || !currentReplInfo.m_replComparisonFunc(targetReplData, stateBufferData);
 
 			serialize_bool(inOutWStream, isAttrDirty);
 				

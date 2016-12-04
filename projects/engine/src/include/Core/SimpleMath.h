@@ -42,9 +42,9 @@ namespace MAD
 		const Vector3& GetTranslation() const { return m_translation; }
 		const Matrix& GetMatrix() const { return m_cachedTransform; }
 		
-		Vector3 GetForward() const { return m_cachedTransform.Forward(); }
-		Vector3 GetRight() const { return m_cachedTransform.Right(); }
-		Vector3 GetUp() const { return m_cachedTransform.Up(); }
+		Vector3 GetForward() const { Vector3 forward = m_cachedTransform.Forward(); forward.Normalize(); return forward; }
+		Vector3 GetRight() const { Vector3 right = m_cachedTransform.Right(); right.Normalize(); return right; }
+		Vector3 GetUp() const { Vector3 up = m_cachedTransform.Up(); up.Normalize(); return up; }
 
 		void SetScale(float inScale);
 		void SetRotation(const Quaternion& inRotation);

@@ -181,6 +181,8 @@ namespace MAD
 	{
 		MAD_ASSERT_DESC(m_networkManager.GetNetMode() != ENetMode::ListenServer, "Server shouldn't send this message to its local client");
 
+		LOG(LogNetworkClient, Warning, "Received UpdateObject message\n");
+
 		auto netObject = m_netObjects.find(message.m_objectNetID);
 		if (netObject == m_netObjects.end())
 		{
@@ -216,7 +218,7 @@ namespace MAD
 	{
 		auto targetObject = m_netObjects.find(message.m_targetObjectID);
 
-		if (targetObject == m_netObjects.cend())
+		if (targetObject == m_netObjects.end())
 		{
 			LOG(LogNetworkClient, Warning, "Received event for invalid target network object!\n");
 			return;
@@ -237,12 +239,6 @@ namespace MAD
 
 		inPlayer->SetPlayerID(inPlayerID);
 		inPlayer->SetIsLocalPlayer(inIsLocalPlayer);
-
-		if (m_networkManager.GetNetMode() == ENetMode::ListenServer && inPlayerID != InvalidPlayerID)
-		{
-			auto serverPlayer = m_networkManager.m_server->GetPlayerByID(inPlayerID);
-			serverPlayer.lock()->SetIsLocalPlayer(inIsLocalPlayer);
-		}
 
 		m_players.insert({ inPlayerID, inPlayer });
 

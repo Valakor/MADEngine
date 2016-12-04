@@ -47,8 +47,8 @@ namespace MAD
 			explicit APointLightBullet(OGameWorld* inOwningWorld) : Super(inOwningWorld)
 			{
 				auto mesh = AddComponent<CMeshComponent>();
-				mesh->LoadFrom("engine\\meshes\\primitives\\sphere.obj");
-				mesh->SetRelativeScale(10.0f);
+				mesh->LoadFrom("meshes\\bullet.obj");
+				mesh->SetRelativeScale(20.0f);
 				mesh->SetVisible(true);
 				SetRootComponent(mesh);
 
@@ -74,14 +74,16 @@ namespace MAD
 			{
 				auto characterMesh = AddComponent<CMeshComponent>();
 				characterMesh->LoadFrom("engine\\meshes\\primitives\\cube.obj");
-				characterMesh->SetRelativeScale(100.0f);
-
+				characterMesh->SetVisible(true);
+				characterMesh->SetRelativeScale(50.0f);
 				SetRootComponent(characterMesh);
 
 				auto cameraComponent = AddComponent<CCameraComponent>();
-				cameraComponent->SetRelativeTranslation(Vector3(0.0f, 200.f, 300.0f));
-
+				cameraComponent->SetRelativeTranslation(Vector3(0.0f, 75.f, 225.0f));
 				characterMesh->AttachComponent(cameraComponent);
+
+				auto controller = AddComponent<CDemoCharacterController>();
+				characterMesh->AttachComponent(controller);
 			}
 		};
 

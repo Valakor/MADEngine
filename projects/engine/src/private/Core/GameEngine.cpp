@@ -84,8 +84,11 @@ namespace MAD
 			CPointLightComponent::StaticClass();
 
 			Test::APointLightBullet::StaticClass();
+			Test::ADemoCharacter::StaticClass();
+
 			Test::CTimedDeathComponent::StaticClass();
 			Test::CPointLightBulletComponent::StaticClass();
+			Test::CDemoCharacterController::StaticClass();
 		}
 	}
 

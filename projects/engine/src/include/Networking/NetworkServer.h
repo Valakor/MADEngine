@@ -50,14 +50,18 @@ namespace MAD
 		void SendNetworkStateUpdates();
 
 		void ReceiveMessages();
-		void ReceiveMessagesForPlayer(NetworkPlayerID inPlayerID);
+		void ReceiveMessagesForPlayer(const ONetworkPlayer& inPlayer);
 
-		void AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID);
+		void HandleEventMessage(MEvent& message, const ONetworkPlayer& inPlayer);
+
+		eastl::shared_ptr<ONetworkPlayer> AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID);
 		void RemoveNetworkPlayer(NetworkPlayerID inPlayerID);
 
 		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID);
 
 		void NetworkSpawn(eastl::shared_ptr<UObject> inObject, const TTypeInfo& inTypeInfo);
+
+		void SendNetObjectsToNewPlayer(const ONetworkPlayer& inPlayer);
 
 	protected:
 		virtual void OnStart(int maxClients) override;

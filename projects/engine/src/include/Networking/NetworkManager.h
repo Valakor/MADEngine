@@ -86,8 +86,9 @@ namespace MAD
 				return nullptr;
 			}
 
-			return eastl::static_pointer_cast<ObjectType>(m_server->SpawnNetworkEntity(inTypeInfo, inOwningGameWorld, inWorldLayer));
+			return eastl::static_pointer_cast<EntityType>(m_server->SpawnNetworkEntity(inTypeInfo, inOwningGameWorld, inWorldLayer));
 		}
+
 	private:
 		friend class UNetworkClient;
 		friend class UNetworkServer;
