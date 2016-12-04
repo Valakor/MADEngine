@@ -35,27 +35,33 @@ namespace MAD
 		m_cachedTransform = Matrix::CreateScale(m_scale) * Matrix::CreateFromQuaternion(m_rotation) * Matrix::CreateTranslation(m_translation);
 	}
 
-	void ULinearTransform::operator*=(const ULinearTransform& inOtherTransform)
+	// Transform the relative transform by the parent transform, moving the relative transform into the same space as the parent transform
+	ULinearTransform TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform)
 	{
-		m_scale *= inOtherTransform.m_scale;
-		m_rotation *= inOtherTransform.m_rotation;
-		m_translation += inOtherTransform.m_translation;
+		ULinearTransform resultTransform;
 
-		UpdateCachedTransform();
+		resultTransform.m_scale = inRelativeTransform.m_scale * inParentTransform.m_scale;
+		resultTransform.m_rotation = inRelativeTransform.m_rotation * inParentTransform.m_rotation;
+
+		Vector3 t = Vector3::Transform(inRelativeTransform.m_translation, inParentTransform.m_rotation);
+		resultTransform.m_translation = t + inParentTransform.m_translation;
+
+		resultTransform.UpdateCachedTransform();
+
+		return resultTransform;
 	}
 
-	ULinearTransform operator*(const ULinearTransform& inLeftTransform, const ULinearTransform& inRightTransform)
+	// Transforms the absolute transforms by each other. Assumes that they're within the same space of each other
+	ULinearTransform TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB)
 	{
-		ULinearTransform outputTransform;
+		ULinearTransform resultTransform;
 
-		outputTransform.m_scale = inLeftTransform.m_scale * inRightTransform.m_scale;
-		outputTransform.m_rotation = inLeftTransform.m_rotation * inRightTransform.m_rotation;
+		resultTransform.m_scale = inAbsoluteTransformA.m_scale * inAbsoluteTransformB.m_scale;
+		resultTransform.m_rotation = inAbsoluteTransformA.m_rotation * inAbsoluteTransformB.m_rotation;
+		resultTransform.m_translation = inAbsoluteTransformA.m_translation + inAbsoluteTransformB.m_translation;
 
-		Vector3 t = Vector3::Transform(inLeftTransform.m_translation, inRightTransform.m_rotation);
-		outputTransform.m_translation = t + inRightTransform.m_translation;
+		resultTransform.UpdateCachedTransform();
 
-		outputTransform.UpdateCachedTransform();
-
-		return outputTransform;
+		return resultTransform;
 	}
 }

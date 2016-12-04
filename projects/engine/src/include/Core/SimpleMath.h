@@ -50,9 +50,8 @@ namespace MAD
 		void SetRotation(const Quaternion& inRotation);
 		void SetTranslation(const Vector3& inTranslation);
 
-		void operator*=(const ULinearTransform& inOtherTransform);
-
-		friend ULinearTransform operator*(const ULinearTransform& inLeftTransform, const ULinearTransform& inRightTransform);
+		friend ULinearTransform TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform); // Transform is in this transforms local space
+		friend ULinearTransform TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB); // Transform is in the same space
 	private:
 		void UpdateCachedTransform();
 	private:
