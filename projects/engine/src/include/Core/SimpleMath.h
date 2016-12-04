@@ -65,10 +65,10 @@ namespace MAD
 		void SetRotation(const Quaternion& inRotation);
 		void SetTranslation(const Vector3& inTranslation);
 
-		void operator*=(const ULinearTransform& inOtherTransform);
+		static ULinearTransform Lerp(const ULinearTransform& a, const ULinearTransform& b, float t); // Both transforms must be in the same space
 
-		static ULinearTransform Lerp(const ULinearTransform& a, const ULinearTransform& b, float t);
-		friend ULinearTransform operator*(const ULinearTransform& inLeftTransform, const ULinearTransform& inRightTransform);
+		static ULinearTransform TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform); // Transform is in this transforms local space
+		static ULinearTransform TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB); // Transform is in the same space
 	private:
 		void UpdateCachedTransform();
 	private:

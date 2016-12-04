@@ -1,6 +1,8 @@
 #include "Networking/NetworkManager.h"
 
 #include "Core/GameEngine.h"
+#include "Core/GameWindow.h"
+
 #include "Misc/ErrorHandling.h"
 #include "Misc/Logging.h"
 #include "Misc/Parse.h"
@@ -29,15 +31,21 @@ namespace MAD
 			return false;
 		}
 
+		eastl::string netRoleWindowName = " | Client";
+
 		if (SParse::Find(SCmdLine::Get(), "-ListenServer"))
 		{
 			m_netMode = ENetMode::ListenServer;
+			netRoleWindowName = " | Listen Server";
 		}
 
 		if (SParse::Find(SCmdLine::Get(), "-DedicatedServer"))
 		{
 			m_netMode = ENetMode::DedicatedServer;
+			netRoleWindowName = " | Dedicated Server";
 		}
+
+		gEngine->GetWindow().SetWindowName(gEngine->GetWindow().GetWindowName() + netRoleWindowName);
 
 		int port = SERVER_DEFAULT_LISTEN_PORT;
 		SParse::Get(SCmdLine::Get(), "-Port=", port);

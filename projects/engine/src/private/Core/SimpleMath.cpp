@@ -35,15 +35,6 @@ namespace MAD
 		m_cachedTransform = Matrix::CreateScale(m_scale) * Matrix::CreateFromQuaternion(m_rotation) * Matrix::CreateTranslation(m_translation);
 	}
 
-	void ULinearTransform::operator*=(const ULinearTransform& inOtherTransform)
-	{
-		m_scale *= inOtherTransform.m_scale;
-		m_rotation *= inOtherTransform.m_rotation;
-		m_translation += inOtherTransform.m_translation;
-
-		UpdateCachedTransform();
-	}
-
 	ULinearTransform ULinearTransform::Lerp(const ULinearTransform& a, const ULinearTransform& b, float t)
 	{
 		ULinearTransform ret;
@@ -56,18 +47,32 @@ namespace MAD
 		return ret;
 	}
 
-	ULinearTransform operator*(const ULinearTransform& inLeftTransform, const ULinearTransform& inRightTransform)
+	// Transform the relative transform by the parent transform, moving the relative transform into the same space as the parent transform
+	ULinearTransform ULinearTransform::TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform)
 	{
-		ULinearTransform outputTransform;
+		ULinearTransform resultTransform;
 
-		outputTransform.m_scale = inLeftTransform.m_scale * inRightTransform.m_scale;
-		outputTransform.m_rotation = inLeftTransform.m_rotation * inRightTransform.m_rotation;
+		resultTransform.m_scale = inRelativeTransform.m_scale * inParentTransform.m_scale;
+		resultTransform.m_rotation = inRelativeTransform.m_rotation * inParentTransform.m_rotation;
 
-		Vector3 t = Vector3::Transform(inLeftTransform.m_translation, inRightTransform.m_rotation);
-		outputTransform.m_translation = t + inRightTransform.m_translation;
+		Vector3 t = Vector3::Transform(inRelativeTransform.m_translation, inParentTransform.m_rotation);
+		resultTransform.m_translation = t + inParentTransform.m_translation;
 
-		outputTransform.UpdateCachedTransform();
+		resultTransform.UpdateCachedTransform();
 
-		return outputTransform;
+		return resultTransform;
+	}
+
+	ULinearTransform ULinearTransform::TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB)
+	{
+		ULinearTransform resultTransform;
+
+		resultTransform.m_scale = inAbsoluteTransformA.m_scale * inAbsoluteTransformB.m_scale;
+		resultTransform.m_rotation = inAbsoluteTransformA.m_rotation * inAbsoluteTransformB.m_rotation;
+		resultTransform.m_translation = inAbsoluteTransformA.m_translation + inAbsoluteTransformB.m_translation;
+
+		resultTransform.UpdateCachedTransform();
+
+		return resultTransform;
 	}
 }
