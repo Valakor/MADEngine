@@ -29,64 +29,73 @@ namespace MAD
 		void SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer = InvalidPlayerID);
 
 		template <typename ObjectType>
-		eastl::shared_ptr<ObjectType> SpawnNetworkObject()
+		eastl::shared_ptr<ObjectType> SpawnNetworkObject(const UObject* inNetOwnerContext)
 		{
 			static_assert(eastl::is_base_of<UObject, ObjectType>::value, "Spawned ObjectType must be of type UObject or more derived");
 
 			MAD_ASSERT_DESC(m_netMode != ENetMode::Client, "Warning: Cannot spawn networked entities on client!\n");
 			
-			if (m_netMode == ENetMode::Client)
-			{
-				return nullptr;
-			}
+			if (m_netMode == ENetMode::Client) return nullptr;
+
+			MAD_ASSERT_DESC(inNetOwnerContext != nullptr, "Net context cannot be null");
+			MAD_ASSERT_DESC(inNetOwnerContext->IsNetworkSpawned(), "Net context must be a network-spawned object to obtain its net owner");
+
+			if (inNetOwnerContext == nullptr) return nullptr;
 
 			const TTypeInfo* objectTypeInfo = ObjectType::StaticClass();
-			return eastl::static_pointer_cast<ObjectType>(m_server->SpawnNetworkObject(*objectTypeInfo));
+			return eastl::static_pointer_cast<ObjectType>(m_server->SpawnNetworkObject(*objectTypeInfo, *inNetOwnerContext->GetNetOwner()));
 		}
 
 		template <typename ObjectType>
-		eastl::shared_ptr<ObjectType> SpawnNetworkObject(const TTypeInfo& inTypeInfo)
+		eastl::shared_ptr<ObjectType> SpawnNetworkObject(const TTypeInfo& inTypeInfo, const UObject* inNetOwnerContext)
 		{
 			static_assert(eastl::is_base_of<UObject, ObjectType>::value, "Spawned ObjectType must be of type UObject or more derived");
 			MAD_ASSERT_DESC(IsA<ObjectType>(inTypeInfo), "Given type info must be a derived class of UObject");
+
 			MAD_ASSERT_DESC(m_netMode != ENetMode::Client, "Warning: Cannot spawn networked entities on client!\n");
 
-			if (m_netMode == ENetMode::Client)
-			{
-				return nullptr;
-			}
+			if (m_netMode == ENetMode::Client) return nullptr;
 
-			return eastl::static_pointer_cast<ObjectType>(m_server->SpawnNetworkObject(inTypeInfo));
+			MAD_ASSERT_DESC(inNetOwnerContext != nullptr, "Net context cannot be null");
+			MAD_ASSERT_DESC(inNetOwnerContext->IsNetworkSpawned(), "Net context must be a network-spawned object to obtain its net owner");
+
+			if (inNetOwnerContext == nullptr) return nullptr;
+
+			return eastl::static_pointer_cast<ObjectType>(m_server->SpawnNetworkObject(inTypeInfo, *inNetOwnerContext->GetNetOwner()));
 		}
 
 		template <typename EntityType>
-		eastl::shared_ptr<EntityType> SpawnNetworkEntity(OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+		eastl::shared_ptr<EntityType> SpawnNetworkEntity(const UObject* inNetOwnerContext, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
 		{
 			static_assert(eastl::is_base_of<AEntity, EntityType>::value, "Spawned EntityType must be of type AEntity or more derived");
 			MAD_ASSERT_DESC(m_netMode != ENetMode::Client, "Warning: Cannot spawn networked entities on client!\n");
 
-			if (m_netMode == ENetMode::Client)
-			{
-				return nullptr;
-			}
+			if (m_netMode == ENetMode::Client) return nullptr;
+
+			MAD_ASSERT_DESC(inNetOwnerContext != nullptr, "Net context cannot be null");
+			MAD_ASSERT_DESC(inNetOwnerContext->IsNetworkSpawned(), "Net context must be a network-spawned object to obtain its net owner");
+
+			if (inNetOwnerContext == nullptr) return nullptr;
 
 			const TTypeInfo* entityTypeInfo = EntityType::StaticClass();
-			return eastl::static_pointer_cast<EntityType>(m_server->SpawnNetworkEntity(*entityTypeInfo, inOwningGameWorld, inWorldLayer));
+			return eastl::static_pointer_cast<EntityType>(m_server->SpawnNetworkEntity(*entityTypeInfo, *inNetOwnerContext->GetNetOwner(), inOwningGameWorld, inWorldLayer));
 		}
 
 		template <typename EntityType>
-		eastl::shared_ptr<EntityType> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+		eastl::shared_ptr<EntityType> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, const UObject* inNetOwnerContext, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
 		{
 			static_assert(eastl::is_base_of<AEntity, EntityType>::value, "Spawned EntityType must be of type AEntity or more derived");
 			MAD_ASSERT_DESC(IsA<EntityType>(inTypeInfo), "Given type info must be a derived class of AEntity");
 			MAD_ASSERT_DESC(m_netMode != ENetMode::Client, "Warning: Cannot spawn networked entities on client!\n");
 
-			if (m_netMode == ENetMode::Client)
-			{
-				return nullptr;
-			}
+			if (m_netMode == ENetMode::Client) return nullptr;
 
-			return eastl::static_pointer_cast<EntityType>(m_server->SpawnNetworkEntity(inTypeInfo, inOwningGameWorld, inWorldLayer));
+			MAD_ASSERT_DESC(inNetOwnerContext != nullptr, "Net context cannot be null");
+			MAD_ASSERT_DESC(inNetOwnerContext->IsNetworkSpawned(), "Net context must be a network-spawned object to obtain its net owner");
+
+			if (inNetOwnerContext == nullptr) return nullptr;
+
+			return eastl::static_pointer_cast<EntityType>(m_server->SpawnNetworkEntity(inTypeInfo, *inNetOwnerContext->GetNetOwner(), inOwningGameWorld, inWorldLayer));
 		}
 
 	private:

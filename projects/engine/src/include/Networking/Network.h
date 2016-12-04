@@ -14,13 +14,16 @@ namespace MAD
 	using NetworkPlayerID = int;
 	static const NetworkPlayerID InvalidPlayerID = -1;
 
-	enum class ENetRole : uint8_t
+	namespace ENetRole
 	{
-		None = 0,
-		Simulated_Proxy,
-		Autonomous_Proxy,
-		Authority
-	};
+		enum Type : uint8_t
+		{
+			None = 0,
+			Simulated_Proxy,	// Not owned
+			Authority_Proxy,	// Owned remotely (Local client owns the copy of this on the remote server)
+			Authority			// Owned locally (Local client/server owns this locally)
+		};
+	}
 
 	enum class ENetMode : uint8_t
 	{

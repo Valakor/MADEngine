@@ -100,11 +100,6 @@ namespace MAD
 		return !GetOwningEntity().IsPendingForKill();
 	}
 
-	ENetMode UComponent::GetNetMode() const
-	{
-		return m_owningEntity->GetNetMode();
-	}
-
 	void UComponent::PrintTranslationHierarchy(uint8_t inDepth) const
 	{
 		const Vector3 currentWorldTranslation = m_componentWorldTransform.GetTranslation();

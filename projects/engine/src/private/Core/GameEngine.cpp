@@ -253,6 +253,7 @@ namespace MAD
 			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
 			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
 			.RegisterEvent("Shoot", VK_LBUTTON)
+			.RegisterEvent("MouseMode", 'M')
 			.Finalize(true);
 
 		SControlScheme& debugScheme = SControlScheme("Debug")

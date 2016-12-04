@@ -13,7 +13,7 @@ namespace MAD
 			{
 				MAD_ASSERT_DESC(GetNetMode() != ENetMode::Client, "Error: Trying to spawn point light on the client!\n");
 
-				auto bullet = gEngine->GetNetworkManager().SpawnNetworkEntity<APointLightBullet>(GetOwningWorld(), GetOwningEntity().GetOwningWorldLayer().GetLayerName());
+				auto bullet = gEngine->GetNetworkManager().SpawnNetworkEntity<APointLightBullet>(this, GetOwningWorld(), GetOwningEntity().GetOwningWorldLayer().GetLayerName());
 				if (bullet)
 				{
 					auto bulletLightComponent = bullet->GetFirstComponentByType<CPointLightBulletComponent>().lock();

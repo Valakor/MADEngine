@@ -172,7 +172,7 @@ namespace MAD
 		m_players.insert({ inPlayerID, inPlayer });
 	}
 
-	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkObject(const TTypeInfo& inTypeInfo)
+	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkObject(const TTypeInfo& inTypeInfo, ONetworkPlayer& inNetOwner)
 	{
 		SNetworkID netID;
 		netID.GetUnderlyingHandleRef() = m_nextNetworkID++;
@@ -180,14 +180,14 @@ namespace MAD
 		LOG(LogNetworkServer, Log, "Spawning a UObject<%s> on the server with ID %d\n", inTypeInfo.GetTypeName(), netID.GetUnderlyingHandleRef());
 
 		eastl::shared_ptr<UObject> object = CreateDefaultObject<UObject>(inTypeInfo, nullptr);
-		object->SetNetID(netID);
+		object->SetNetIdentity(netID, ENetRole::Authority, &inNetOwner);
 
 		NetworkSpawn(object, inTypeInfo);
 
 		return object;
 	}
 
-	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkEntity(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
+	eastl::shared_ptr<UObject> UNetworkServer::SpawnNetworkEntity(const TTypeInfo& inTypeInfo, ONetworkPlayer& inNetOwner, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer)
 	{
 		MAD_ASSERT_DESC(!!inOwningGameWorld, "Spawning a networked Entity requires a target game world");
 		if (!inOwningGameWorld) return nullptr;
@@ -198,7 +198,7 @@ namespace MAD
 		LOG(LogNetworkServer, Log, "Spawning a AEntity<%s> on the server with ID %d\n", inTypeInfo.GetTypeName(), netID.GetUnderlyingHandleRef());
 
 		auto entity = inOwningGameWorld->SpawnEntityDeferred<AEntity>(inTypeInfo, inWorldLayer);
-		entity->SetNetID(netID);
+		entity->SetNetIdentity(netID, ENetRole::Authority, &inNetOwner);
 		inOwningGameWorld->FinalizeSpawnEntity(entity);
 
 		NetworkSpawn(entity, inTypeInfo);
@@ -217,6 +217,7 @@ namespace MAD
 		{
 			auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
 			msg->m_objectNetID = inObject->GetNetID();
+			msg->m_netOwnerID = inObject->GetNetOwner()->GetPlayerID();
 			msg->m_classTypeID = inTypeInfo.GetTypeID();
 
 			if (auto entity = Cast<AEntity>(inObject.get()))
@@ -250,6 +251,7 @@ namespace MAD
 
 			auto msg = static_cast<MCreateObject*>(CreateMsg(playerID, CREATE_OBJECT));
 			msg->m_objectNetID = netID;
+			msg->m_netOwnerID = netObject.Object->GetNetOwner()->GetPlayerID();
 			msg->m_classTypeID = netObject.Object->GetTypeInfo()->GetTypeID();
 
 			if (auto entity = Cast<AEntity>(netObject.Object.get()))
@@ -479,7 +481,7 @@ namespace MAD
 
 		// Spawn the player's character
 		auto world = gEngine->GetWorld(0);
-		SpawnNetworkEntity(*Test::ADemoCharacter::StaticClass(), world.get(), "default");
+		SpawnNetworkEntity(*Test::ADemoCharacter::StaticClass(), *newPlayer, world.get(), "default");
 	}
 
 	void UNetworkServer::OnClientDisconnect(int clientIndex)

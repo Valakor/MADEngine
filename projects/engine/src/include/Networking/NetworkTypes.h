@@ -19,6 +19,9 @@ namespace MAD
 #define serialize_netID(stream, value) \
 	serialize_int(stream, value.GetUnderlyingHandleRef(), eastl::numeric_limits<SNetworkID::HandleType>::min(), eastl::numeric_limits<SNetworkID::HandleType>::max())
 
+#define serialize_playerNetID(stream, value) \
+	serialize_int(stream, value, -1, eastl::numeric_limits<NetworkPlayerID>::max())
+
 	const size_t MaxStateUpdateSize = 252; // Needs to be 4 byte aligned for scratch memory in libyojimbo stream
 #define serialize_state(stream, state) \
 	do { \
@@ -110,6 +113,7 @@ namespace MAD
 	{
 		TypeID m_classTypeID;
 		SNetworkID m_objectNetID;
+		NetworkPlayerID m_netOwnerID;
 		eastl::string m_worldName;
 		eastl::string m_layerName;
 		eastl::vector<uint8_t> m_networkState;
@@ -118,6 +122,7 @@ namespace MAD
 		{
 			serialize_typeID(stream, m_classTypeID);
 			serialize_netID(stream, m_objectNetID);
+			serialize_playerNetID(stream, m_netOwnerID);
 			serialize_string(stream, m_worldName);
 			serialize_string(stream, m_layerName);
 			serialize_state(stream, m_networkState);

@@ -73,18 +73,27 @@ namespace MAD
 				: Super(inOwningWorld)
 				, m_lookSpeed(1.0f)
 				, m_moveSpeed(300.0f)
+			{ }
+
+			virtual void OnBeginPlay() override
 			{
-				UGameInput::Get().SetMouseMode(EMouseMode::MM_Game);
+				Super::OnBeginPlay();
 
-				auto& demoCharacterScheme = *UGameInput::Get().GetControlScheme("DemoCharacter");
+				if (GetNetRole() >= ENetRole::Authority_Proxy)
+				{
+					UGameInput::Get().SetMouseMode(EMouseMode::MM_Game);
 
-				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveForward>("Forward", this);
-				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveRight>("Horizontal", this);
-				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveUp>("Vertical", this);
-				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::LookRight>("LookX", this);
-				demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::LookUp>("LookY", this);
+					auto& demoCharacterScheme = *UGameInput::Get().GetControlScheme("DemoCharacter");
 
-				demoCharacterScheme.BindEvent<CDemoCharacterController, &CDemoCharacterController::OnShoot>("Shoot", EInputEvent::IE_KeyDown, this);
+					demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveForward>("Forward", this);
+					demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveRight>("Horizontal", this);
+					demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::MoveUp>("Vertical", this);
+					demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::LookRight>("LookX", this);
+					demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::LookUp>("LookY", this);
+
+					demoCharacterScheme.BindEvent<CDemoCharacterController, &CDemoCharacterController::OnShoot>("Shoot", EInputEvent::IE_KeyDown, this);
+					demoCharacterScheme.BindEvent<CDemoCharacterController, &CDemoCharacterController::ToggleMouseLock>("MouseMode", EInputEvent::IE_KeyDown, this);
+				}
 			}
 
 			virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
@@ -126,6 +135,22 @@ namespace MAD
 				gEngine->GetNetworkManager().SendNetworkEvent(EEventTarget::Server, SHOOT_BULLET, GetOwningEntity(), nullptr, 0);
 			}
 
+			void ToggleMouseLock() const
+			{
+				static EMouseMode s_mouseMode = UGameInput::Get().GetMouseMode();
+
+				if (s_mouseMode == EMouseMode::MM_Game)
+				{
+					UGameInput::Get().SetMouseMode(EMouseMode::MM_UI);
+				}
+				else
+				{
+					UGameInput::Get().SetMouseMode(EMouseMode::MM_Game);
+				}
+
+				s_mouseMode = UGameInput::Get().GetMouseMode();
+			}
+
 			float m_lookSpeed;
 			float m_moveSpeed;
 		};
@@ -137,12 +162,11 @@ namespace MAD
 		public:
 			explicit CTimedDeathComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
 			                                                         , m_lifeTime(-1.0f)
-			                                                         , m_lifeTimeOver(FLT_MAX)
-			                                                         , m_isServerOnly(false) { }
+			                                                         , m_lifeTimeOver(FLT_MAX) { }
 
 			virtual void UpdateComponent(float) override
 			{
-				if (m_isServerOnly && GetNetMode() == ENetMode::Client)
+				if (GetNetRole() != ENetRole::Authority)
 				{
 					return;
 				}
@@ -175,15 +199,9 @@ namespace MAD
 				m_lifeTime = inLifeTime;
 			}
 
-			void SetServerOnly(bool inIsServerAuthorityOnly)
-			{
-				m_isServerOnly = inIsServerAuthorityOnly;
-			}
-
 		private:
 			float m_lifeTime;
 			float m_lifeTimeOver;
-			bool m_isServerOnly;
 		};
 
 		class CPointLightBulletComponent : public UComponent
@@ -208,7 +226,7 @@ namespace MAD
 			virtual void UpdateComponent(float inDeltaTime) override
 			{
 				// Client sets the light's color in the OnRep callback
-				if (GetNetMode() == ENetMode::Client)
+				if (GetNetRole() == ENetRole::Simulated_Proxy)
 				{
 					GetOwningEntity().SetWorldTranslation(m_position);
 					return;

@@ -22,14 +22,16 @@ namespace MAD
 		virtual void OnEvent(EEventTypes inEventType, void* inEventData) { (void)inEventType; (void)inEventData; }
 
 		inline ObjectID GetObjectID() const { return m_objectID; }
-		inline SNetworkID GetNetID() const { return m_netID; }
 		inline OGameWorld* GetOwningWorld() { return m_owningGameWorld; }
 		inline const OGameWorld* GetOwningWorld() const { return m_owningGameWorld; }
 
-		void SetNetID(SNetworkID inNetID);
+		void SetNetIdentity(SNetworkID inNetID, ENetRole::Type inNetRole, class ONetworkPlayer* inNetOwner);
 		bool IsNetworkSpawned() const { return m_netID.IsValid(); }
 
 		ENetMode GetNetMode() const;
+		SNetworkID GetNetID() const { return m_netID; }
+		ENetRole::Type GetNetRole() const { return m_netRole; }
+		class ONetworkPlayer* GetNetOwner() const { return m_netOwner; }
 
 		bool IsValid() const { return !m_isDestroyed; }
 		virtual void Destroy();
@@ -41,8 +43,11 @@ namespace MAD
 		static ObjectID s_objectRunningUID;
 
 		ObjectID m_objectID;
-		SNetworkID m_netID;
 		OGameWorld* m_owningGameWorld;
+
+		SNetworkID m_netID;
+		ENetRole::Type m_netRole;
+		class ONetworkPlayer* m_netOwner;
 
 		bool m_isDestroyed;
 	};

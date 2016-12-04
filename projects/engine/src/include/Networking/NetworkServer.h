@@ -28,8 +28,8 @@ namespace MAD
 
 		void SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer);
 	
-		eastl::shared_ptr<UObject> SpawnNetworkObject(const TTypeInfo& inTypeInfo);
-		eastl::shared_ptr<UObject> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer);
+		eastl::shared_ptr<UObject> SpawnNetworkObject(const TTypeInfo& inTypeInfo, ONetworkPlayer& inNetOwner);
+		eastl::shared_ptr<UObject> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, ONetworkPlayer& inNetOwner, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer);
 	private:
 		class UNetworkManager& m_networkManager;
 

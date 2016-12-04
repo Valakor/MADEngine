@@ -143,6 +143,11 @@ namespace MAD
 		}
 		else
 		{
+			auto netOwner = GetPlayerByID(message.m_netOwnerID).lock();
+			MAD_ASSERT_DESC(netOwner != nullptr, "Can only spawn objects for players that the Client knows about");
+
+			auto netRole = (netOwner->GetPlayerID() == m_localPlayer.lock()->GetPlayerID()) ? ENetRole::Authority_Proxy : ENetRole::Simulated_Proxy;
+
 			if (IsA<AEntity>(*objTypeInfo))
 			{
 				auto world = gEngine->GetWorld(message.m_worldName);
@@ -155,7 +160,7 @@ namespace MAD
 				LOG(LogNetworkClient, Log, "Spawning a AEntity<%s> on the client with ID %d\n", objTypeInfo->GetTypeName(), message.m_objectNetID.GetUnderlyingHandle());
 
 				auto entity = world->SpawnEntityDeferred<AEntity>(*objTypeInfo, message.m_layerName);
-				entity->SetNetID(message.m_objectNetID);
+				entity->SetNetIdentity(message.m_objectNetID, netRole, netOwner.get());
 				netObject.State->TargetObject(entity.get(), false);
 				netObject.State->SerializeState(message.m_networkState, true);
 				world->FinalizeSpawnEntity(entity);
@@ -167,7 +172,7 @@ namespace MAD
 				LOG(LogNetworkClient, Log, "Spawning a UObject<%s> on the client with ID %d\n", objTypeInfo->GetTypeName(), message.m_objectNetID.GetUnderlyingHandle());
 
 				netObject.Object = CreateDefaultObject<UObject>(*objTypeInfo, nullptr);
-				netObject.Object->SetNetID(message.m_objectNetID);
+				netObject.Object->SetNetIdentity(message.m_objectNetID, netRole, netOwner.get());
 				netObject.State->TargetObject(netObject.Object.get(), false);
 				netObject.State->SerializeState(message.m_networkState, true);
 			}

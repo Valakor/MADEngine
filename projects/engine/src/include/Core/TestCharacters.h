@@ -61,7 +61,6 @@ namespace MAD
 
 				auto destroyMe = AddComponent<CTimedDeathComponent>();
 				destroyMe->SetLifeTime(5.0f);
-				destroyMe->SetServerOnly(true);
 				mesh->AttachComponent(destroyMe);
 			}
 		};

@@ -21,6 +21,11 @@ namespace MAD
 
 		for (auto component : m_entityComponents)
 		{
+			component->SetNetIdentity(GetNetID(), GetNetRole(), GetNetOwner());
+		}
+
+		for (auto component : m_entityComponents)
+		{
 			component->PostInitializeComponents();
 		}
 
