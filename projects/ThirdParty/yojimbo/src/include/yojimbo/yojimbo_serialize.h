@@ -444,7 +444,7 @@ namespace yojimbo
     #define read_uint64                 serialize_uint64
     #define read_double                 serialize_double
     #define read_bytes                  serialize_bytes
-    #define read_string                 serialize_string
+    #define read_string                 serialize_cstring
     #define read_align                  serialize_align
     #define read_check                  serialize_check
     #define read_object                 serialize_object
@@ -479,7 +479,7 @@ namespace yojimbo
     #define write_uint64                serialize_uint64
     #define write_double                serialize_double
     #define write_bytes                 serialize_bytes
-    #define write_string                serialize_string
+    #define write_string                serialize_cstring
     #define write_align                 serialize_align
     #define write_check                 serialize_check
     #define write_object                serialize_object
