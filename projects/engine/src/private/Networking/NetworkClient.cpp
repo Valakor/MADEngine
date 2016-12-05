@@ -179,14 +179,11 @@ namespace MAD
 		}
 
 		m_netObjects.insert({ message.m_objectNetID, netObject });
-		// TODO have some form of network ownership (what player + with what authority owns this object?)
 	}
 
 	void UNetworkClient::HandleUpdateObjectMessage(MUpdateObject& message)
 	{
 		MAD_ASSERT_DESC(m_networkManager.GetNetMode() != ENetMode::ListenServer, "Server shouldn't send this message to its local client");
-
-		LOG(LogNetworkClient, Warning, "Received UpdateObject message\n");
 
 		auto netObject = m_netObjects.find(message.m_objectNetID);
 		if (netObject == m_netObjects.end())
@@ -261,8 +258,20 @@ namespace MAD
 
 	void UNetworkClient::OnDisconnected()
 	{
-		LOG(LogNetworkClient, Log, "[OnDisconnected] Client disconnected\n");
+		LOG(LogNetworkClient, Log, "[OnDisconnected] Client disconnected. Cleaning up net objects and player\n");
 		auto localPlayer = m_localPlayer.lock();
+
+		// Clean up all networked objects
+		for (auto& netObject : m_netObjects)
+		{
+			if (m_networkManager.GetNetMode() != ENetMode::ListenServer)
+			{
+				netObject.second.Object->Destroy();
+			}
+		}
+
+		m_netObjects.clear();
+
 		m_players.clear();
 		SetPlayerID(localPlayer, InvalidPlayerID, true);
 	}

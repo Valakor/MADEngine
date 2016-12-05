@@ -101,12 +101,18 @@ namespace MAD
 		private:
 			void Move(Vector3 inDelta)
 			{
-				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + inDelta);
+				if (UGameInput::Get().GetMouseMode() == EMouseMode::MM_Game)
+				{
+					GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + inDelta);
+				}
 			}
 
 			void Look(Quaternion inDelta)
 			{
-				GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * inDelta);
+				if (UGameInput::Get().GetMouseMode() == EMouseMode::MM_Game)
+				{
+					GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * inDelta);
+				}
 			}
 
 			void MoveRight(float inVal)
@@ -190,15 +196,7 @@ namespace MAD
 				if (gameTime >= m_lifeTimeOver)
 				{
 					m_lifeTimeOver = FLT_MAX;
-
-					if (GetNetMode() == ENetMode::Client)
-					{
-						GetOwningEntity().Destroy();
-					}
-					else
-					{
-						gEngine->GetNetworkManager().DestroyNetworkObject(GetOwningEntity());
-					}
+					gEngine->GetNetworkManager().DestroyNetworkObject(GetOwningEntity());
 				}
 			}
 
