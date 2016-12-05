@@ -8,10 +8,10 @@ namespace MAD
 
 	UObject::UObject(OGameWorld* inOwningGameWorld)
 		: m_objectID(++s_objectRunningUID)
-		, m_netRole(ENetRole::None)
 		, m_owningGameWorld(inOwningGameWorld)
-		, m_isDestroyed(false)
-	{ }
+		, m_netRole(ENetRole::None)
+		, m_netOwner(nullptr)
+		, m_isDestroyed(false) { }
 
 	UObject::~UObject()
 	{

@@ -84,6 +84,14 @@ namespace MAD
 				auto controller = AddComponent<CDemoCharacterController>();
 				characterMesh->AttachComponent(controller);
 			}
+
+		protected:
+			virtual void PostInitializeComponents() override
+			{
+				Super::PostInitializeComponents();
+
+				GetFirstComponentByType<CCameraComponent>().lock()->SetActive(GetNetOwner()->IsLocalPlayer());
+			}
 		};
 
 		class ANetworkedEntity : public AEntity

@@ -10,8 +10,15 @@ namespace MAD
 	UComponent::UComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 		, m_owningEntity(nullptr)
-		, m_parentComponent(nullptr)
-	{}
+		, m_isActive(true)
+		, m_parentComponent(nullptr) {}
+
+	void UComponent::Destroy()
+	{
+		Super::Destroy();
+
+		m_isActive = false;
+	}
 
 	void UComponent::AttachComponent(eastl::shared_ptr<UComponent> inChildComponent)
 	{

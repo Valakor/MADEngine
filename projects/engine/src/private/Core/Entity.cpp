@@ -19,9 +19,12 @@ namespace MAD
 			m_rootComponent = m_entityComponents.front();
 		}
 
-		for (auto component : m_entityComponents)
+		if (IsNetworkSpawned())
 		{
-			component->SetNetIdentity(GetNetID(), GetNetRole(), GetNetOwner());
+			for (auto component : m_entityComponents)
+			{
+				component->SetNetIdentity(GetNetID(), GetNetRole(), GetNetOwner());
+			}
 		}
 
 		for (auto component : m_entityComponents)

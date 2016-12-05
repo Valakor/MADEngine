@@ -53,7 +53,7 @@ namespace MAD
 			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
 			{
 				// Only update the component if it's owner hasn't been marked for kill
-				if (!currentComponent->GetOwningEntity().IsPendingForKill())
+				if (currentComponent->IsActive() && !currentComponent->GetOwningEntity().IsPendingForKill())
 				{
 					currentComponent->UpdateComponent(inDeltaTime);
 				}
@@ -76,7 +76,7 @@ namespace MAD
 			// Iterate over the rest of the components
 			for (auto& currentComponent : currentPriorityLevelIter->second.m_blockComponents)
 			{
-				if (!currentComponent->GetOwningEntity().IsPendingForKill())
+				if (currentComponent->IsActive() && !currentComponent->GetOwningEntity().IsPendingForKill())
 				{
 					currentComponent->UpdateComponent(inDeltaTime);
 				}

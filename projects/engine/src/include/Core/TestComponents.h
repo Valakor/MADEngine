@@ -79,7 +79,7 @@ namespace MAD
 			{
 				Super::OnBeginPlay();
 
-				if (GetNetRole() >= ENetRole::Authority_Proxy)
+				if (GetNetOwner()->IsLocalPlayer())
 				{
 					UGameInput::Get().SetMouseMode(EMouseMode::MM_Game);
 
@@ -99,34 +99,42 @@ namespace MAD
 			virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
 
 		private:
+			void Move(Vector3 inDelta)
+			{
+				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + inDelta);
+			}
+
+			void Look(Quaternion inDelta)
+			{
+				GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * inDelta);
+			}
+
 			void MoveRight(float inVal)
 			{
 				Vector3 right = GetOwningEntity().GetWorldTransform().GetRight();
-				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + right * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
+				Move(right * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
 			}
 
 			void MoveForward(float inVal)
 			{
 				Vector3 forward = GetOwningEntity().GetWorldTransform().GetForward();
-				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + forward * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
+				Move(forward * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
 			}
 
 			void MoveUp(float inVal)
 			{
-				GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + Vector3::Up * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
+				Move(Vector3::Up * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
 			}
 
 			void LookRight(float inVal)
 			{
-				auto rot = Quaternion::CreateFromAxisAngle(Vector3::Up, -inVal * gEngine->GetDeltaTime() * m_lookSpeed);
-				GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * rot);
+				Look(Quaternion::CreateFromAxisAngle(Vector3::Up, -inVal * gEngine->GetDeltaTime() * m_lookSpeed));
 			}
 
 			void LookUp(float inVal)
 			{
 				Vector3 right = GetOwningEntity().GetWorldTransform().GetRight();
-				auto rot = Quaternion::CreateFromAxisAngle(right, -inVal * gEngine->GetDeltaTime() * m_lookSpeed);
-				GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * rot);
+				Look(Quaternion::CreateFromAxisAngle(right, -inVal * gEngine->GetDeltaTime() * m_lookSpeed));
 			}
 
 			void OnShoot()
