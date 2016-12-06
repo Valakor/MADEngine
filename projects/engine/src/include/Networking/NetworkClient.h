@@ -55,6 +55,8 @@ namespace MAD
 		void OnRemotePlayerConnected(NetworkPlayerID inNewPlayerID);
 		void OnRemotePlayerDisconnected(NetworkPlayerID inPlayerID);
 
+		void DestroyNetObjectsForRemotePlayer(const ONetworkPlayer& inPlayer);
+
 	protected:
 		virtual void OnConnect(const yojimbo::Address& address) override;
 		virtual void OnClientStateChange(int previousState, int currentState) override;

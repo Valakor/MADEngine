@@ -12,6 +12,16 @@ namespace MAD
 		: Super(inOwningGameWorld)
 		, m_defaultLayerName(s_defaultWorldLayerName) {}
 
+	OGameWorld::~OGameWorld()
+	{
+		for (auto& layer : m_worldLayers)
+		{
+			layer.second.CleanupExpiredEntities();
+		}
+
+		m_worldLayers.clear();
+	}
+
 	void OGameWorld::FinalizeSpawnEntity(eastl::shared_ptr<AEntity> inEntity)
 	{
 		MAD_ASSERT_DESC(inEntity.get() != nullptr, "Cannot finalize spawning a null entity");

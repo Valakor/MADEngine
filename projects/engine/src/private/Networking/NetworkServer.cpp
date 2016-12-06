@@ -272,6 +272,24 @@ namespace MAD
 		}
 	}
 
+	void UNetworkServer::DestroyNetObjectsForPlayer(const ONetworkPlayer& inPlayer)
+	{
+		auto iter = m_netObjects.begin();
+		while (iter != m_netObjects.end())
+		{
+			auto object = iter->second.Object;
+			if (object->GetNetOwner()->GetPlayerID() == inPlayer.GetPlayerID())
+			{
+				object->Destroy();
+				iter = m_netObjects.erase(iter);
+			}
+			else
+			{
+				++iter;
+			}
+		}
+	}
+
 	void UNetworkServer::DestroyNetworkObject(UObject& inObject)
 	{
 		SNetworkID netID = inObject.GetNetID();
@@ -489,6 +507,8 @@ namespace MAD
 		char addressString[MaxAddressLength];
 		GetClientAddress(clientIndex).ToString(addressString, sizeof(addressString));
 		LOG(LogNetworkServer, Log, "[OnClientDisconnect] Client %d disconnected (client address = %s, client id = %.16" PRIx64 ")\n", clientIndex, addressString, GetClientId(clientIndex));
+
+		DestroyNetObjectsForPlayer(*GetPlayerByID(clientIndex).lock());
 
 		RemoveNetworkPlayer(clientIndex);
 		MAD_ASSERT_DESC(m_players.find(clientIndex) == m_players.end(), "Disconnected client should no longer exist");

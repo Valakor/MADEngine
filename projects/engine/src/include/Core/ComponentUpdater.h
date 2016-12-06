@@ -33,6 +33,7 @@ namespace MAD
 		friend class AEntity;
 	public:
 		UComponentUpdater();
+		~UComponentUpdater();
 
 		void RemoveComponent(eastl::shared_ptr<UComponent> inTargetComponent);
 

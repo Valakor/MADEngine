@@ -26,7 +26,7 @@ namespace MAD
 	public:
 		explicit OGameWorld(OGameWorld* inOwningGameWorld);
 
-		virtual ~OGameWorld() { }
+		virtual ~OGameWorld();
 
 		template <typename EntityType>
 		eastl::shared_ptr<EntityType> SpawnEntity();

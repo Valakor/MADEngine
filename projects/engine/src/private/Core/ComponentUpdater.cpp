@@ -11,6 +11,11 @@ namespace MAD
 
 	UComponentUpdater::UComponentUpdater() : m_isUpdating(false) {}
 
+	UComponentUpdater::~UComponentUpdater()
+	{
+		m_componentPriorityBlocks.clear();
+	}
+
 	void UComponentUpdater::RemoveComponent(eastl::shared_ptr<UComponent> inTargetComponent)
 	{
 		// Before removing anything, we need to make sure that we aren't in the middle of updating (or else we'll invalidate a lot of iterators)

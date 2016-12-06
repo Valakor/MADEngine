@@ -287,14 +287,40 @@ namespace MAD
 	{
 		MAD_ASSERT_DESC(m_localPlayer.expired() || m_localPlayer.lock()->GetPlayerID() != inPlayerID, "The remote disconnected player cannot be this local player");
 
-		auto erased = m_players.erase(inPlayerID);
-		if (!erased)
+		auto iter = m_players.find(inPlayerID);
+		if (iter != m_players.end())
 		{
-			LOG(LogNetworkClient, Warning, "[OnRemotePlayerDisconnected] Remote player with ID %d not found\n", inPlayerID);
+			LOG(LogNetworkClient, Log, "[OnRemotePlayerDisconnected] Remote player %d disconnected\n", inPlayerID);
+			DestroyNetObjectsForRemotePlayer(*iter->second);
+			m_players.erase(iter);
 		}
 		else
 		{
-			LOG(LogNetworkClient, Log, "[OnRemotePlayerDisconnected] Remote player %d disconnected\n", inPlayerID);
+			LOG(LogNetworkClient, Warning, "[OnRemotePlayerDisconnected] Remote player with ID %d not found\n", inPlayerID);
+		}
+	}
+
+	void UNetworkClient::DestroyNetObjectsForRemotePlayer(const ONetworkPlayer& inPlayer)
+	{
+		if (m_networkManager.GetNetMode() == ENetMode::ListenServer)
+		{
+			// Server code will have already called Destroy appropriately
+			return;
+		}
+
+		auto iter = m_netObjects.begin();
+		while (iter != m_netObjects.end())
+		{
+			auto object = iter->second.Object;
+			if (object->GetNetOwner()->GetPlayerID() == inPlayer.GetPlayerID())
+			{
+				object->Destroy();
+				iter = m_netObjects.erase(iter);
+			}
+			else
+			{
+				++iter;
+			}
 		}
 	}
 

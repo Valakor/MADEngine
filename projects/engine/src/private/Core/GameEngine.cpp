@@ -184,10 +184,12 @@ namespace MAD
 
 	UGameEngine::~UGameEngine()
 	{
+		m_NetworkManager.Shutdown();
+
+		m_worlds.clear();
+
 		mGameInstance->OnShutdown();
 		mGameInstance = nullptr;
-
-		m_NetworkManager.Shutdown();
 
 		mRenderer->Shutdown();
 		mRenderer = nullptr;

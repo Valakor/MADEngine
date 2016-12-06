@@ -62,6 +62,7 @@ namespace MAD
 		void NetworkSpawn(eastl::shared_ptr<UObject> inObject, const TTypeInfo& inTypeInfo);
 
 		void SendNetObjectsToNewPlayer(const ONetworkPlayer& inPlayer);
+		void DestroyNetObjectsForPlayer(const ONetworkPlayer& inPlayer);
 
 	protected:
 		virtual void OnStart(int maxClients) override;
