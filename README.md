@@ -13,5 +13,6 @@ We hope to use as few 3rd party dependencies as possible. Current dependencies i
 + [assimp](https://github.com/assimp/assimp) (model importing)
 + [rapidjson](https://github.com/miloyip/rapidjson) (world loading)
 + [libyojimbo](https://github.com/networkprotocol/libyojimbo) (low-level game networking solution)
++ [EASTL](https://github.com/electronicarts/EASTL) (STL replacement)
 
 We have a [Trello](https://trello.com/b/pOoAXZ8c) if you'd like to know what we're currently working on (it's totally out of date at the moment); things aren't yet sorted by priority, but we're getting to that soon. Upcoming work and priorities are of course subject to change as we come across things we're more/less interested in getting done.
