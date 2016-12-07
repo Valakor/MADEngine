@@ -126,18 +126,21 @@ namespace MAD
 	void CMoveComponent::OnRep_TargetScale()
 	{
 		// Update the target component's scale
+		LOG(LogMoveComponent, Warning, "Replicating target scale successful!\n");
 		m_targetComponent->SetWorldScale(m_targetScale);
 	}
 
 	void CMoveComponent::OnRep_TargetPosition()
 	{
 		// Update the target component's position
+		LOG(LogMoveComponent, Warning, "Replicating target position successful!\n");
 		m_targetComponent->SetWorldTranslation(m_targetPosition);
 	}
 
 	void CMoveComponent::OnRep_TargetRotation()
 	{
 		// Update the target component's rotation
+		LOG(LogMoveComponent, Warning, "Replicating target rotation successful!\n");
 		m_targetComponent->SetWorldRotation(m_targetRotation);
 	}
 }

@@ -44,6 +44,12 @@ namespace MAD
 
 	void UNetworkClient::SendNetworkEvent(EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize)
 	{
+		if (!IsConnected())
+		{
+			LOG(LogNetworkClient, Warning, "Trying to send a network event while not connected to server\n");
+			return;
+		}
+
 		auto msg = static_cast<MEvent*>(CreateMsg(EVENT));
 
 		msg->m_eventType = inEventType;

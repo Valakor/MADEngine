@@ -310,12 +310,12 @@ namespace MAD
 
 			virtual void UpdateComponent(float) override
 			{
-				auto root = GetOwningEntity().GetRootComponent();
+				/*auto root = GetOwningEntity().GetRootComponent();
 				
 				float gameTime = gEngine->GetGameTime();
 				Vector3 offset = Vector3::Up * sinf(gameTime * m_moveSpeed) * m_distance;
 
-				root->SetWorldTranslation(m_initialPosition + offset);
+				root->SetWorldTranslation(m_initialPosition + offset);*/
 			}
 
 			virtual void Load(const UGameWorldLoader& inLoader) override
