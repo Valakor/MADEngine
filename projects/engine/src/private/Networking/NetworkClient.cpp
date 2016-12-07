@@ -2,6 +2,7 @@
 
 #include "Core/GameEngine.h"
 #include "Misc/Logging.h"
+#include <complex.h>
 
 using namespace yojimbo;
 
@@ -51,14 +52,24 @@ namespace MAD
 		msg->m_eventData.resize(inEventSize);
 		memcpy(msg->m_eventData.data(), inEventData, inEventSize);
 
-		SendMsg(msg);
+		SendMsg(msg, MEvent::MessageChannel);
 	}
 
 	void UNetworkClient::ReceiveMessages()
 	{
 		MAD_ASSERT_DESC(IsConnected(), "Need a connected client to call this");
 
-		while (auto msg = ReceiveMsg())
+		int numChannels = m_config.connectionConfig.numChannels;
+
+		for (int channelID = 0; channelID < numChannels; ++channelID)
+		{
+			ReceiveMessagesForChannel(channelID);
+		}
+	}
+
+	void UNetworkClient::ReceiveMessagesForChannel(int inChannelID)
+	{
+		while (auto msg = ReceiveMsg(inChannelID))
 		{
 			switch (msg->GetType())
 			{
