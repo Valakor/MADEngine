@@ -78,7 +78,7 @@ namespace MAD
 					auto msg = static_cast<MUpdateObject*>(CreateMsg(playerID, UPDATE_OBJECT));
 					msg->m_objectNetID = object->GetNetID();
 					state->SerializeState(msg->m_networkState, false);
-					SendMsg(playerID, msg);
+					SendMsg(playerID, msg, MUpdateObject::MessageChannel);
 				}
 			}
 		}
@@ -94,9 +94,19 @@ namespace MAD
 
 	void UNetworkServer::ReceiveMessagesForPlayer(const ONetworkPlayer& inPlayer)
 	{
+		int numChannels = GetConnectionConfig().numChannels;
+
+		for (int channelID = 0; channelID < numChannels; ++channelID)
+		{
+			ReceiveMessagesForPlayer(inPlayer, channelID);
+		}
+	}
+
+	void UNetworkServer::ReceiveMessagesForPlayer(const ONetworkPlayer& inPlayer, int inChannelID)
+	{
 		auto playerID = inPlayer.GetPlayerID();
 
-		while (auto msg = ReceiveMsg(playerID))
+		while (auto msg = ReceiveMsg(playerID, inChannelID))
 		{
 			switch (msg->GetType())
 			{
@@ -232,7 +242,7 @@ namespace MAD
 				netObject.State->SerializeState(msg->m_networkState, false);
 			}
 
-			SendMsg(player.first, msg);
+			SendMsg(player.first, msg, MCreateObject::MessageChannel);
 
 			netObject.NetworkViews.insert({ player.first, eastl::make_shared<UNetworkObjectView>(*netObject.State) });
 		}
@@ -266,7 +276,7 @@ namespace MAD
 				netObject.State->SerializeState(msg->m_networkState, false, true);
 			}
 
-			SendMsg(playerID, msg);
+			SendMsg(playerID, msg, MCreateObject::MessageChannel);
 
 			netObject.NetworkViews.insert({ playerID, eastl::make_shared<UNetworkObjectView>(*netObject.State) });
 		}
@@ -308,7 +318,7 @@ namespace MAD
 		{
 			auto msg = static_cast<MDestroyObject*>(CreateMsg(player.first, DESTROY_OBJECT));
 			msg->m_objectNetID = netID;
-			SendMsg(player.first, msg);
+			SendMsg(player.first, msg, MDestroyObject::MessageChannel);
 		}
 
 		inObject.Destroy();
@@ -334,7 +344,7 @@ namespace MAD
 				msg->m_eventData.resize(inEventSize);
 				memcpy(msg->m_eventData.data(), inEventData, inEventSize);
 
-				SendMsg(player.first, msg);
+				SendMsg(player.first, msg, MEvent::MessageChannel);
 			}
 		}
 		else if (inEventTarget == EEventTarget::Client)
@@ -345,7 +355,7 @@ namespace MAD
 			msg->m_eventData.resize(inEventSize);
 			memcpy(msg->m_eventData.data(), inEventData, inEventSize);
 
-			SendMsg(inTargetPlayer, msg);
+			SendMsg(inTargetPlayer, msg, MEvent::MessageChannel);
 		}
 	}
 
@@ -485,14 +495,14 @@ namespace MAD
 				MOtherPlayerConnectionChanged* connectMsg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
 				connectMsg->m_connect = true;
 				connectMsg->m_playerID = clientIndex;
-				SendMsg(idx, connectMsg);
+				SendMsg(idx, connectMsg, MOtherPlayerConnectionChanged::MessageChannel);
 
 				initMsg->m_otherPlayers.push_back(idx);
 			}
 		}
 
 		// Tell this new client about other existing clients on the server
-		SendMsg(clientIndex, initMsg);
+		SendMsg(clientIndex, initMsg, MInitializeNewPlayer::MessageChannel);
 
 		// Tell this new client about existing network objects on the server
 		SendNetObjectsToNewPlayer(*newPlayer);
@@ -520,7 +530,7 @@ namespace MAD
 			MOtherPlayerConnectionChanged* msg = static_cast<MOtherPlayerConnectionChanged*>(CreateMsg(idx, OTHER_PLAYER_CONNECTION_CHANGED));
 			msg->m_connect = false;
 			msg->m_playerID = clientIndex;
-			SendMsg(idx, msg);
+			SendMsg(idx, msg, MOtherPlayerConnectionChanged::MessageChannel);
 		}
 	}
 

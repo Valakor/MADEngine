@@ -51,6 +51,7 @@ namespace MAD
 
 		void ReceiveMessages();
 		void ReceiveMessagesForPlayer(const ONetworkPlayer& inPlayer);
+		void ReceiveMessagesForPlayer(const ONetworkPlayer& inPlayer, int inChannelID);
 
 		void HandleEventMessage(MEvent& message, const ONetworkPlayer& inPlayer);
 

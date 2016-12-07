@@ -42,6 +42,7 @@ namespace MAD
 		eastl::hash_map<SNetworkID, UNetObject> m_netObjects;
 
 		void ReceiveMessages();
+		void ReceiveMessagesForChannel(int inChannelID);
 		void HandleCreateObjectMessage(MCreateObject& message);
 		void HandleUpdateObjectMessage(MUpdateObject& message);
 		void HandleDestroyObjectMessage(MDestroyObject& message);

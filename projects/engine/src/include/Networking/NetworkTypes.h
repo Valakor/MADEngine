@@ -58,6 +58,8 @@ namespace MAD
 	// Sent to every player except the player whose connection changed
 	struct MOtherPlayerConnectionChanged : public yojimbo::Message
 	{
+		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
+
 		NetworkPlayerID m_playerID;
 		bool m_connect;
 
@@ -80,6 +82,8 @@ namespace MAD
 	// Sent to a newly-connected player
 	struct MInitializeNewPlayer : public yojimbo::Message
 	{
+		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
+
 		eastl::fixed_vector<NetworkPlayerID, yojimbo::MaxClients, false> m_otherPlayers;
 
 		MInitializeNewPlayer()
@@ -111,6 +115,8 @@ namespace MAD
 	// Sent to players to tell them to spawn an object
 	struct MCreateObject : public yojimbo::Message
 	{
+		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
+
 		TypeID m_classTypeID;
 		SNetworkID m_objectNetID;
 		NetworkPlayerID m_netOwnerID;
@@ -135,6 +141,8 @@ namespace MAD
 	// Sent to players to tell them to destroy an object
 	struct MDestroyObject : public yojimbo::Message
 	{
+		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
+
 		SNetworkID m_objectNetID;
 
 		template <typename Stream> bool Serialize(Stream & stream)
@@ -149,6 +157,8 @@ namespace MAD
 	// Sent to players to tell them to update the state of an object
 	struct MUpdateObject : public yojimbo::Message
 	{
+		static const int MessageChannel = yojimbo::CHANNEL_TYPE_UNRELIABLE_UNORDERED;
+
 		SNetworkID m_objectNetID;
 		eastl::vector<uint8_t> m_networkState;
 
@@ -176,6 +186,8 @@ namespace MAD
 
 	struct MEvent : public yojimbo::Message
 	{
+		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
+
 		EEventTypes m_eventType;
 		SNetworkID m_targetObjectID;
 		eastl::vector<uint8_t> m_eventData;
