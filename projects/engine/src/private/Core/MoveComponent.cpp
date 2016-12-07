@@ -78,12 +78,12 @@ namespace MAD
 			
 			// Apply the deltas to the server's representation of the owner
 			m_targetComponent->SetWorldScale(m_targetComponent->GetWorldScale() + deltaScale);
-			m_targetComponent->SetWorldRotation(Quaternion::Concatenate(m_targetComponent->GetWorldRotation(), deltaRotation));
+			m_targetComponent->SetWorldRotation(m_targetComponent->GetWorldRotation() * deltaRotation);
 			m_targetComponent->SetWorldTranslation(m_targetComponent->GetWorldTranslation() + deltaPosition);
 
 			// Changing the target transform state will cause replication to the clients
 			m_targetScale += deltaScale;
-			m_targetRotation = Quaternion::Concatenate(m_targetRotation, deltaRotation);
+			m_targetRotation *= deltaRotation;
 			m_targetPosition += deltaPosition;
 		}
 	}
@@ -115,7 +115,7 @@ namespace MAD
 
 	void CMoveComponent::AddDeltaRotation(const Quaternion& inDeltaRotation)
 	{
-		m_deltaRotation = Quaternion::Concatenate(m_deltaRotation, inDeltaRotation);
+		m_deltaRotation *= inDeltaRotation;
 	}
 
 	bool CMoveComponent::HasNonZeroDelta() const
