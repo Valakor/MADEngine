@@ -82,6 +82,7 @@ namespace MAD
 			CLightComponent::StaticClass();
 			CDirectionalLightComponent::StaticClass();
 			CPointLightComponent::StaticClass();
+			CMoveComponent::StaticClass();
 
 			Test::APointLightBullet::StaticClass();
 			Test::ADemoCharacter::StaticClass();

@@ -6,6 +6,7 @@
 #include "Core/PointLightComponent.h"
 #include "Core/MeshComponent.h"
 #include "Core/CameraComponent.h"
+#include "Core/MoveComponent.h"
 
 #include "Networking/Network.h"
 
@@ -83,6 +84,10 @@ namespace MAD
 
 				auto controller = AddComponent<CDemoCharacterController>();
 				characterMesh->AttachComponent(controller);
+
+				auto moveComponent = AddComponent<CMoveComponent>();
+				moveComponent->SetTargetComponent(characterMesh.get());
+				characterMesh->AttachComponent(moveComponent);
 			}
 
 		protected:

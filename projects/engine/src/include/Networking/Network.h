@@ -42,6 +42,7 @@ namespace MAD
 	enum EEventTypes
 	{
 		SHOOT_BULLET,
+		MOVE_ENTITY,
 		NUM_EVENT_TYPES
 	};
 

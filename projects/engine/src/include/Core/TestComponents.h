@@ -4,6 +4,7 @@
 #include "Core/Entity.h"
 #include "Core/ComponentPriorityInfo.h"
 #include "Core/PointLightComponent.h"
+#include "Core/MoveComponent.h"
 #include "Core/GameWorldLoader.h"
 
 #define MAD_DEFINE_TEST_COMPONENT(TestComponentName)							\
@@ -99,19 +100,39 @@ namespace MAD
 			virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
 
 		private:
-			void Move(Vector3 inDelta)
+			void Move(const Vector3& inDelta)
 			{
+				if (inDelta == Vector3::Zero)
+				{
+					return;
+				}
+
 				if (UGameInput::Get().GetMouseMode() == EMouseMode::MM_Game)
 				{
-					GetOwningEntity().SetWorldTranslation(GetOwningEntity().GetWorldTranslation() + inDelta);
+					auto owningMoveComp = GetOwningEntity().GetFirstComponentByType<CMoveComponent>();
+
+					if (!owningMoveComp.expired())
+					{
+						owningMoveComp.lock()->AddDeltaPosition(inDelta);
+					}
 				}
 			}
 
-			void Look(Quaternion inDelta)
+			void Look(const Quaternion& inDelta)
 			{
+				if (inDelta == Quaternion::Identity)
+				{
+					return;
+				}
+
 				if (UGameInput::Get().GetMouseMode() == EMouseMode::MM_Game)
 				{
-					GetOwningEntity().SetWorldRotation(GetOwningEntity().GetWorldRotation() * inDelta);
+					auto owningMoveComp = GetOwningEntity().GetFirstComponentByType<CMoveComponent>();
+
+					if (!owningMoveComp.expired())
+					{
+						owningMoveComp.lock()->AddDeltaRotation(inDelta);
+					}
 				}
 			}
 
