@@ -26,12 +26,12 @@ namespace MAD
 		m_transport->ReadPackets();
 		ReceivePackets();
 
-		CheckForTimeOut();
-
 		if (IsConnected())
 		{
 			ReceiveMessages();
 		}
+
+		CheckForTimeOut();
 
 		SendPackets();
 		m_transport->WritePackets();

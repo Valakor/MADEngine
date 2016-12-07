@@ -100,6 +100,8 @@ namespace MAD
 			yojimbo::WriteStream writeStream(inOutByteBuffer.data(), MaxStateUpdateSize);
 		
 			SerializeState_Internal(writeStream, inForceDirty);
+
+			inOutByteBuffer.resize(writeStream.GetBytesProcessed());
 		}
 	}
 
