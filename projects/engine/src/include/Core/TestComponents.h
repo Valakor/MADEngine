@@ -100,6 +100,8 @@ namespace MAD
 			virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
 
 		private:
+			ULinearTransform m_transform;
+
 			void Move(const Vector3& inDelta)
 			{
 				if (inDelta == Vector3::Zero)
@@ -109,8 +111,9 @@ namespace MAD
 
 				if (UGameInput::Get().GetMouseMode() == EMouseMode::MM_Game)
 				{
-					auto owningMoveComp = GetOwningEntity().GetFirstComponentByType<CMoveComponent>();
+					m_transform.SetTranslation(m_transform.GetTranslation() + inDelta);
 
+					auto owningMoveComp = GetOwningEntity().GetFirstComponentByType<CMoveComponent>();
 					if (!owningMoveComp.expired())
 					{
 						owningMoveComp.lock()->AddDeltaPosition(inDelta);
@@ -127,8 +130,9 @@ namespace MAD
 
 				if (UGameInput::Get().GetMouseMode() == EMouseMode::MM_Game)
 				{
-					auto owningMoveComp = GetOwningEntity().GetFirstComponentByType<CMoveComponent>();
+					m_transform.SetRotation(m_transform.GetRotation() * inDelta);
 
+					auto owningMoveComp = GetOwningEntity().GetFirstComponentByType<CMoveComponent>();
 					if (!owningMoveComp.expired())
 					{
 						owningMoveComp.lock()->AddDeltaRotation(inDelta);
@@ -138,13 +142,13 @@ namespace MAD
 
 			void MoveRight(float inVal)
 			{
-				Vector3 right = GetOwningEntity().GetWorldTransform().GetRight();
+				Vector3 right = m_transform.GetRight();
 				Move(right * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
 			}
 
 			void MoveForward(float inVal)
 			{
-				Vector3 forward = GetOwningEntity().GetWorldTransform().GetForward();
+				Vector3 forward = m_transform.GetForward();
 				Move(forward * inVal * gEngine->GetDeltaTime() * m_moveSpeed);
 			}
 
@@ -160,7 +164,7 @@ namespace MAD
 
 			void LookUp(float inVal)
 			{
-				Vector3 right = GetOwningEntity().GetWorldTransform().GetRight();
+				Vector3 right = m_transform.GetRight();
 				Look(Quaternion::CreateFromAxisAngle(right, -inVal * gEngine->GetDeltaTime() * m_lookSpeed));
 			}
 
@@ -253,7 +257,7 @@ namespace MAD
 			virtual void UpdateComponent(float inDeltaTime) override
 			{
 				// Client sets the light's color in the OnRep callback
-				if (GetNetRole() == ENetRole::Simulated_Proxy)
+				if (GetNetRole() == ENetRole::Simulated_Proxy || GetNetRole() == ENetRole::Authority_Proxy)
 				{
 					GetOwningEntity().SetWorldTranslation(m_position);
 					return;
@@ -298,6 +302,7 @@ namespace MAD
 
 				pointLight->SetColor(m_lightColor);
 			}
+
 		};
 
 		class CSinMoveComponent : public UComponent

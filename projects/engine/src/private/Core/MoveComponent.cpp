@@ -8,24 +8,21 @@ namespace MAD
 	CMoveComponent::CMoveComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 		, m_targetComponent(nullptr)
-		, m_deltaScale(0.0f)
 		, m_targetScale(0.0f)
 	{
-		m_deltaByteBuffer.resize(sizeof(m_deltaScale) + sizeof(m_deltaRotation) + sizeof(m_deltaPosition));
 	}
 
 	void CMoveComponent::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const
 	{
 		Super::GetReplicatedProperties(inOutReplInfo);
 
-		MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CMoveComponent, m_targetScale, OnRep_TargetScale);
+		MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CMoveComponent, m_targetScale,    OnRep_TargetScale);
 		MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CMoveComponent, m_targetRotation, OnRep_TargetRotation);
 		MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CMoveComponent, m_targetPosition, OnRep_TargetPosition);
 	}
 
-	void CMoveComponent::UpdateComponent(float inDeltaTime)
+	void CMoveComponent::UpdateComponent(float)
 	{
-		(void)inDeltaTime;
 		if (GetNetMode() == ENetMode::DedicatedServer)
 		{
 			return;
@@ -41,50 +38,37 @@ namespace MAD
 			return;
 		}
 
-		// Send network event message to the server requesting a move based off of the deltas
-		const size_t deltaDataSize = sizeof(m_deltaScale) + sizeof(m_deltaRotation) + sizeof(m_deltaPosition);
-		const uint8_t* deltaDataStart = reinterpret_cast<const uint8_t*>(&m_deltaScale);
+		m_deltaTransform.m_tick = gEngine->GetGameTick();
 
-		memcpy(m_deltaByteBuffer.data(), deltaDataStart, deltaDataSize);
-		
-		gEngine->GetNetworkManager().SendNetworkEvent(EEventTarget::Server, MOVE_ENTITY, GetOwningEntity(), m_deltaByteBuffer.data(), m_deltaByteBuffer.size());
+		// Send network event message to the server requesting a move based off of the deltas
+		gEngine->GetNetworkManager().SendNetworkEvent(EEventTarget::Server, MOVE_ENTITY, GetOwningEntity(), &m_deltaTransform, sizeof(m_deltaTransform));
 	
 		// Reset the deltas
-		m_deltaScale = 0.0f;
-		m_deltaRotation = Quaternion::Identity;
-		m_deltaPosition = Vector3::Zero;
+		m_deltaTransform.m_scale = 0.0f;
+		m_deltaTransform.m_rotation = Quaternion::Identity;
+		m_deltaTransform.m_position = Vector3::Zero;
 	}
 
 	void CMoveComponent::OnEvent(EEventTypes inEventType, void* inEventData)
 	{
-		const uint8_t* byteDataBuffer = reinterpret_cast<const uint8_t*>(inEventData);
-
 		if (inEventType == MOVE_ENTITY && GetNetMode() != ENetMode::Client)
 		{
 			// [-----------------------Server Only-----------------------------]
 
 			// Data contains the delta scale, position, and rotation (in that order)
-			float deltaScale = *reinterpret_cast<const float*>(byteDataBuffer);
-			
-			byteDataBuffer += sizeof(deltaScale);
-
-			Vector3 deltaPosition = *reinterpret_cast<const Vector3*>(byteDataBuffer);
-
-			byteDataBuffer += sizeof(deltaPosition);
-
-			Quaternion deltaRotation = *reinterpret_cast<const Quaternion*>(byteDataBuffer);
+			const SSQT* deltaTransform = reinterpret_cast<const SSQT*>(inEventData);
 
 			// Potentially validate the delta values here
 			
 			// Apply the deltas to the server's representation of the owner
-			m_targetComponent->SetWorldScale(m_targetComponent->GetWorldScale() + deltaScale);
-			m_targetComponent->SetWorldRotation(m_targetComponent->GetWorldRotation() * deltaRotation);
-			m_targetComponent->SetWorldTranslation(m_targetComponent->GetWorldTranslation() + deltaPosition);
+			m_targetComponent->SetWorldScale(m_targetComponent->GetWorldScale() + deltaTransform->m_scale);
+			m_targetComponent->SetWorldRotation(m_targetComponent->GetWorldRotation() * deltaTransform->m_rotation);
+			m_targetComponent->SetWorldTranslation(m_targetComponent->GetWorldTranslation() + deltaTransform->m_position);
 
 			// Changing the target transform state will cause replication to the clients
-			m_targetScale += deltaScale;
-			m_targetRotation *= deltaRotation;
-			m_targetPosition += deltaPosition;
+			m_targetScale += deltaTransform->m_scale;
+			m_targetRotation *= deltaTransform->m_rotation;
+			m_targetPosition += deltaTransform->m_position;
 		}
 	}
 
@@ -105,42 +89,39 @@ namespace MAD
 
 	void CMoveComponent::AddDeltaScale(float inDeltaScale)
 	{
-		m_deltaScale += inDeltaScale;
+		m_deltaTransform.m_scale += inDeltaScale;
 	}
 
 	void CMoveComponent::AddDeltaPosition(const Vector3& inDeltaPosition)
 	{
-		m_deltaPosition += inDeltaPosition;
+		m_deltaTransform.m_position += inDeltaPosition;
 	}
 
 	void CMoveComponent::AddDeltaRotation(const Quaternion& inDeltaRotation)
 	{
-		m_deltaRotation *= inDeltaRotation;
+		m_deltaTransform.m_rotation *= inDeltaRotation;
 	}
 
 	bool CMoveComponent::HasNonZeroDelta() const
 	{
-		return m_deltaScale != 0.0f || m_deltaRotation != Quaternion::Identity || m_deltaPosition != Vector3::Zero;
+		return m_deltaTransform.m_scale != 0.0f || m_deltaTransform.m_rotation != Quaternion::Identity || m_deltaTransform.m_position != Vector3::Zero;
 	}
 
 	void CMoveComponent::OnRep_TargetScale()
 	{
 		// Update the target component's scale
-		LOG(LogMoveComponent, Warning, "Replicating target scale successful!\n");
 		m_targetComponent->SetWorldScale(m_targetScale);
 	}
 
 	void CMoveComponent::OnRep_TargetPosition()
 	{
 		// Update the target component's position
-		LOG(LogMoveComponent, Warning, "Replicating target position successful!\n");
 		m_targetComponent->SetWorldTranslation(m_targetPosition);
 	}
 
 	void CMoveComponent::OnRep_TargetRotation()
 	{
 		// Update the target component's rotation
-		LOG(LogMoveComponent, Warning, "Replicating target rotation successful!\n");
 		m_targetComponent->SetWorldRotation(m_targetRotation);
 	}
 }

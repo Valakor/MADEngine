@@ -7,7 +7,7 @@ namespace MAD
 {
 	class CMoveComponent : public UComponent
 	{
-		MAD_DECLARE_COMPONENT(CMoveComponent, UComponent)
+		MAD_DECLARE_PRIORITIZED_COMPONENT(CMoveComponent, UComponent, EPriorityLevelReference::EPriorityLevel_Physics + 10)
 	public:
 		explicit CMoveComponent(OGameWorld* inOwningWorld);
 
@@ -27,12 +27,20 @@ namespace MAD
 		void OnRep_TargetPosition();
 		void OnRep_TargetRotation();
 
-		UComponent* m_targetComponent; // Which component do you want the MoveComponent to target
-		eastl::vector<uint8_t> m_deltaByteBuffer;
+		struct SSQT
+		{
+			SSQT() : m_scale(1.0f) {}
 
-		float m_deltaScale;
-		Vector3 m_deltaPosition;
-		Quaternion m_deltaRotation;
+			Quaternion m_rotation;
+			Vector3 m_position;
+			float m_scale;
+
+			uint32_t m_tick;
+		};
+
+		UComponent* m_targetComponent; // Which component do you want the MoveComponent to target
+
+		SSQT m_deltaTransform;
 
 		float m_targetScale;
 		Vector3 m_targetPosition;
