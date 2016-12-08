@@ -48,6 +48,8 @@ namespace MAD
 		};
 		eastl::hash_map<SNetworkID, UNetObject> m_netObjects;
 
+		eastl::vector<eastl::pair<UNetObject, TypeID>> m_deferredSpawnMessages;
+
 		void SendNetworkStateUpdates();
 
 		void ReceiveMessages();
@@ -61,7 +63,9 @@ namespace MAD
 
 		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID);
 
+		// Doesn't spawn on the network immediately, defers until PostTick
 		void NetworkSpawn(eastl::shared_ptr<UObject> inObject, const TTypeInfo& inTypeInfo);
+		void FlushNetworkSpawns();
 
 		void SendNetObjectsToNewPlayer(const ONetworkPlayer& inPlayer);
 		void DestroyNetObjectsForPlayer(const ONetworkPlayer& inPlayer);

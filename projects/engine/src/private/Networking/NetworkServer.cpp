@@ -35,6 +35,7 @@ namespace MAD
 	void UNetworkServer::PostTick()
 	{
 		SendNetworkStateUpdates();
+		FlushNetworkSpawns();
 
 		SendPackets();
 		m_serverTransport->WritePackets();
@@ -227,31 +228,45 @@ namespace MAD
 		netObject.State = eastl::make_shared<UNetworkState>();
 		netObject.State->TargetObject(inObject.get(), true);
 
-		for (const auto& player : m_players)
+		m_deferredSpawnMessages.push_back({ netObject, inTypeInfo.GetTypeID() });
+	}
+
+	void UNetworkServer::FlushNetworkSpawns()
+	{
+		for (auto& pair : m_deferredSpawnMessages)
 		{
-			auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
-			msg->m_objectNetID = inObject->GetNetID();
-			msg->m_netOwnerID = inObject->GetNetOwner()->GetPlayerID();
-			msg->m_classTypeID = inTypeInfo.GetTypeID();
+			auto& netObject = pair.first;
+			const auto& object = netObject.Object;
+			auto typeID = pair.second;
 
-			if (auto entity = Cast<AEntity>(inObject.get()))
+			for (const auto& player : m_players)
 			{
-				msg->m_worldName = entity->GetOwningWorld()->GetWorldName();
-				msg->m_layerName = entity->GetOwningWorldLayer().GetLayerName();
+				auto msg = static_cast<MCreateObject*>(CreateMsg(player.first, CREATE_OBJECT));
+				msg->m_objectNetID = object->GetNetID();
+				msg->m_netOwnerID = object->GetNetOwner()->GetPlayerID();
+				msg->m_classTypeID = typeID;
+
+				if (auto entity = Cast<AEntity>(object.get()))
+				{
+					msg->m_worldName = entity->GetOwningWorld()->GetWorldName();
+					msg->m_layerName = entity->GetOwningWorldLayer().GetLayerName();
+				}
+
+				if (!player.second->IsLocalPlayer())
+				{
+					// Don't bother sending state data to a local player (for Listen servers)
+					netObject.State->SerializeState(msg->m_networkState, false);
+				}
+
+				SendMsg(player.first, msg, MCreateObject::MessageChannel);
+
+				netObject.NetworkViews.insert({ player.first, eastl::make_shared<UNetworkObjectView>(*netObject.State) });
 			}
 
-			if (!player.second->IsLocalPlayer())
-			{
-				// Don't bother sending state data to a local player (for Listen servers)
-				netObject.State->SerializeState(msg->m_networkState, false);
-			}
-
-			SendMsg(player.first, msg, MCreateObject::MessageChannel);
-
-			netObject.NetworkViews.insert({ player.first, eastl::make_shared<UNetworkObjectView>(*netObject.State) });
+			m_netObjects.insert({ object->GetNetID(), netObject });
 		}
 
-		m_netObjects.insert({ inObject->GetNetID(), netObject });
+		m_deferredSpawnMessages.clear();
 	}
 
 	void UNetworkServer::SendNetObjectsToNewPlayer(const ONetworkPlayer& inPlayer)

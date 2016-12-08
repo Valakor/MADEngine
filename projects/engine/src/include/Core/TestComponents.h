@@ -246,6 +246,15 @@ namespace MAD
 				, m_lightColor(Color(1, 1, 1))
 			{ }
 
+			virtual void OnBeginPlay() override
+			{
+				if (GetNetRole() == ENetRole::Authority)
+				{
+					UpdateColor();
+					m_position = GetOwningEntity().GetWorldTranslation();
+				}
+			}
+
 			virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override
 			{
 				Super::GetReplicatedProperties(inOutReplInfo);
@@ -277,13 +286,7 @@ namespace MAD
 
 				m_nextCycleTime = time + 0.5f;
 
-				// Cycle through Red -> Green -> Blue every half second
-				m_lightColor = Color(1.0f * !m_colorIndex, 1.0f * (m_colorIndex & 1), 1.0f * (m_colorIndex & 2));
-
-				// Manually call this for servers since it isn't actually replicated
-				OnRep_LightColor();
-
-				m_colorIndex = (m_colorIndex + 1) % 3;
+				UpdateColor();
 			}
 
 			void SetBulletVelocity(const Vector3& inVelocity) { m_velocity = inVelocity; }
@@ -294,6 +297,17 @@ namespace MAD
 			int m_colorIndex;
 			Vector3 m_velocity;
 			Vector3 m_position;
+
+			void UpdateColor()
+			{
+				// Cycle through Red -> Green -> Blue every half second
+				m_lightColor = Color(1.0f * !m_colorIndex, 1.0f * (m_colorIndex & 1), 1.0f * (m_colorIndex & 2));
+
+				// Manually call this for servers since it isn't actually replicated
+				OnRep_LightColor();
+
+				m_colorIndex = (m_colorIndex + 1) % 3;
+			}
 			
 			void OnRep_LightColor()
 			{
