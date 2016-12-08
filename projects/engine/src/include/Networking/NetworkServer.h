@@ -17,7 +17,8 @@ namespace MAD
 	public:
 		explicit UNetworkServer(class UNetworkManager& inNetworkManager, eastl::unique_ptr<UNetworkTransport> inServerTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inConfig = yojimbo::ClientServerConfig());
 
-		void Tick(float inGameTime);
+		void PreTick(double inGameTime);
+		void PostTick();
 
 		size_t GetNumConnectedPlayers() const { return m_players.size(); }
 		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;

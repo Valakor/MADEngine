@@ -16,7 +16,8 @@ namespace MAD
 	public:
 		explicit UNetworkClient(class UNetworkManager& inNetworkManager, eastl::unique_ptr<UNetworkTransport> inClientTransport, double inCurrentGameTime, const yojimbo::ClientServerConfig& inClientConfig = yojimbo::ClientServerConfig());
 
-		void Tick(float inGameTime);
+		void PreTick(double inGameTime);
+		void PostTick();
 
 		eastl::weak_ptr<ONetworkPlayer> GetLocalPlayer() const { return m_localPlayer; }
 

@@ -356,6 +356,9 @@ namespace MAD
 			// Clear the old draw items
 			mRenderer->ClearRenderItems();
 
+			// Recieve from the network
+			m_NetworkManager.PreTick();
+
 			// Tick native message queue
 			UGameWindow::PumpMessageQueue();
 
@@ -365,9 +368,6 @@ namespace MAD
 			// Moved simulating flag to engine because we want all worlds to only perform post simulation tasks
 			// once all worlds have had its chance to simulate
 			m_isSimulating = true;
-
-			// TODO TEMP
-			m_NetworkManager.Tick(TARGET_DELTA_TIME);
 
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
@@ -385,6 +385,9 @@ namespace MAD
 			}
 
 			m_isSimulating = false;
+
+			// Send to the network
+			m_NetworkManager.PostTick();
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
 			for (auto& currentWorld : m_worlds)

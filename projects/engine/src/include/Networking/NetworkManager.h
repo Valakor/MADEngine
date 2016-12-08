@@ -16,7 +16,8 @@ namespace MAD
 		UNetworkManager();
 
 		bool Init();
-		void Tick(float inDeltaTime);
+		void PreTick();
+		void PostTick();
 		void Shutdown();
 
 		ENetMode GetNetMode() const { return m_netMode; }

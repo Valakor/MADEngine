@@ -46,6 +46,7 @@ namespace MAD
 		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
 		float GetFrameTime() const { return static_cast<float>(mFrameTime); }
 		float GetGameTime() const { return static_cast<float>(mGameTime); }
+		double GetGameTimeDouble() const { return mGameTime; }
 		uint32_t GetGameTick() const { return m_gameTick; }
 
 		eastl::shared_ptr<class OGameWorld> GetWorld(const eastl::string& inWorldName);

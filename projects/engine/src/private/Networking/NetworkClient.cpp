@@ -18,7 +18,7 @@ namespace MAD
 
 	}
 
-	void UNetworkClient::Tick(float inGameTime)
+	void UNetworkClient::PreTick(double inGameTime)
 	{
 		AdvanceTime(inGameTime);
 		m_transport->AdvanceTime(inGameTime);
@@ -32,7 +32,10 @@ namespace MAD
 		}
 
 		CheckForTimeOut();
+	}
 
+	void UNetworkClient::PostTick()
+	{
 		SendPackets();
 		m_transport->WritePackets();
 	}

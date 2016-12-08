@@ -19,17 +19,21 @@ namespace MAD
 		, m_serverTransport(eastl::move(inServerTransport))
 		, m_nextNetworkID(0) { }
 
-	void UNetworkServer::Tick(float inGameTime)
+	void UNetworkServer::PreTick(double inGameTime)
 	{
 		AdvanceTime(inGameTime);
 		m_serverTransport->AdvanceTime(inGameTime);
 
 		m_serverTransport->ReadPackets();
 		ReceivePackets();
+
 		ReceiveMessages();
 
 		CheckForTimeOut();
+	}
 
+	void UNetworkServer::PostTick()
+	{
 		SendNetworkStateUpdates();
 
 		SendPackets();

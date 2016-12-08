@@ -84,19 +84,31 @@ namespace MAD
 		return true;
 	}
 
-	void UNetworkManager::Tick(float inDeltaTime)
+	void UNetworkManager::PreTick()
 	{
-		(void)inDeltaTime;
-		float gameTime = gEngine->GetGameTime();
+		double gameTime = gEngine->GetGameTimeDouble();
 
 		if (m_server)
 		{
-			m_server->Tick(gameTime);
+			m_server->PreTick(gameTime);
 		}
 
 		if (m_client)
 		{
-			m_client->Tick(gameTime);
+			m_client->PreTick(gameTime);
+		}
+	}
+
+	void UNetworkManager::PostTick()
+	{
+		if (m_server)
+		{
+			m_server->PostTick();
+		}
+
+		if (m_client)
+		{
+			m_client->PostTick();
 		}
 	}
 
