@@ -1071,7 +1071,7 @@ namespace MAD
 		subscreenVerts[TOP_LEFT_VERT] = Vector3(subscreenVerts[BOTTOM_LEFT_VERT].x, subscreenVerts[BOTTOM_LEFT_VERT].y + (subscreenVerts[TOP_RIGHT_VERT].y - subscreenVerts[BOTTOM_LEFT_VERT].y), 0.0f);
 		subscreenVerts[BOTTOM_RIGHT_VERT] = Vector3(subscreenVerts[TOP_RIGHT_VERT].x, subscreenVerts[TOP_RIGHT_VERT].y - (subscreenVerts[TOP_RIGHT_VERT].y - subscreenVerts[BOTTOM_LEFT_VERT].y), 0.0f);
 
-		UpdateBuffer(SubscreenVertexBuffer, SubscreenQuadVerts.data(), SubscreenQuadVerts.size() * sizeof(Vector3));
+		UpdateBuffer(SubscreenVertexBuffer, subscreenVerts, sizeof(subscreenVerts));
 
 		SetDepthStencilState(SubscreenDepthState, 0);
 		SetRasterizerState(SubscreenRasterState);

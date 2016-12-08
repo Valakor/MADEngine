@@ -283,6 +283,7 @@ namespace MAD
 		UGameWorldLoader loader;
 		loader.LoadWorld("engine\\worlds\\default_world.json");
 		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
+		//loader.LoadWorld("engine\\worlds\\light_world.json");
 	}
 
 	void UGameEngine::TEMPSerializeObject()
