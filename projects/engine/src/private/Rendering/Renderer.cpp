@@ -395,7 +395,33 @@ namespace MAD
 			// Transform the light's position into view space
 			pointLightConstants.m_lightPosition = Vector3::Transform(pointLightConstants.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(SGPUPointLight));
-			DrawFullscreenQuad(); // TODO
+
+			// Instead of just drawing a full screen quad, calculate the rectangle bounds (in NDC) for the current point light
+			const float lightHalfWidth = pointLightConstants.m_lightOuterRadius;
+			const float lightHalfHeight = lightHalfWidth;
+
+			Vector4 lightMinPosHS = { pointLightConstants.m_lightPosition.x, pointLightConstants.m_lightPosition.y, pointLightConstants.m_lightPosition.z, 1.0f };
+			Vector4 lightMaxPosHS = lightMinPosHS;
+
+			// Calculate the min and the max extents in the x and y axis for the light in view space (so we can transform them into NDC space)
+			lightMinPosHS.x -= lightHalfWidth;
+			lightMinPosHS.y -= lightHalfHeight;
+
+			lightMaxPosHS.x += lightHalfWidth;
+			lightMaxPosHS.y += lightHalfHeight;
+
+			lightMinPosHS = Vector4::Transform(lightMinPosHS, m_perFrameConstants.m_cameraProjectionMatrix);
+			lightMaxPosHS = Vector4::Transform(lightMaxPosHS, m_perFrameConstants.m_cameraProjectionMatrix);
+
+			// Perspective divide from clip into NDC space
+			lightMinPosHS /= lightMinPosHS.w;
+			lightMaxPosHS /= lightMaxPosHS.w;
+
+			MAD_ASSERT_DESC(FloatEqual(lightMinPosHS.w, 1.0f), "Light min extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
+			MAD_ASSERT_DESC(FloatEqual(lightMaxPosHS.w, 1.0f), "Light max extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
+
+			// Light quad extents are in NDC
+			g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
 		}
 	}
 
