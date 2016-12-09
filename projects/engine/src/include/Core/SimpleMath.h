@@ -1,11 +1,15 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+#endif
 #include <d3d11_2.h>
 __pragma(warning(push))
 __pragma(warning(disable:4838))
 #include <DirectXTK/SimpleMath.h>
 __pragma(warning(pop))
+
+#include <cmath>
 
 namespace MAD
 {
@@ -21,6 +25,26 @@ namespace MAD
 		return inRadians * (180.0f / DirectX::XM_PI);
 	}
 
+	inline bool FloatEqual(float a, float b, float epsilon = 0.0001f)
+	{
+		return fabs(a - b) <= epsilon;
+	}
+
+	inline constexpr float Clamp(float x, float min, float max)
+	{
+		return (x < min) ? min : (x > max) ? max : x;
+	}
+
+	inline constexpr float Saturate(float x)
+	{
+		return Clamp(x, 0.0f, 1.0f);
+	}
+
+	inline float Lerp(float a, float b, float t)
+	{
+		return a + (b - a) * Saturate(t);
+	}
+
 	class ULinearTransform
 	{
 	public:
@@ -32,14 +56,19 @@ namespace MAD
 		const Quaternion& GetRotation() const { return m_rotation; }
 		const Vector3& GetTranslation() const { return m_translation; }
 		const Matrix& GetMatrix() const { return m_cachedTransform; }
+		
+		Vector3 GetForward() const { Vector3 forward = m_cachedTransform.Forward(); forward.Normalize(); return forward; }
+		Vector3 GetRight() const { Vector3 right = m_cachedTransform.Right(); right.Normalize(); return right; }
+		Vector3 GetUp() const { Vector3 up = m_cachedTransform.Up(); up.Normalize(); return up; }
 
 		void SetScale(float inScale);
 		void SetRotation(const Quaternion& inRotation);
 		void SetTranslation(const Vector3& inTranslation);
 
-		void operator*=(const ULinearTransform& inOtherTransform);
+		static ULinearTransform Lerp(const ULinearTransform& a, const ULinearTransform& b, float t); // Both transforms must be in the same space
 
-		friend ULinearTransform operator*(const ULinearTransform& inLeftTransform, const ULinearTransform& inRightTransform);
+		static ULinearTransform TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform); // Transform is in this transforms local space
+		static ULinearTransform TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB); // Transform is in the same space
 	private:
 		void UpdateCachedTransform();
 	private:

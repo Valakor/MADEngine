@@ -7,10 +7,43 @@ namespace MAD
 	AEntity::AEntity(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 		, m_isPendingForKill(false)
-		, m_owningWorldLayer(nullptr)
 		, m_owningEntity(nullptr)
-		, m_rootComponent(nullptr)
-	{}
+		, m_owningWorldLayer(nullptr)
+		, m_rootComponent(nullptr) {}
+
+	void AEntity::PostInitialize()
+	{
+		// If the entity has already set it's root component, we should set the root component to the first component of the entity (if it exists)
+		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
+		{
+			m_rootComponent = m_entityComponents.front();
+		}
+
+		if (IsNetworkSpawned())
+		{
+			for (auto component : m_entityComponents)
+			{
+				component->SetNetIdentity(GetNetID(), GetNetRole(), GetNetOwner());
+			}
+		}
+
+		for (auto component : m_entityComponents)
+		{
+			component->PostInitializeComponents();
+		}
+
+		PostInitializeComponents();
+	}
+
+	void AEntity::BeginPlay()
+	{
+		for (auto component : m_entityComponents)
+		{
+			component->OnBeginPlay();
+		}
+
+		OnBeginPlay();
+	}
 
 	void AEntity::Destroy()
 	{
@@ -24,6 +57,8 @@ namespace MAD
 		// If our root component has a parent (i.e this entity is parented to another entity), we need to remove ourselves from their root component's
 		// child list
 		DetachFromParent();
+
+		Super::Destroy();
 	}
 
 	OGameWorld& AEntity::GetWorld()
@@ -43,12 +78,26 @@ namespace MAD
 		return m_rootComponent->PrintTranslationHierarchy(0);
 	}
 
-	void AEntity::PostInitializeComponents()
+	void AEntity::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const
 	{
-		// If the entity has already set it's root component, we should set the root component to the first component of the entity (if it exists)
-		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
+		Super::GetReplicatedProperties(inOutReplInfo);
+
+		// Replicate any Entity properties (probably none by default?)
+
+		// Replicate all component properties
+		for (const auto component : m_entityComponents)
 		{
-			m_rootComponent = m_entityComponents.front();
+			component->GetReplicatedProperties(inOutReplInfo);
+		}
+	}
+
+	void AEntity::OnEvent(EEventTypes inEventType, void* inEventData)
+	{
+		Super::OnEvent(inEventType, inEventData);
+
+		for (auto& currentChildComp : m_entityComponents)
+		{
+			currentChildComp->OnEvent(inEventType, inEventData);
 		}
 	}
 

@@ -15,7 +15,9 @@ namespace MAD
 		static eastl::string GetNativeCommandline();
 
 		static void PumpMessageQueue();
+
 		static void ShowCursor(bool bVisible);
+
 		static bool SetWorkingDirectory();
 		static eastl::string GetWorkingDirectory();
 
@@ -45,6 +47,9 @@ namespace MAD
 		POINT GetWindowCenter() const;
 
 		POINT GetClientSize() const;
+
+		eastl::string GetWindowName() const;
+		void SetWindowName(const eastl::string& inWindowName);
 
 	private:
 		static bool s_bIsResizing;

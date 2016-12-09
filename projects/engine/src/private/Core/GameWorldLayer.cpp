@@ -26,7 +26,7 @@ namespace MAD
 			if (currentEntity->IsPendingForKill())
 			{
 				// Remove the entity's components from the component updater
-				AEntity::ComponentContainer entityComponents;
+				ComponentContainer entityComponents;
 				
 				currentEntity->GetEntityComponents(entityComponents);
 

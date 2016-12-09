@@ -26,7 +26,7 @@ namespace MAD
 	public:
 		explicit OGameWorld(OGameWorld* inOwningGameWorld);
 
-		virtual ~OGameWorld() { }
+		virtual ~OGameWorld();
 
 		template <typename EntityType>
 		eastl::shared_ptr<EntityType> SpawnEntity();
@@ -96,15 +96,15 @@ namespace MAD
 		LOG(LogDefault, Log, "Spawning Entity of type %s at Layer: %s\n", inTypeInfo.GetTypeName(), targetWorldLayerIter->first.c_str());
 
 		// Create default EntityType object through common creation API and assign the entity's owning world layer
-		eastl::shared_ptr<CommonAncestorEntityType> defaultEntityObject = inTypeInfo.CreateDefaultObject<CommonAncestorEntityType>(this);
+		eastl::shared_ptr<CommonAncestorEntityType> defaultEntityObject = CreateDefaultObject<CommonAncestorEntityType>(inTypeInfo, this);
 		
 		targetWorldLayerIter->second.AddEntityToLayer(defaultEntityObject);
 
 		defaultEntityObject->SetOwningWorldLayer(targetWorldLayerIter->second);
 
-		defaultEntityObject->PostInitializeComponents();
+		defaultEntityObject->PostInitialize();
 	
-		defaultEntityObject->OnBeginPlay();
+		defaultEntityObject->BeginPlay();
 
 		return defaultEntityObject;
 	}
@@ -126,7 +126,7 @@ namespace MAD
 		LOG(LogDefault, Log, "Spawning deferred Entity of type %s at Layer: %s\n", inTypeInfo.GetTypeName(), targetWorldLayerIter->first.c_str());
 
 		// Create default EntityType object through common creation API and assign the entity's owning world layer
-		eastl::shared_ptr<CommonAncestorEntityType> defaultEntityObject = inTypeInfo.CreateDefaultObject<CommonAncestorEntityType>(this);
+		eastl::shared_ptr<CommonAncestorEntityType> defaultEntityObject = CreateDefaultObject<CommonAncestorEntityType>(inTypeInfo, this);;
 
 		defaultEntityObject->SetOwningWorldLayer(targetWorldLayerIter->second);
 

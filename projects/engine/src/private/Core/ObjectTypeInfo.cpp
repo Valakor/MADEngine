@@ -9,11 +9,23 @@ namespace MAD
 
 	TypeID TTypeInfo::s_currentTypeID = 0;
 	eastl::string_hash_map<const TTypeInfo*> TTypeInfo::s_typeNameToTypeInfoMap;
+	eastl::hash_map<TypeID, const TTypeInfo*> TTypeInfo::s_typeIDToTypeInfoMap;
 
 	const TTypeInfo* TTypeInfo::GetTypeInfo(const eastl::string& inTypeName)
 	{
 		auto iter = s_typeNameToTypeInfoMap.find(inTypeName.c_str());
 		if (iter == s_typeNameToTypeInfoMap.end())
+		{
+			return nullptr;
+		}
+
+		return iter->second;
+	}
+
+	const TTypeInfo* TTypeInfo::GetTypeInfo(TypeID inTypeID)
+	{
+		auto iter = s_typeIDToTypeInfoMap.find(inTypeID);
+		if (iter == s_typeIDToTypeInfoMap.end())
 		{
 			return nullptr;
 		}
@@ -39,5 +51,6 @@ namespace MAD
 	{
 		MAD_ASSERT_DESC(s_typeNameToTypeInfoMap.find(inTypeName) == s_typeNameToTypeInfoMap.end(), "A TTypeInfo can only be registered once");
 		s_typeNameToTypeInfoMap.insert(inTypeName, this);
+		s_typeIDToTypeInfoMap.insert({ m_typeID, this });
 	}
 }

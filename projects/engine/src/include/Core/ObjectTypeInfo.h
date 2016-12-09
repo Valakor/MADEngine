@@ -5,12 +5,13 @@
 #include <EASTL/string_hash_map.h>
 
 #include "Core/ComponentPriorityInfo.h"
+#include "Misc/Assert.h"
 
 namespace MAD
 {
 	class OGameWorld;
 
-	using TypeID = uint32_t;
+	using TypeID = uint16_t;
 
 	class TTypeInfo
 	{
@@ -18,6 +19,7 @@ namespace MAD
 		using CreationFunction_t = eastl::shared_ptr<class UObject> (*) (OGameWorld*);
 	public:
 		static const TTypeInfo* GetTypeInfo(const eastl::string& inTypeName);
+		static const TTypeInfo* GetTypeInfo(TypeID inTypeID);
 		static void DumpTypeInfo();
 
 		TTypeInfo(const TTypeInfo* inParent, const char* inTypeName, CreationFunction_t inCreationFunc);
@@ -31,6 +33,7 @@ namespace MAD
 	private:
 		static TypeID s_currentTypeID;
 		static eastl::string_hash_map<const TTypeInfo*> s_typeNameToTypeInfoMap;
+		static eastl::hash_map<TypeID, const TTypeInfo*> s_typeIDToTypeInfoMap;
 
 		const CreationFunction_t m_creationFunction;
 		const char* const m_typeName;
@@ -154,6 +157,26 @@ namespace MAD
 		return false;
 	}
 
+	template <typename IsAToClass>
+	bool IsA(const TTypeInfo& inIsAFromClassTypeInfo)
+	{
+		// Iterate up the TTypeInfo tree of the IsAFromClass until you find IsAToClass's TTypeInfo or we reach null
+		const TTypeInfo* const targetTypeInfo = IsAToClass::StaticClass();
+		const TTypeInfo* currentTypeInfo = &inIsAFromClassTypeInfo;
+
+		while (currentTypeInfo)
+		{
+			if (currentTypeInfo == targetTypeInfo)
+			{
+				return true;
+			}
+
+			currentTypeInfo = currentTypeInfo->GetParent();
+		}
+
+		return false;
+	}
+
 	template <typename CastToClass, typename CastFromClass>
 	const CastToClass* Cast(const CastFromClass* inInitialObjectPtr)
 	{
@@ -178,6 +201,22 @@ namespace MAD
 		{
 			return nullptr;
 		}
+	}
+#pragma endregion
+
+#pragma region Object Creation
+	template <typename ObjectType>
+	eastl::shared_ptr<ObjectType> CreateDefaultObject(OGameWorld* inOwningGameWorld)
+	{
+		const TTypeInfo* objectTypeInfo = ObjectType::StaticClass();
+		return objectTypeInfo->CreateDefaultObject<ObjectType>(inOwningGameWorld);
+	}
+
+	template <typename ObjectType>
+	eastl::shared_ptr<ObjectType> CreateDefaultObject(const TTypeInfo& inTypeInfo, OGameWorld* inOwningGameWorld)
+	{
+		MAD_ASSERT_DESC(IsA<ObjectType>(inTypeInfo), "Given type info must be a derived class of ObjectType");
+		return inTypeInfo.CreateDefaultObject<ObjectType>(inOwningGameWorld);
 	}
 #pragma endregion
 }

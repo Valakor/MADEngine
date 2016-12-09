@@ -15,22 +15,26 @@ namespace MAD
 	class OGameWorld;
 	class OGameWorldLayer;
 
+	using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
+	using ConstComponentContainer = eastl::vector<eastl::weak_ptr<const UComponent>>;
+
 	class AEntity : public UObject
 	{
 		MAD_DECLARE_ACTOR(AEntity, UObject)
 	public:
-		using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
-		using ConstComponentContainer = eastl::vector<eastl::weak_ptr<const UComponent>>;
-	public:
 		explicit AEntity(OGameWorld* inOwningWorld);
 		virtual ~AEntity() {}
 
-		virtual void OnBeginPlay() {}
-		virtual void PostInitializeComponents();
+		void PostInitialize();
+		void BeginPlay();
+
+		virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override;
+
+		virtual void OnEvent(EEventTypes inEventType, void* inEventData) override;
 
 		bool AttachEntity(eastl::shared_ptr<AEntity> inChildEntity);
 
-		void Destroy();
+		virtual void Destroy() override;
 		bool IsPendingForKill() const { return m_isPendingForKill; }
 	
 		const ULinearTransform& GetWorldTransform() const;
@@ -46,6 +50,9 @@ namespace MAD
 		UComponent* GetRootComponent() const { return m_rootComponent.get(); }
 		void GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const;
 		void GetEntityComponents(ComponentContainer& inOutEntityComponents);
+		eastl::weak_ptr<const UComponent> GetEntityComponentByIndex(size_t inIndex) const { return m_entityComponents[inIndex]; }
+		eastl::weak_ptr<UComponent> GetEntityComponentByIndex(size_t inIndex) { return m_entityComponents[inIndex]; }
+
 		size_t GetComponentCount() const { return m_entityComponents.size(); }
 
 		// Gets the first component of the input type. Returns weak_ptr because external users shouldn't maintain strong references
@@ -71,6 +78,9 @@ namespace MAD
 
 		void PrintTranslationHierarchy() const;
 	protected:
+		virtual void PostInitializeComponents() {}
+		virtual void OnBeginPlay() {}
+
 		// Component creation API
 		// WARNING: Currently, entities should only add components to themselves within their constructors because they're only registered to the component updater
 		// as a progress of the entity construction process. If you try to add components outside of the constructor, they will not update.
@@ -114,7 +124,7 @@ namespace MAD
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
-		eastl::shared_ptr<ComponentType> newComponent = inTypeInfo.CreateDefaultObject<ComponentType>(GetOwningWorld());
+		eastl::shared_ptr<ComponentType> newComponent = CreateDefaultObject<ComponentType>(inTypeInfo, GetOwningWorld());;
 
 		newComponent->SetOwningEntity(*this);
 		

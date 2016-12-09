@@ -6,11 +6,11 @@ namespace MAD
 {
 	struct SCameraInstance
 	{
+		// Assume perspective for now
 		float m_verticalFOV;
 		float m_nearPlaneDistance;
 		float m_farPlaneDistance;
-		DirectX::SimpleMath::Matrix m_viewMatrix;
-		DirectX::SimpleMath::Matrix m_projectionMatrix;
-		DirectX::SimpleMath::Matrix m_viewProjectionMatrix;
+		float m_exposure;
+		ULinearTransform m_transform;
 	};
 }

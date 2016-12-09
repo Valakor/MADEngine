@@ -287,8 +287,6 @@ namespace MAD
 			g_d3dDeviceContext->Flush();
 		}
 
-		g_dxgiSwapChain->SetFullscreenState(FALSE, nullptr);
-
 		g_dxgiSwapChain.Reset();
 		g_d3dDeviceContext.Reset();
 		g_d3dDevice.Reset();
@@ -779,10 +777,10 @@ namespace MAD
 		return bufferId;
 	}
 
-	SBufferId UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize) const
+	SBufferId UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags, UINT inCPUAccessFlags) const
 	{
 		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial vertex data");
-		return CreateBuffer(inData, inDataSize, D3D11_USAGE_IMMUTABLE, D3D11_BIND_VERTEX_BUFFER, 0);
+		return CreateBuffer(inData, inDataSize, inUsageFlags, D3D11_BIND_VERTEX_BUFFER, inCPUAccessFlags);
 	}
 
 	SBufferId UGraphicsDriver::CreateIndexBuffer(const void* inData, UINT inDataSize) const
@@ -1045,4 +1043,44 @@ namespace MAD
 		renderTarget->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(inName.size()), inName.data());
 	}
 #endif
+
+	void UGraphicsDriver::DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax)
+	{
+		enum ESubscreenVert
+		{
+			TOP_LEFT_VERT,
+			TOP_RIGHT_VERT,
+			BOTTOM_RIGHT_VERT,
+			BOTTOM_LEFT_VERT,
+			VERT_CORNER_MAX
+		};
+
+		static eastl::vector<Vector3> SubscreenQuadVerts = { { -1.0f, 1.0f, 0.0f },{ 1.0f, 1.0f, 0.0f },{ 1.0f, -1.0f, 0.0f },{ -1.0f, -1.0f, 0.0f } };
+		static const eastl::vector<uint16_t> SubscreenQuadIndices = { 0, 3, 1, 1, 3, 2 };
+		static SBufferId SubscreenVertexBuffer = CreateVertexBuffer(SubscreenQuadVerts.data(), static_cast<UINT>(SubscreenQuadVerts.size() * sizeof(Vector3)), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		static SBufferId SubscreenIndexBuffer = CreateIndexBuffer(SubscreenQuadIndices.data(), static_cast<UINT>(SubscreenQuadIndices.size() * sizeof(uint16_t)));
+
+		static SInputLayoutId PosInputLayout = UInputLayoutCache::GetInputLayout(UInputLayoutCache::GetFlagForSemanticName("POSITION"));
+		static SRasterizerStateId SubscreenRasterState = CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
+		static SDepthStencilStateId SubscreenDepthState = CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+
+		Vector3 subscreenVerts[VERT_CORNER_MAX];
+
+		subscreenVerts[TOP_RIGHT_VERT] = Vector3(inNDCQuadMax.x, inNDCQuadMax.y, 0.0f);
+		subscreenVerts[BOTTOM_LEFT_VERT] = Vector3(inNDCQuadMin.x, inNDCQuadMin.y, 0.0f);
+		subscreenVerts[TOP_LEFT_VERT] = Vector3(subscreenVerts[BOTTOM_LEFT_VERT].x, subscreenVerts[BOTTOM_LEFT_VERT].y + (subscreenVerts[TOP_RIGHT_VERT].y - subscreenVerts[BOTTOM_LEFT_VERT].y), 0.0f);
+		subscreenVerts[BOTTOM_RIGHT_VERT] = Vector3(subscreenVerts[TOP_RIGHT_VERT].x, subscreenVerts[TOP_RIGHT_VERT].y - (subscreenVerts[TOP_RIGHT_VERT].y - subscreenVerts[BOTTOM_LEFT_VERT].y), 0.0f);
+
+		UpdateBuffer(SubscreenVertexBuffer, subscreenVerts, sizeof(subscreenVerts));
+
+		SetDepthStencilState(SubscreenDepthState, 0);
+		SetRasterizerState(SubscreenRasterState);
+		SetInputLayout(PosInputLayout);
+		SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		SetIndexBuffer(SubscreenIndexBuffer, 0);
+		SetVertexBuffer(SubscreenVertexBuffer, EVertexBufferSlot::Position, sizeof(Vector3), 0);
+
+		DrawIndexed(static_cast<int>(SubscreenQuadIndices.size()), 0, 0);
+	}
+
 }

@@ -16,8 +16,8 @@ namespace MAD
 		{
 			Position	= 1 << 0,
 			Normal		= 1 << 1,
-			UV			= 1 << 2,
-			Tangent		= 1 << 3,
+			Tangent		= 1 << 2,
+			UV			= 1 << 3,
 
 			INVALID		= 0
 		};

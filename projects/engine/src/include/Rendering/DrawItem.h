@@ -6,8 +6,8 @@
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/VertexArray.h"
-#include "Rendering/RenderPassProgram.h"
 #include "Rendering/InputLayoutCache.h"
+#include "Rendering/Mesh.h"
 
 namespace MAD
 {
@@ -15,7 +15,11 @@ namespace MAD
 	{
 		SDrawItem();
 
-		void Draw(class UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), SRasterizerStateId inRasterStateOverride = SRasterizerStateId()) const;
+		void Draw(class UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), SRasterizerStateId inRasterStateOverride = SRasterizerStateId());
+
+		// Used for renderer state ping-ponging for interpolating state
+		size_t m_uniqueID;
+		ULinearTransform* m_previousDrawTransform;
 
 		eastl::vector<UVertexArray> m_vertexBuffers;
 		UINT m_vertexBufferOffset;
@@ -23,6 +27,8 @@ namespace MAD
 		SBufferId m_indexBuffer;
 		UINT m_indexOffset;
 		UINT m_indexCount;
+
+		ULinearTransform m_transform;
 
 		eastl::vector<eastl::pair<EConstantBufferSlot, eastl::pair<const void*, UINT>>> m_constantBufferData;
 		eastl::vector<eastl::pair<ETextureSlot, SShaderResourceId>> m_shaderResources;

@@ -14,13 +14,14 @@
 
 // TESTING
 #include "Core/Character.h"
-#include "Rendering/Mesh.h"
 #include "Core/CameraComponent.h"
 #include "Core/MeshComponent.h"
 #include "Core/LightComponent.h"
 #include "Core/DirectionalLightComponent.h"
 #include "Core/PointLightComponent.h"
 #include "Core/TestCharacters.h"
+
+#include "Networking/NetworkState.h"
 
 using eastl::string;
 
@@ -71,15 +72,25 @@ namespace MAD
 		{
 			UObject::StaticClass();
 			OGameWorld::StaticClass();
+
 			AEntity::StaticClass();
 			ACharacter::StaticClass();
-			UComponent::StaticClass();
 
+			UComponent::StaticClass();
 			CCameraComponent::StaticClass();
 			CMeshComponent::StaticClass();
 			CLightComponent::StaticClass();
 			CDirectionalLightComponent::StaticClass();
 			CPointLightComponent::StaticClass();
+			CMoveComponent::StaticClass();
+
+			Test::APointLightBullet::StaticClass();
+			Test::ADemoCharacter::StaticClass();
+
+			Test::CTimedDeathComponent::StaticClass();
+			Test::CPointLightBulletComponent::StaticClass();
+			Test::CDemoCharacterController::StaticClass();
+			Test::CSinMoveComponent::StaticClass();
 		}
 	}
 
@@ -88,9 +99,10 @@ namespace MAD
 	UGameEngine::UGameEngine()
 		: bContinue(true)
 		, m_isSimulating(false)
-	    , mGameTime(0.0)
-	    , mFrameTime(0.0)
-	    , mFrameAccumulator(0.0) { }
+		, m_gameTick(0)
+		, mGameTime(0.0)
+		, mFrameTime(0.0)
+		, mFrameAccumulator(0.0) { }
 
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
@@ -130,6 +142,12 @@ namespace MAD
 			return false;
 		}
 
+		// Init networking manager
+		if (!m_NetworkManager.Init())
+		{
+			return false;
+		}
+
 		// Start the FrameTimer
 		mFrameTimer = eastl::make_shared<UFrameTimer>();
 		mFrameTimer->Start();
@@ -146,6 +164,8 @@ namespace MAD
 	{
 		// In the future, update defaults by configuration file
 		TEMPInitializeGameContext();
+
+		//TEMPSerializeObject();
 
 		//TEMPTestTransformHierarchy();
 
@@ -165,6 +185,10 @@ namespace MAD
 
 	UGameEngine::~UGameEngine()
 	{
+		m_NetworkManager.Shutdown();
+
+		m_worlds.clear();
+
 		mGameInstance->OnShutdown();
 		mGameInstance = nullptr;
 
@@ -175,6 +199,32 @@ namespace MAD
 
 		LOG(LogGameEngine, Log, "Engine shutdown complete\n");
 		ULog::Get().Shutdown();
+	}
+
+	eastl::shared_ptr<OGameWorld> UGameEngine::GetWorld(const string& inWorldName)
+	{
+		eastl::shared_ptr<OGameWorld> world;
+
+		for (auto w : m_worlds)
+		{
+			if (w->GetWorldName() == inWorldName)
+			{
+				return w;
+			}
+		}
+
+		return nullptr;
+	}
+
+	eastl::shared_ptr<OGameWorld> UGameEngine::GetWorld(size_t inIndex)
+	{
+		if (inIndex >= m_worlds.size())
+		{
+			LOG(LogGameEngine, Warning, "World with index '%i' does not exist\n", inIndex);
+			return nullptr;
+		}
+
+		return m_worlds[inIndex];
 	}
 
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
@@ -197,6 +247,16 @@ namespace MAD
 			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
 			.RegisterEvent("RightClick", VK_RBUTTON)
 			.RegisterEvent("Reset", 'R')
+			.Finalize(false);
+
+		SControlScheme("DemoCharacter")
+			.RegisterAxis("Vertical", VK_SPACE, VK_SHIFT)
+			.RegisterAxis("Horizontal", 'D', 'A')
+			.RegisterAxis("Forward", 'W', 'S')
+			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
+			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
+			.RegisterEvent("Shoot", VK_LBUTTON)
+			.RegisterEvent("MouseMode", 'M')
 			.Finalize(true);
 
 		SControlScheme& debugScheme = SControlScheme("Debug")
@@ -221,7 +281,41 @@ namespace MAD
 		m_worlds.clear();
 
 		UGameWorldLoader loader;
-		loader.LoadWorld("engine\\worlds\\default_world.json");
+		//loader.LoadWorld("engine\\worlds\\default_world.json");
+		loader.LoadWorld("engine\\worlds\\sponza_world.json");
+	}
+
+	void UGameEngine::TEMPSerializeObject()
+	{
+		eastl::shared_ptr<OGameWorld> defaultWorld = m_worlds[0];
+
+		MAD_ASSERT_DESC(defaultWorld != nullptr, "Error: The first default world needs to be created!\n");
+
+		auto networkedEntity = defaultWorld->SpawnEntity<MAD::Test::ANetworkedEntity>();
+
+		if (networkedEntity)
+		{
+			eastl::vector<uint8_t> serializationBuffer;
+			eastl::vector<uint8_t> deserializationBuffer;
+
+			networkedEntity->m_networkedFloat = 5.0f;
+			networkedEntity->m_networkedUInt = 1337;
+
+			// Create a network state to view this networked entity
+			UNetworkState activeNetworkState;
+
+			activeNetworkState.TargetObject(networkedEntity.get(), true);
+
+			networkedEntity->m_networkedFloat = -1.0f;
+			networkedEntity->m_networkedUInt = 0xdeadbeef;
+
+			// Simulate serialization of the entity data
+			activeNetworkState.SerializeState(serializationBuffer, false);
+
+			deserializationBuffer = serializationBuffer;
+
+			activeNetworkState.SerializeState(deserializationBuffer, true);
+		}
 	}
 
 	void UGameEngine::TEMPTestTransformHierarchy()
@@ -250,13 +344,20 @@ namespace MAD
 
 		mFrameAccumulator += frameTime;
 
-		int steps = eastl::min(static_cast<int>(floor(mFrameAccumulator / TARGET_DELTA_TIME)), MAX_SIMULATION_STEPS);
+		int steps = eastl::min(static_cast<int>(mFrameAccumulator / TARGET_DELTA_TIME), MAX_SIMULATION_STEPS);
 		mFrameAccumulator -= steps * TARGET_DELTA_TIME;
 
 		while (steps > 0)
 		{
+			// Update current game tick
+			m_gameTick++;
+			MAD_ASSERT_DESC(m_gameTick != 0, "Game tick overflow detected");
+
 			// Clear the old draw items
 			mRenderer->ClearRenderItems();
+
+			// Recieve from the network
+			m_NetworkManager.PreTick();
 
 			// Tick native message queue
 			UGameWindow::PumpMessageQueue();
@@ -271,20 +372,22 @@ namespace MAD
 			// Tick the pre-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				currentWorld->UpdatePrePhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePrePhysics(TARGET_DELTA_TIME);
 			}
 
 			//// Update the physics world
 			m_physicsWorld->SimulatePhysics();
 
-
 			//// Tick the post-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
-				currentWorld->UpdatePostPhysics(static_cast<float>(TARGET_DELTA_TIME));
+				currentWorld->UpdatePostPhysics(TARGET_DELTA_TIME);
 			}
 
 			m_isSimulating = false;
+
+			// Send to the network
+			m_NetworkManager.PostTick();
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
 			for (auto& currentWorld : m_worlds)

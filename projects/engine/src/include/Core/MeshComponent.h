@@ -9,15 +9,22 @@ namespace MAD
 {
 	class CMeshComponent : public UComponent
 	{
-		MAD_DECLARE_PRIORITIZED_COMPONENT(CMeshComponent, UComponent, EPriorityLevelReference::EPriorityLevel_Physics + 1)
+		MAD_DECLARE_PRIORITIZED_COMPONENT(CMeshComponent, UComponent, EPriorityLevelReference::EPriorityLevel_Physics + 100)
 	public:
 		explicit CMeshComponent(OGameWorld* inOwningWorld);
 		
 		virtual void Load(const UGameWorldLoader& inLoader) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
+
+		bool LoadFrom(const eastl::string& inAssetName);
+
+		bool IsVisible() const { return m_meshInstance.m_bVisible; }
+		void SetVisible(bool inIsVisible) { m_meshInstance.m_bVisible = inIsVisible; }
+
+		static size_t MakeDrawItemID(size_t inMeshObjectID, size_t inDrawItemIdx);
 	
 	private:
-		void ConstructDrawItem();
+		void ConstructDrawItem() const;
 	private:
 		SMeshInstance m_meshInstance;
 	};

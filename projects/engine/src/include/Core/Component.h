@@ -18,7 +18,15 @@ namespace MAD
 
 		virtual ~UComponent() { }
 
-		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; };
+		virtual void PostInitializeComponents() {}
+		virtual void OnBeginPlay() {}
+
+		virtual void UpdateComponent(float inDeltaTime) { (void)inDeltaTime; }
+
+		bool IsActive() const { return m_isActive; }
+		void SetActive(bool inIsActive) { m_isActive = inIsActive; }
+
+		virtual void Destroy() override;
 
 		void AttachComponent(eastl::shared_ptr<UComponent> inChildComponent);
 		
@@ -51,6 +59,7 @@ namespace MAD
 		void UpdateChildWorldTransforms();
 	private:
 		AEntity* m_owningEntity;
+		bool m_isActive;
 	
 		UComponent* m_parentComponent;
 

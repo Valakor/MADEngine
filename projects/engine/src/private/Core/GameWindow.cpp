@@ -194,6 +194,20 @@ namespace MAD
 		return{ rect.right - rect.left, rect.bottom - rect.top };
 	}
 
+	eastl::string UGameWindow::GetWindowName() const
+	{
+		wchar_t title[128];
+		GetWindowTextW(hWnd, title, 128);
+
+		return utf8util::UTF8FromUTF16(title);
+	}
+
+	void UGameWindow::SetWindowName(const eastl::string& inWindowName)
+	{
+		auto wWindowName = utf8util::UTF16FromUTF8(inWindowName);
+		SetWindowTextW(hWnd, wWindowName.c_str());
+	}
+
 	//
 	//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 	//
@@ -225,9 +239,10 @@ namespace MAD
 			break;
 		}
 
-		case WM_LBUTTONDOWN:
-		case WM_MBUTTONDOWN:
-		case WM_RBUTTONDOWN:
+		case WM_LBUTTONDOWN: UGameInput::Get().OnKeyDown(VK_LBUTTON, false); break;
+		case WM_MBUTTONDOWN: UGameInput::Get().OnKeyDown(VK_MBUTTON, false); break;
+		case WM_RBUTTONDOWN: UGameInput::Get().OnKeyDown(VK_RBUTTON, false); break;
+
 		case WM_KEYDOWN:
 		{
 			// For key events (i.e. game input)
@@ -292,20 +307,17 @@ namespace MAD
 			break;
 		}
 
-		case WM_LBUTTONUP:
-		case WM_MBUTTONUP:
-		case WM_RBUTTONUP:
+		case WM_LBUTTONUP: UGameInput::Get().OnKeyUp(VK_LBUTTON); break;
+		case WM_MBUTTONUP: UGameInput::Get().OnKeyUp(VK_MBUTTON); break;
+		case WM_RBUTTONUP: UGameInput::Get().OnKeyUp(VK_RBUTTON); break;
+
 		case WM_KEYUP:
 		{
 			// For key events (i.e. game input)
-			auto key = static_cast<UINT>(wParam);
-
-			if (message == WM_LBUTTONUP) key = MK_LBUTTON;
-			else if (message == WM_MBUTTONUP) key = MK_MBUTTON;
-			else if (message == WM_RBUTTONUP) key = MK_RBUTTON;
+			//auto key = static_cast<UINT>(wParam);
 
 			// Send character to input event system
-			UGameInput::Get().OnKeyUp(key);
+			UGameInput::Get().OnKeyUp(wParam);
 			break;
 		}
 
@@ -330,12 +342,12 @@ namespace MAD
 				if (wParam == SIZE_MINIMIZED)
 				{
 					s_bIsMinimized = true;
-					// TODO Probably suspend render/simulation loop?
+					// TODO Suspend render loop
 				}
 				else if (s_bIsMinimized)
 				{
 					s_bIsMinimized = false;
-					// TODO Probably resume render/simulation loop
+					// TODO Resume render loop
 				}
 				else if (!s_bIsResizing)
 				{

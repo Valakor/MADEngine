@@ -33,6 +33,14 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	int3 texCoord = int3(input.mPos.xy, 0);
 
+	float3 sampleColor = g_lightingBuffer.Load(texCoord).rgb;
+
+	// Exposure tone mapping
+	float3 finalColor = 1.0f - exp(-sampleColor * g_cameraExposure);
+
+	// Reinhard tone mapping
+	//float3 finalColor = sampleColor / (sampleColor + 1.0f);
+
 	// TODO This is where we would do HDR, tonemapping, etc.
-	return float4(saturate(g_lightingBuffer.Load(texCoord).xyz), 1.0f);
+	return float4(finalColor, 1.0f);
 }

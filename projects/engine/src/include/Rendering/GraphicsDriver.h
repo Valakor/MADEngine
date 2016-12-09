@@ -22,7 +22,7 @@ namespace MAD
 
 		// Don't use this directly, use the AssetCache interface, e.g.
 		//     AssetCache.Load<UTexture>(...);
-		SShaderResourceId CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB = true, bool inGenerateMips = true) const;
+		SShaderResourceId CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const;
 		
 		bool CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines = nullptr);
 
@@ -38,7 +38,7 @@ namespace MAD
 		SRasterizerStateId CreateDepthRasterizerState() const;
 		SBlendStateId CreateBlendState(bool inEnableBlend) const;
 
-		SBufferId CreateVertexBuffer(const void* inData, UINT inDataSize) const;
+		SBufferId CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags = D3D11_USAGE_IMMUTABLE, UINT inCPUAccessFlags = 0) const;
 		SBufferId CreateIndexBuffer(const void* inData, UINT inDataSize) const;
 
 		void UpdateBuffer(EConstantBufferSlot inSlot, const void* inData, size_t inDataSize) const;
@@ -72,6 +72,8 @@ namespace MAD
 #ifdef _DEBUG
 		void SetDebugName_RenderTarget(SRenderTargetId inRenderTarget, const eastl::string& inName) const;
 #endif
+
+		void DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax);
 
 	private:
 		void CreateBackBufferRenderTargetView();

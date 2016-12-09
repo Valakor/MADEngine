@@ -35,13 +35,16 @@ namespace MAD
 	class URenderPassProgram
 	{
 	public:
+		/*
+		* Loads a program at the given path. The path should be relative to the assets root directory. Internally uses a cache
+		* to ensure programs are only loaded and compiled once
+		*/
+		static eastl::shared_ptr<URenderPassProgram> Load(const eastl::string& inRelativePath);
+
 		static const eastl::string& ConvertShaderTypeToString(EProgramShaderType inShaderType);
 		static EProgramShaderType ConvertStringToShaderType(const eastl::string& inShaderTypeString);
 	public:
 		bool SetProgramActive(class UGraphicsDriver& inGraphicsDriver, ProgramId_t inTargetProgramId) const;
-	private:
-		friend class UAssetCache;
-		static eastl::shared_ptr<URenderPassProgram> Load(const eastl::string& inPath);
 	private:
 		static const eastl::hash_map<eastl::string, EProgramShaderType> s_entryPointToShaderTypeMap;
 	private:

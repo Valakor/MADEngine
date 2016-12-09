@@ -1,9 +1,5 @@
 #include "Core/FrameTimer.h"
 
-#include <SDKDDKVer.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 namespace MAD
 {
 	double Now()

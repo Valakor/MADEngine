@@ -1,9 +1,15 @@
 #pragma once
 
 #include <fstream>
+#include <EASTL/internal/config.h>
 
 namespace MAD
 {
+#define MAD_ENABLE_LOGGING 0
+#if _DEBUG | DEBUG | MAD_ENABLE_LOGGING
+#define MAD_DO_LOGGING 1
+#endif
+
 	enum class ELogVerbosity
 	{
 		Log,
@@ -50,22 +56,24 @@ namespace MAD
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
-#ifdef _DEBUG
-#define LOG(Category, Verbosity, Format, ...) \
-	ULog::Get().LogF(Category, ELogVerbosity::Verbosity, __FILENAME__, __LINE__, Format, __VA_ARGS__); \
-	__pragma(warning(push)) \
-	__pragma(warning(disable:4127)) \
-	if (ELogVerbosity::Verbosity == ELogVerbosity::Error) __debugbreak(); \
-	__pragma(warning(pop)) \
-	(void)0
+#if MAD_DO_LOGGING
+#define LOG(Category, Verbosity, Format, ...)																\
+	do																										\
+	{																										\
+		ULog::Get().LogF(Category, ELogVerbosity::Verbosity, __FILENAME__, __LINE__, Format, __VA_ARGS__);	\
+		__pragma(warning(push))																				\
+		__pragma(warning(disable:4127))																		\
+		if (ELogVerbosity::Verbosity == ELogVerbosity::Error) EASTL_DEBUG_BREAK();							\
+		__pragma(warning(pop))																				\
+	} while (0)
 #else
 #define LOG(...) (void)0
 #endif
 
-#define DECLARE_LOG_CATEGORY(LogCategoryName) \
-	static struct SLogCategory##LogCategoryName : public MAD::SLogCategory \
-	{ \
-		SLogCategory##LogCategoryName() : SLogCategory(#LogCategoryName) { } \
+#define DECLARE_LOG_CATEGORY(LogCategoryName)									\
+	static struct SLogCategory##LogCategoryName : public MAD::SLogCategory		\
+	{																			\
+		SLogCategory##LogCategoryName() : SLogCategory(#LogCategoryName) { }	\
 	} LogCategoryName
 
 	DECLARE_LOG_CATEGORY(LogDefault);

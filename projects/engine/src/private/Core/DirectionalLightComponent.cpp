@@ -14,15 +14,12 @@ namespace MAD
 		m_directionalLight.m_gpuDirectionalLight.m_lightIntensity = 1.0f;
 	}
 
-	void CDirectionalLightComponent::UpdateComponent(float inDeltaTime)
+	void CDirectionalLightComponent::UpdateComponent(float)
 	{
-		(void)inDeltaTime;
-		// TODO Update transform properly
-
 		if (m_directionalLight.m_isLightEnabled)
 		{
 			URenderer& targetRenderer = gEngine->GetRenderer();
-			targetRenderer.QueueDirectionalLight(m_directionalLight.m_gpuDirectionalLight);
+			targetRenderer.QueueDirectionalLight(GetObjectID(), m_directionalLight.m_gpuDirectionalLight);
 		}
 	}
 

@@ -10,8 +10,15 @@ namespace MAD
 	UComponent::UComponent(OGameWorld* inOwningWorld)
 		: Super(inOwningWorld)
 		, m_owningEntity(nullptr)
-		, m_parentComponent(nullptr)
-	{}
+		, m_isActive(true)
+		, m_parentComponent(nullptr) {}
+
+	void UComponent::Destroy()
+	{
+		Super::Destroy();
+
+		m_isActive = false;
+	}
 
 	void UComponent::AttachComponent(eastl::shared_ptr<UComponent> inChildComponent)
 	{
@@ -66,11 +73,8 @@ namespace MAD
 
 		if (m_parentComponent)
 		{
-			// childLTranslation + parentWTranslation = inTranslation
-			// childLTranslation = inTranslation - parentWTranslation
-			// childLTranslation is the relative translation from it's parent that the child needs to achieve a world translation of inTranslation
-
-			adjustedLocalTranslation = inTranslation - m_parentComponent->m_componentWorldTransform.GetTranslation();
+			// Find the delta between the target position and the current position and apply that to our local position to move ourselves
+			adjustedLocalTranslation += (inTranslation - m_componentWorldTransform.GetTranslation());
 		}
 
 		SetRelativeTranslation(adjustedLocalTranslation);
@@ -125,7 +129,7 @@ namespace MAD
 		// If a component doesn't have a parent, it's local transform is equal to it's world transform
 		if (m_parentComponent)
 		{
-			m_componentWorldTransform = m_componentLocalTransform * m_parentComponent->m_componentWorldTransform;
+			m_componentWorldTransform = ULinearTransform::TransformRelative(m_componentLocalTransform, m_parentComponent->m_componentWorldTransform);
 		}
 		else
 		{

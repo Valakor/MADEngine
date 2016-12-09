@@ -2,16 +2,17 @@
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/Renderer.h"
 #include "Core/GameEngine.h"
-#include "Misc/ProgramPermutor.h"
 
 namespace MAD
 {
-	SDrawItem::SDrawItem(): m_vertexBufferOffset(0)
+	SDrawItem::SDrawItem(): m_uniqueID(0)
+	                      , m_previousDrawTransform(nullptr)
+	                      , m_vertexBufferOffset(0)
 	                      , m_indexOffset(0)
 	                      , m_indexCount(0)
 	                      , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED) { }
 
-	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, SRasterizerStateId inRasterStateOverride) const
+	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, SRasterizerStateId inRasterStateOverride)
 	{
 		InputLayoutFlags_t inputLayout = 0;
 		for (const auto& vertexBuffer : m_vertexBuffers)
@@ -26,23 +27,29 @@ namespace MAD
 
 		inGraphicsDriver.SetIndexBuffer(m_indexBuffer, m_indexOffset);
 
+		SPerDrawConstants perDrawConstants;
+
+		if (m_previousDrawTransform)
+		{
+			// Do interpolation
+			ULinearTransform interpedTransform = ULinearTransform::Lerp(*m_previousDrawTransform, m_transform, inFramePercent);
+			perDrawConstants.m_objectToWorldMatrix = interpedTransform.GetMatrix();
+		}
+		else
+		{
+			perDrawConstants.m_objectToWorldMatrix = m_transform.GetMatrix();
+		}
+
+		perDrawConstants.m_objectToViewMatrix = perDrawConstants.m_objectToWorldMatrix * inPerFrameConstants.m_cameraViewMatrix;
+		perDrawConstants.m_objectToProjectionMatrix = perDrawConstants.m_objectToWorldMatrix * inPerFrameConstants.m_cameraViewProjectionMatrix;
+		inGraphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDraw, &perDrawConstants, sizeof(perDrawConstants));
+
 		if (inBindMaterialProperties)
 		{
 			for (const auto& cBufferData : m_constantBufferData)
 			{
-				if (cBufferData.first == EConstantBufferSlot::PerDraw)
-				{
-					auto perDraw = *reinterpret_cast<const SPerDrawConstants*>(cBufferData.second.first);
-					auto& perFrame = gEngine->GetRenderer().GetCameraConstants();
-
-					perDraw.m_objectToViewMatrix = perDraw.m_objectToWorldMatrix * perFrame.m_cameraViewMatrix;
-					perDraw.m_objectToProjectionMatrix = perDraw.m_objectToWorldMatrix * perFrame.m_cameraViewProjectionMatrix;
-					inGraphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDraw, &perDraw, cBufferData.second.second);
-				}
-				else
-				{
-					inGraphicsDriver.UpdateBuffer(cBufferData.first, cBufferData.second.first, cBufferData.second.second);
-				}
+				MAD_ASSERT_DESC(cBufferData.first != EConstantBufferSlot::PerDraw, "PerDraw constants are always updated and shouldn't be here");
+				inGraphicsDriver.UpdateBuffer(cBufferData.first, cBufferData.second.first, cBufferData.second.second);
 			}
 
 			for (const auto& textureData : m_shaderResources)

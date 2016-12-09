@@ -1,9 +1,5 @@
 #include "Misc/Logging.h"
 
-#include <SDKDDKVer.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #include <EASTL/string.h>
 
 #include "Core/GameEngine.h"
@@ -32,7 +28,7 @@ namespace MAD
 
 	void ULog::Init()
 	{
-#ifdef _DEBUG
+#if MAD_DO_LOGGING
 		if (SParse::Find(SCmdLine::Get(), "-Log"))
 		{
 			AllocConsole();
@@ -67,6 +63,10 @@ namespace MAD
 
 	void ULog::LogF(const SLogCategory& inCategory, ELogVerbosity inVerbosity, const char* inFilename, int inLine, const char* inFormat, ...)
 	{
+#if !MAD_DO_LOGGING
+		(void)inCategory; (void)inVerbosity; (void)inFilename; (void)inLine; (void)inFormat;
+		return;
+#else
 		static char outBuf[2048];
 		HANDLE handle = nullptr;
 
@@ -131,5 +131,6 @@ namespace MAD
 			mLogFile << outWide.c_str();
 			mLogFile.flush();
 		}
+#endif
 	}
 }
