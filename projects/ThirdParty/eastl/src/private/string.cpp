@@ -8,6 +8,33 @@
 #include <EABase/eabase.h>
 #include <string.h>
 
+///////////////////////////////////////////////////////////////////////////////
+// Vsnprintf
+//
+// Implementations of the Vsnprintf functions declared in string.h. Copy of:
+// https://github.com/electronicarts/EASTL/blob/master/test/packages/EAStdC/source/EASprintf.cpp
+//
+namespace EA
+{
+	namespace StdC
+	{
+		// Provided by the EAStdC package or by the user.
+		EASTL_EASTDC_API int Vsnprintf(char8_t*  EA_RESTRICT pDestination, size_t n, const char8_t*  EA_RESTRICT pFormat, va_list arguments)
+			{ return vsnprintf(pDestination, n, pFormat, arguments); }
+
+		EASTL_EASTDC_API int Vsnprintf(char16_t* EA_RESTRICT pDestination, size_t n, const char16_t* EA_RESTRICT pFormat, va_list arguments)
+			{ return vswprintf((wchar_t*)pDestination, n, (wchar_t*)pFormat, arguments); }
+
+		EASTL_EASTDC_API int Vsnprintf(char32_t* EA_RESTRICT pDestination, size_t n, const char32_t* EA_RESTRICT pFormat, va_list arguments)
+			{ return vswprintf((wchar_t*)pDestination, n, (wchar_t*)pFormat, arguments); }
+
+#if defined(EA_WCHAR_UNIQUE) && EA_WCHAR_UNIQUE
+		EASTL_EASTDC_API int Vsnprintf(wchar_t* EA_RESTRICT pDestination, size_t n, const wchar_t* EA_RESTRICT pFormat, va_list arguments)
+			{ return vswprintf(pDestination, n, pFormat, arguments); }
+#endif
+	}
+}
+///////////////////////////////////////////////////////////////////////////////
 
 namespace eastl
 {
