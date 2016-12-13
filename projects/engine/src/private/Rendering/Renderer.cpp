@@ -285,6 +285,8 @@ namespace MAD
 	{
 		static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+		g_graphicsDriver.StartEventGroup(L"Clear render targets and depth");
+
 		g_graphicsDriver.ClearDepthStencil(m_gBufferPassDescriptor.m_depthStencilView, true, 1.0f);
 
 		// Clear the light accumulation buffer to the screen clear color
@@ -296,6 +298,8 @@ namespace MAD
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
 			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
 		}
+
+		g_graphicsDriver.EndEventGroup();
 	}
 
 	void URenderer::Draw(float inFramePercent)
@@ -313,6 +317,7 @@ namespace MAD
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 		// Go through each draw item and bind input assembly data
+		g_graphicsDriver.StartEventGroup(L"Draw scene to GBuffer");
 		for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
 		{
 			// Before processing the draw item, we need to determine which program it should use and bind that
@@ -321,14 +326,19 @@ namespace MAD
 			// Each individual DrawItem should issue its own draw call
 			currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
 		}
+		g_graphicsDriver.EndEventGroup();
 
 		if (m_visualizeOption != EVisualizeOptions::None)
 		{
+			g_graphicsDriver.StartEventGroup(L"Visualize GBuffer");
 			DoVisualizeGBuffer();
+			g_graphicsDriver.EndEventGroup();
 			return;
 		}
 
 		// Do directional lighting
+		g_graphicsDriver.StartEventGroup(L"Accumulate deferred directional lighting");
+
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
 		m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DiffuseBuffer);
@@ -336,9 +346,12 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DepthBuffer);
 
+		int i = 0;
 		SGPUDirectionalLight directionalLightConstants;
 		for (const auto& currentDirLight : m_queuedDirLights[m_currentStateIndex])
 		{
+			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Directional light #%d", ++i));
+
 			// Interpolate the light's properties
 			const auto previousDirLight = m_queuedDirLights[1 - m_currentStateIndex].find(currentDirLight.first);
 			if (previousDirLight != m_queuedDirLights[1 - m_currentStateIndex].end())
@@ -355,6 +368,7 @@ namespace MAD
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &directionalLightConstants, sizeof(SGPUDirectionalLight));
 
 			// Render shadow map
+			g_graphicsDriver.StartEventGroup(L"Draw scene to shadow map");
 			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
@@ -366,21 +380,31 @@ namespace MAD
 				currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
 
+			g_graphicsDriver.EndEventGroup();
+
 			// Shading + lighting
 			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::ShadowMap);
 			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 			DrawFullscreenQuad();
+
+			g_graphicsDriver.EndEventGroup();
 		}
+		g_graphicsDriver.EndEventGroup();
 
 		// Do point lighting
+		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
+
 		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
+		i = 0;
 		SGPUPointLight pointLightConstants;
 		for (const auto& currentPointLight : m_queuedPointLights[m_currentStateIndex])
 		{
+			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Point light #%d", ++i));
+
 			// Interpolate the light's properties
 			const auto previousPointLight = m_queuedPointLights[1 - m_currentStateIndex].find(currentPointLight.first);
 			if (previousPointLight != m_queuedPointLights[1 - m_currentStateIndex].end())
@@ -422,7 +446,10 @@ namespace MAD
 
 			// Light quad extents are in NDC
 			g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
+
+			g_graphicsDriver.EndEventGroup();
 		}
+		g_graphicsDriver.EndEventGroup();
 	}
 
 	void URenderer::EndFrame()
@@ -435,6 +462,8 @@ namespace MAD
 			loadedBackBufferProgram = true;
 		}
 
+		g_graphicsDriver.StartEventGroup(L"Copy lighting accumulation to back buffer");
+
 		// Copy the finalized linear lighting buffer to the back buffer
 		// This (will) perform HDR lighting corrections and already performs gamma correction
 		g_graphicsDriver.SetRenderTargets(&m_backBuffer, 1, nullptr);
@@ -443,6 +472,8 @@ namespace MAD
 		backBufferProgram->SetProgramActive(g_graphicsDriver, 0);
 
 		DrawFullscreenQuad();
+
+		g_graphicsDriver.EndEventGroup();
 
 		g_graphicsDriver.Present();
 	}

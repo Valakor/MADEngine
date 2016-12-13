@@ -63,11 +63,12 @@ namespace MAD
 
 	namespace
 	{
-		HWND							g_nativeWindowHandle = nullptr;
+		HWND								g_nativeWindowHandle = nullptr;
 
-		ComPtr<ID3D11Device2>			g_d3dDevice;
-		ComPtr<ID3D11DeviceContext2>	g_d3dDeviceContext;
-		ComPtr<IDXGISwapChain2>			g_dxgiSwapChain;
+		ComPtr<ID3D11Device2>				g_d3dDevice;
+		ComPtr<ID3D11DeviceContext2>		g_d3dDeviceContext;
+		ComPtr<ID3DUserDefinedAnnotation>	g_d3dEvent;
+		ComPtr<IDXGISwapChain2>				g_dxgiSwapChain;
 
 		// Constant configuration
 		const UINT g_swapChainBufferCount = 3;
@@ -118,6 +119,12 @@ namespace MAD
 			g_d3dDeviceContext.Reset();
 			hr = d3dDeviceContext0.As(&g_d3dDeviceContext);
 			HR_ASSERT_SUCCESS(hr, "Failed to get device context as D3d 11_2");
+
+#ifdef _DEBUG
+			g_d3dEvent.Reset();
+			hr = g_d3dDeviceContext.As(&g_d3dEvent);
+			HR_ASSERT_SUCCESS(hr, "Failed to get debug event interface");
+#endif
 		}
 
 		void CreateSwapChain(HWND inWindow)
@@ -1083,4 +1090,25 @@ namespace MAD
 		DrawIndexed(static_cast<int>(SubscreenQuadIndices.size()), 0, 0);
 	}
 
+	void UGraphicsDriver::StartEventGroup(const eastl::wstring& inName)
+	{
+#ifdef _DEBUG
+		if (g_d3dEvent)
+		{
+			g_d3dEvent->BeginEvent(inName.c_str());
+		}
+#else
+		(void)inName;
+#endif
+	}
+
+	void UGraphicsDriver::EndEventGroup()
+	{
+#ifdef _DEBUG
+		if (g_d3dEvent)
+		{
+			g_d3dEvent->EndEvent();
+		}
+#endif
+	}
 }

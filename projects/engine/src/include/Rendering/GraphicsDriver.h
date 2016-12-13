@@ -73,6 +73,9 @@ namespace MAD
 		void SetDebugName_RenderTarget(SRenderTargetId inRenderTarget, const eastl::string& inName) const;
 #endif
 
+		void StartEventGroup(const eastl::wstring& inName);
+		void EndEventGroup();
+
 		void DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax);
 
 	private:
