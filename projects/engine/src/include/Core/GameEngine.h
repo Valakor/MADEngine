@@ -44,18 +44,18 @@ namespace MAD
 
 		bool IsSimulating() const { return m_isSimulating; }
 		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
-		float GetFrameTime() const { return static_cast<float>(mFrameTime); }
-		float GetGameTime() const { return static_cast<float>(mGameTime); }
-		double GetGameTimeDouble() const { return mGameTime; }
+		float GetFrameTime() const { return static_cast<float>(m_frameTime); }
+		float GetGameTime() const { return static_cast<float>(m_gameTime); }
+		double GetGameTimeDouble() const { return m_gameTime; }
 		uint32_t GetGameTick() const { return m_gameTick; }
 
 		eastl::shared_ptr<class OGameWorld> GetWorld(const eastl::string& inWorldName);
 		eastl::shared_ptr<class OGameWorld> GetWorld(size_t inIndex);
 
-		class URenderer& GetRenderer() const { return *mRenderer; }
-		class UGameWindow& GetWindow() const { return *mGameWindow; }
+		class URenderer& GetRenderer() const { return *m_renderer; }
+		class UGameWindow& GetWindow() const { return *m_gameWindow; }
 		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
-		UNetworkManager& GetNetworkManager() { return m_NetworkManager; }
+		UNetworkManager& GetNetworkManager() { return m_networkManager; }
 	private:
 		void TEMPInitializeGameContext();
 		void TEMPTestTransformHierarchy();
@@ -68,21 +68,21 @@ namespace MAD
 
 		void Tick();
 
-		bool bContinue;
+		bool m_bContinue;
 		bool m_isSimulating;
 
 		uint32_t m_gameTick; // Enough bits for 19,884 hours of gameplay @ 60Hz simulation
-		double mGameTime;
-		double mFrameTime;
-		double mFrameAccumulator;
+		double m_gameTime;
+		double m_frameTime;
+		double m_frameAccumulator;
 
 		eastl::vector<eastl::shared_ptr<class OGameWorld>> m_worlds;
-		eastl::shared_ptr<class UFrameTimer> mFrameTimer;
-		eastl::shared_ptr<class UGameInstance> mGameInstance;
-		eastl::shared_ptr<class UGameWindow> mGameWindow;
+		eastl::shared_ptr<class UFrameTimer> m_frameTimer;
+		eastl::shared_ptr<class UGameInstance> m_gameInstance;
+		eastl::shared_ptr<class UGameWindow> m_gameWindow;
 		eastl::shared_ptr<class UPhysicsWorld> m_physicsWorld;
-		eastl::shared_ptr<class URenderer> mRenderer;
-		UNetworkManager m_NetworkManager;
+		eastl::shared_ptr<class URenderer> m_renderer;
+		UNetworkManager m_networkManager;
 	};
 
 	template <typename WorldType>

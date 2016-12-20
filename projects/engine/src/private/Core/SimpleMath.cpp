@@ -47,7 +47,6 @@ namespace MAD
 		return ret;
 	}
 
-	// Transform the relative transform by the parent transform, moving the relative transform into the same space as the parent transform
 	ULinearTransform ULinearTransform::TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform)
 	{
 		ULinearTransform resultTransform;
@@ -55,6 +54,7 @@ namespace MAD
 		resultTransform.m_scale = inRelativeTransform.m_scale * inParentTransform.m_scale;
 		resultTransform.m_rotation = inRelativeTransform.m_rotation * inParentTransform.m_rotation;
 
+		// Since the rotation is relative to the parent, we need to transform it into the space of the parent transform, before translating the parent by the relative translation
 		Vector3 t = Vector3::Transform(inRelativeTransform.m_translation, inParentTransform.m_rotation);
 		resultTransform.m_translation = t + inParentTransform.m_translation;
 

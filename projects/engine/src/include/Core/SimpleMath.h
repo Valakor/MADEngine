@@ -67,8 +67,24 @@ namespace MAD
 
 		static ULinearTransform Lerp(const ULinearTransform& a, const ULinearTransform& b, float t); // Both transforms must be in the same space
 
-		static ULinearTransform TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform); // Transform is in this transforms local space
-		static ULinearTransform TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB); // Transform is in the same space
+		/*
+			inRelativeTransform - Relative (local) transform to the transform space of inParentTransform
+			inParentTransform - Parent transform of inRelativeTransform
+
+			Calculates the transform that results from transforming inParentTransform by inRelativeTransform
+		*/
+		static ULinearTransform TransformRelative(const ULinearTransform& inRelativeTransform, const ULinearTransform& inParentTransform);
+
+		/*
+			inAbsoluteTransformA - First absolute transform
+			inAbsoluteTransformB - Second absolute transform
+
+			**** WARNING ****
+			Assumes that that inAbsoluteTransformA and inAbsoluteTransformB are in the same transform space
+
+			Calculates the transform that results from transforming inAbsoluteTransformA by inAbsoluteTransformB
+		*/
+		static ULinearTransform TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB);
 	private:
 		void UpdateCachedTransform();
 	private:

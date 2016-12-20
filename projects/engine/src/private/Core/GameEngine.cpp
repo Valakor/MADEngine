@@ -97,12 +97,12 @@ namespace MAD
 	UGameEngine* gEngine = nullptr;
 
 	UGameEngine::UGameEngine()
-		: bContinue(true)
+		: m_bContinue(true)
 		, m_isSimulating(false)
 		, m_gameTick(0)
-		, mGameTime(0.0)
-		, mFrameTime(0.0)
-		, mFrameAccumulator(0.0) { }
+		, m_gameTime(0.0)
+		, m_frameTime(0.0)
+		, m_frameAccumulator(0.0) { }
 
 	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
 	{
@@ -119,8 +119,8 @@ namespace MAD
 		LOG(LogGameEngine, Log, "Commandline: %s\n", SCmdLine::Get().c_str());
 
 		// Create a window
-		mGameWindow = eastl::make_shared<UGameWindow>();
-		if (!UGameWindow::CreateGameWindow(inGameName, inWindowWidth, inWindowHeight, *mGameWindow))
+		m_gameWindow = eastl::make_shared<UGameWindow>();
+		if (!UGameWindow::CreateGameWindow(inGameName, inWindowWidth, inWindowHeight, *m_gameWindow))
 		{
 			return false;
 		}
@@ -129,8 +129,8 @@ namespace MAD
 		gEngine = this;
 
 		// Init renderer
-		mRenderer = eastl::make_shared<URenderer>();
-		if (!mRenderer->Init(*mGameWindow))
+		m_renderer = eastl::make_shared<URenderer>();
+		if (!m_renderer->Init(*m_gameWindow))
 		{
 			return false;
 		}
@@ -143,18 +143,18 @@ namespace MAD
 		}
 
 		// Init networking manager
-		if (!m_NetworkManager.Init())
+		if (!m_networkManager.Init())
 		{
 			return false;
 		}
 
 		// Start the FrameTimer
-		mFrameTimer = eastl::make_shared<UFrameTimer>();
-		mFrameTimer->Start();
+		m_frameTimer = eastl::make_shared<UFrameTimer>();
+		m_frameTimer->Start();
 
 		// Create the GameInstance
-		mGameInstance = eastl::make_shared<UGameInstance>();
-		mGameInstance->OnStartup();
+		m_gameInstance = eastl::make_shared<UGameInstance>();
+		m_gameInstance->OnStartup();
 
 		LOG(LogGameEngine, Log, "Engine initialization successful\n");
 		return true;
@@ -169,33 +169,33 @@ namespace MAD
 
 		//TEMPTestTransformHierarchy();
 
-		while (bContinue)
+		while (m_bContinue)
 		{
 			Tick();
 		}
 
-		mGameWindow->CaptureCursor(false);
+		m_gameWindow->CaptureCursor(false);
 	}
 
 	void UGameEngine::Stop()
 	{
 		LOG(LogGameEngine, Log, "Engine stopping...\n");
-		bContinue = false;
+		m_bContinue = false;
 	}
 
 	UGameEngine::~UGameEngine()
 	{
-		m_NetworkManager.Shutdown();
+		m_networkManager.Shutdown();
 
 		m_worlds.clear();
 
-		mGameInstance->OnShutdown();
-		mGameInstance = nullptr;
+		m_gameInstance->OnShutdown();
+		m_gameInstance = nullptr;
 
-		mRenderer->Shutdown();
-		mRenderer = nullptr;
+		m_renderer->Shutdown();
+		m_renderer = nullptr;
 
-		mGameWindow = nullptr;
+		m_gameWindow = nullptr;
 
 		LOG(LogGameEngine, Log, "Engine shutdown complete\n");
 		ULog::Get().Shutdown();
@@ -338,14 +338,14 @@ namespace MAD
 
 	void UGameEngine::Tick()
 	{
-		auto now = mFrameTimer->TimeSinceStart();
-		auto frameTime = now - mGameTime;
-		mGameTime = now;
+		auto now = m_frameTimer->TimeSinceStart();
+		auto frameTime = now - m_gameTime;
+		m_gameTime = now;
 
-		mFrameAccumulator += frameTime;
+		m_frameAccumulator += frameTime;
 
-		int steps = eastl::min(static_cast<int>(mFrameAccumulator / TARGET_DELTA_TIME), MAX_SIMULATION_STEPS);
-		mFrameAccumulator -= steps * TARGET_DELTA_TIME;
+		int steps = eastl::min(static_cast<int>(m_frameAccumulator / TARGET_DELTA_TIME), MAX_SIMULATION_STEPS);
+		m_frameAccumulator -= steps * TARGET_DELTA_TIME;
 
 		while (steps > 0)
 		{
@@ -354,10 +354,10 @@ namespace MAD
 			MAD_ASSERT_DESC(m_gameTick != 0, "Game tick overflow detected");
 
 			// Clear the old draw items
-			mRenderer->ClearRenderItems();
+			m_renderer->ClearRenderItems();
 
 			// Recieve from the network
-			m_NetworkManager.PreTick();
+			m_networkManager.PreTick();
 
 			// Tick native message queue
 			UGameWindow::PumpMessageQueue();
@@ -387,7 +387,7 @@ namespace MAD
 			m_isSimulating = false;
 
 			// Send to the network
-			m_NetworkManager.PostTick();
+			m_networkManager.PostTick();
 
 			// Perform clean up on each of the worlds before we perform any updating (i.e in case entities are pending for kill)
 			for (auto& currentWorld : m_worlds)
@@ -399,9 +399,9 @@ namespace MAD
 		}
 
 		// How far we are along in this frame
-		float framePercent = static_cast<float>(mFrameAccumulator / TARGET_DELTA_TIME);
+		float framePercent = static_cast<float>(m_frameAccumulator / TARGET_DELTA_TIME);
 
 		// Tick renderer
-		mRenderer->Frame(framePercent);
+		m_renderer->Frame(framePercent);
 	}
 }
