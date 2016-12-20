@@ -77,7 +77,7 @@ namespace MAD
 		void EndEventGroup();
 
 		void DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax);
-
+		void DrawFullscreenQuad();
 	private:
 		void CreateBackBufferRenderTargetView();
 		void RegisterInputLayout(ID3DBlob* inTargetBlob);

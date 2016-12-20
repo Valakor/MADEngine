@@ -1090,6 +1090,14 @@ namespace MAD
 		DrawIndexed(static_cast<int>(SubscreenQuadIndices.size()), 0, 0);
 	}
 
+	void UGraphicsDriver::DrawFullscreenQuad()
+	{
+		const Vector4 fullscreenQuadMin(-1.0f, -1.0f, 0.0, 1.0f);
+		const Vector4 fullscreenQuadMax(1.0f, 1.0f, 0.0f, 1.0f);
+
+		DrawSubscreenQuad(fullscreenQuadMin, fullscreenQuadMax);
+	}
+
 	void UGraphicsDriver::StartEventGroup(const eastl::wstring& inName)
 	{
 #ifdef _DEBUG
