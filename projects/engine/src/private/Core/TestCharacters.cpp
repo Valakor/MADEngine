@@ -6,7 +6,7 @@ namespace MAD
 {
 	namespace Test
 	{
-		ASpatialCharacter::ASpatialCharacter(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+		ASpatialCharacter::ASpatialCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 		{
 			auto spatialComponent = AddComponent<CSpatialComponent>();
 			auto childSpatialComponent = AddComponent<CSpatialComponent>();

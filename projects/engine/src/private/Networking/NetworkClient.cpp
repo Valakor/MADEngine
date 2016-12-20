@@ -40,7 +40,7 @@ namespace MAD
 		m_transport->WritePackets();
 	}
 
-	eastl::weak_ptr<ONetworkPlayer> UNetworkClient::GetPlayerByID(NetworkPlayerID inID) const
+	eastl::weak_ptr<ONetworkPlayer> UNetworkClient::GetPlayerByID(NetworkPlayerID_t inID) const
 	{
 		auto iter = m_players.find(inID);
 		return (iter != m_players.end()) ? iter->second : nullptr;
@@ -249,7 +249,7 @@ namespace MAD
 		targetObject->second.Object->OnEvent(message.m_eventType, message.m_eventData.data());
 	}
 
-	void UNetworkClient::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer)
+	void UNetworkClient::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID_t inPlayerID, bool inIsLocalPlayer)
 	{
 		MAD_ASSERT_DESC(m_players.find(inPlayerID) == m_players.end(), "Cannot assign a player to an already mapped playerID");
 
@@ -296,14 +296,14 @@ namespace MAD
 		SetPlayerID(localPlayer, InvalidPlayerID, true);
 	}
 
-	void UNetworkClient::OnRemotePlayerConnected(NetworkPlayerID inNewPlayerID)
+	void UNetworkClient::OnRemotePlayerConnected(NetworkPlayerID_t inNewPlayerID)
 	{
 		LOG(LogNetworkClient, Log, "[OnRemotePlayerConnected] Remote player connected with ID %d\n", inNewPlayerID);
 		auto newPlayer = CreateDefaultObject<ONetworkPlayer>(nullptr);
 		SetPlayerID(newPlayer, inNewPlayerID, false);
 	}
 
-	void UNetworkClient::OnRemotePlayerDisconnected(NetworkPlayerID inPlayerID)
+	void UNetworkClient::OnRemotePlayerDisconnected(NetworkPlayerID_t inPlayerID)
 	{
 		MAD_ASSERT_DESC(m_localPlayer.expired() || m_localPlayer.lock()->GetPlayerID() != inPlayerID, "The remote disconnected player cannot be this local player");
 

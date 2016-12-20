@@ -17,18 +17,18 @@ namespace MAD
 	// that all TransformComponents will update before all CameraComponents
 	struct SComponentPriorityBlock
 	{
-		using ComponentContainer = eastl::vector<eastl::shared_ptr<UComponent>>;
+		using ComponentContainer_t = eastl::vector<eastl::shared_ptr<UComponent>>;
 
-		explicit SComponentPriorityBlock(TypeID inComponentTypeID = eastl::numeric_limits<TypeID>::max()) : m_blockComponentTypeID(inComponentTypeID) {}
+		explicit SComponentPriorityBlock(TypeID_t inComponentTypeID = eastl::numeric_limits<TypeID_t>::max()) : m_blockComponentTypeID(inComponentTypeID) {}
 
-		TypeID m_blockComponentTypeID;
-		ComponentContainer m_blockComponents;
+		TypeID_t m_blockComponentTypeID;
+		ComponentContainer_t m_blockComponents;
 	};
 
 	class UComponentUpdater
 	{
 	public:
-		using ComponentContainer = eastl::multimap<PriorityLevel, SComponentPriorityBlock>;
+		using ComponentContainer = eastl::multimap<PriorityLevel_t, SComponentPriorityBlock>;
 
 		friend class AEntity;
 	public:

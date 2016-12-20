@@ -14,14 +14,14 @@ namespace MAD
 	{
 		MAD_DECLARE_CLASS(UPhysicsWorld, UObject)
 	public:
-		using PhysicsBody = CPhysicsComponent;
-		using PhysicsBodyWeakPtr = eastl::weak_ptr<PhysicsBody>;
-		using PhysicsComponentContainer = eastl::vector<PhysicsBodyWeakPtr>;
+		using PhysicsBody_t = CPhysicsComponent;
+		using PhysicsBodyWeakPtr_t = eastl::weak_ptr<PhysicsBody_t>;
+		using PhysicsComponentContainer_t = eastl::vector<PhysicsBodyWeakPtr_t>;
 	public:
 		explicit UPhysicsWorld(OGameWorld* inOwningWorld);
 
 		void SimulatePhysics();
 	private:
-		PhysicsComponentContainer m_physicsComponents;
+		PhysicsComponentContainer_t m_physicsComponents;
 	};
 }

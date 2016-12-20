@@ -11,14 +11,14 @@ namespace MAD
 	public:
 		ONetworkPlayer(OGameWorld* inOwningWorld);
 
-		NetworkPlayerID GetPlayerID() const { return m_playerID; }
-		void SetPlayerID(NetworkPlayerID inPlayerID) { m_playerID = inPlayerID; }
+		NetworkPlayerID_t GetPlayerID() const { return m_playerID; }
+		void SetPlayerID(NetworkPlayerID_t inPlayerID) { m_playerID = inPlayerID; }
 
 		bool IsLocalPlayer() const { return m_isLocalPlayer; }
 		void SetIsLocalPlayer(bool inIsLocalPlayer) { m_isLocalPlayer = inIsLocalPlayer; }
 
 	private:
-		NetworkPlayerID m_playerID;
+		NetworkPlayerID_t m_playerID;
 		bool m_isLocalPlayer;
 	};
 }

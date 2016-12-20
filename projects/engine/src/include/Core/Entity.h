@@ -15,9 +15,6 @@ namespace MAD
 	class OGameWorld;
 	class OGameWorldLayer;
 
-	using ComponentContainer = eastl::vector<eastl::weak_ptr<UComponent>>;
-	using ConstComponentContainer = eastl::vector<eastl::weak_ptr<const UComponent>>;
-
 	class AEntity : public UObject
 	{
 		MAD_DECLARE_ACTOR(AEntity, UObject)
@@ -48,8 +45,8 @@ namespace MAD
 
 		AEntity* GetParent() const;
 		UComponent* GetRootComponent() const { return m_rootComponent.get(); }
-		void GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const;
-		void GetEntityComponents(ComponentContainer& inOutEntityComponents);
+		void GetEntityComponents(ConstComponentContainer_t& inOutConstEntityComponents) const;
+		void GetEntityComponents(ComponentContainer_t& inOutEntityComponents);
 		eastl::weak_ptr<const UComponent> GetEntityComponentByIndex(size_t inIndex) const { return m_entityComponents[inIndex]; }
 		eastl::weak_ptr<UComponent> GetEntityComponentByIndex(size_t inIndex) { return m_entityComponents[inIndex]; }
 

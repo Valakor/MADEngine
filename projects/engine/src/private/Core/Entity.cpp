@@ -5,7 +5,7 @@
 namespace MAD
 {
 	AEntity::AEntity(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld)
+		: Super_t(inOwningWorld)
 		, m_isPendingForKill(false)
 		, m_owningEntity(nullptr)
 		, m_owningWorldLayer(nullptr)
@@ -58,7 +58,7 @@ namespace MAD
 		// child list
 		DetachFromParent();
 
-		Super::Destroy();
+		Super_t::Destroy();
 	}
 
 	OGameWorld& AEntity::GetWorld()
@@ -80,7 +80,7 @@ namespace MAD
 
 	void AEntity::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const
 	{
-		Super::GetReplicatedProperties(inOutReplInfo);
+		Super_t::GetReplicatedProperties(inOutReplInfo);
 
 		// Replicate any Entity properties (probably none by default?)
 
@@ -93,7 +93,7 @@ namespace MAD
 
 	void AEntity::OnEvent(EEventTypes inEventType, void* inEventData)
 	{
-		Super::OnEvent(inEventType, inEventData);
+		Super_t::OnEvent(inEventType, inEventData);
 
 		for (auto& currentChildComp : m_entityComponents)
 		{
@@ -173,7 +173,7 @@ namespace MAD
 		return nullptr;
 	}
 
-	void AEntity::GetEntityComponents(ConstComponentContainer& inOutConstEntityComponents) const
+	void AEntity::GetEntityComponents(ConstComponentContainer_t& inOutConstEntityComponents) const
 	{
 		for (auto& currentComponent : m_entityComponents)
 		{
@@ -181,7 +181,7 @@ namespace MAD
 		}
 	}
 
-	void AEntity::GetEntityComponents(ComponentContainer& inOutEntityComponents)
+	void AEntity::GetEntityComponents(ComponentContainer_t& inOutEntityComponents)
 	{
 		for (auto& currentComponent : m_entityComponents)
 		{

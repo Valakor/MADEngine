@@ -12,7 +12,7 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogCameraComponent);
 
 	CCameraComponent::CCameraComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld)
+		: Super_t(inOwningWorld)
 	{
 		m_cameraPosInitial = Vector3::Zero;
 		m_cameraRotInitial = Quaternion::Identity;

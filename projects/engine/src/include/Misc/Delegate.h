@@ -1,7 +1,7 @@
 #pragma once
 
 /** 
- * Super-cool C++11 delegates by Matt Pohlmann.
+ * Super_t-cool C++11 delegates by Matt Pohlmann.
  *
  * For functions of the form `int X::Foo(float)` use:
  *     MyClass myObj;
@@ -217,7 +217,7 @@ namespace MAD
 	template <typename ...Params>
 	struct SMulticastDelegateBase
 	{
-		using DelegateType = SDelegate<void, Params...>;
+		using DelegateType_t = SDelegate<void, Params...>;
 
 		SMulticastDelegateBase() = default;
 		SMulticastDelegateBase(SMulticastDelegateBase const&) = default;
@@ -239,7 +239,7 @@ namespace MAD
 		template <class T, void(T::*Function)(Params...)>
 		inline SDelegateHandle BindMember(T* inObj)
 		{
-			auto d = DelegateType::template Create<T, Function>(inObj);
+			auto d = DelegateType_t::template Create<T, Function>(inObj);
 			MAD_ASSERT_DESC(!IsDuplicate(d), "Cannot bind the same function to a multicast delegate more than once.");
 			auto h = HandleGen();
 			mUserFuncs[h.mHandle] = d;
@@ -249,7 +249,7 @@ namespace MAD
 		template <class T, void(T::*Function)(Params...) const>
 		inline SDelegateHandle BindMember(T* inObj)
 		{
-			auto d = DelegateType::template Create<T, Function>(inObj);
+			auto d = DelegateType_t::template Create<T, Function>(inObj);
 			MAD_ASSERT_DESC(!IsDuplicate(d), "Cannot bind the same function to a multicast delegate more than once.");
 			auto h = HandleGen();
 			mUserFuncs[h.mHandle] = d;
@@ -259,14 +259,14 @@ namespace MAD
 		template <void(*Function)(Params...)>
 		inline SDelegateHandle BindStatic()
 		{
-			auto d = DelegateType::template Create<Function>();
+			auto d = DelegateType_t::template Create<Function>();
 			MAD_ASSERT_DESC(!IsDuplicate(d), "Cannot bind the same function to a multicast delegate more than once.");
 			auto h = HandleGen();
 			mUserFuncs[h.mHandle] = d;
 			return h;
 		}
 
-		inline SDelegateHandle BindDelegate(const DelegateType& inDelegate)
+		inline SDelegateHandle BindDelegate(const DelegateType_t& inDelegate)
 		{
 			MAD_ASSERT_DESC(!IsDuplicate(inDelegate), "Cannot bind the same function to a multicast delegate more than once.");
 			auto h = HandleGen();
@@ -313,10 +313,10 @@ namespace MAD
 		}
 
 	protected:
-		eastl::hash_map<SDelegateHandle::HandleType, DelegateType> mUserFuncs;
+		eastl::hash_map<SDelegateHandle::HandleType, DelegateType_t> mUserFuncs;
 
 	protected:
-		bool IsDuplicate(const DelegateType& inDelegate)
+		bool IsDuplicate(const DelegateType_t& inDelegate)
 		{
 			for (const auto& pair : mUserFuncs)
 			{

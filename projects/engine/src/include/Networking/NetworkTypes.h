@@ -14,13 +14,13 @@ namespace MAD
 #define NETWORK_VERBOSE_LOGGING 1
 
 #define serialize_typeID(stream, value) \
-	serialize_int(stream, value, eastl::numeric_limits<TypeID>::min(), eastl::numeric_limits<TypeID>::max())
+	serialize_int(stream, value, eastl::numeric_limits<TypeID_t>::min(), eastl::numeric_limits<TypeID_t>::max())
 
 #define serialize_netID(stream, value) \
 	serialize_int(stream, value.GetUnderlyingHandleRef(), eastl::numeric_limits<SNetworkID::HandleType>::min(), eastl::numeric_limits<SNetworkID::HandleType>::max())
 
 #define serialize_playerNetID(stream, value) \
-	serialize_int(stream, value, -1, eastl::numeric_limits<NetworkPlayerID>::max())
+	serialize_int(stream, value, -1, eastl::numeric_limits<NetworkPlayerID_t>::max())
 
 	const size_t MaxStateUpdateSize = 252; // Needs to be 4 byte aligned for scratch memory in libyojimbo stream
 #define serialize_state(stream, state) \
@@ -60,7 +60,7 @@ namespace MAD
 	{
 		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
 
-		NetworkPlayerID m_playerID;
+		NetworkPlayerID_t m_playerID;
 		bool m_connect;
 
 		MOtherPlayerConnectionChanged()
@@ -84,7 +84,7 @@ namespace MAD
 	{
 		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
 
-		eastl::fixed_vector<NetworkPlayerID, yojimbo::MaxClients, false> m_otherPlayers;
+		eastl::fixed_vector<NetworkPlayerID_t, yojimbo::MaxClients, false> m_otherPlayers;
 
 		MInitializeNewPlayer()
 		{
@@ -117,9 +117,9 @@ namespace MAD
 	{
 		static const int MessageChannel = yojimbo::CHANNEL_TYPE_RELIABLE_ORDERED;
 
-		TypeID m_classTypeID;
+		TypeID_t m_classTypeID;
 		SNetworkID m_objectNetID;
-		NetworkPlayerID m_netOwnerID;
+		NetworkPlayerID_t m_netOwnerID;
 		eastl::string m_worldName;
 		eastl::string m_layerName;
 		eastl::vector<uint8_t> m_networkState;

@@ -27,7 +27,7 @@ namespace MAD
 
 		void DestroyNetworkObject(UObject& inObject);
 
-		void SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer = InvalidPlayerID);
+		void SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID_t inTargetPlayer = InvalidPlayerID);
 
 		template <typename ObjectType>
 		eastl::shared_ptr<ObjectType> SpawnNetworkObject(const UObject* inNetOwnerContext)

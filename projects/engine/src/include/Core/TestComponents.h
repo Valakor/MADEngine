@@ -14,7 +14,7 @@
 	{																			\
 		MAD_DECLARE_COMPONENT(C##TestComponentName, UComponent)					\
 	public:																		\
-		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super(inOwningWorld) {}	\
+		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super_t(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override				\
 		{																		\
 			(void)inDeltaTime;																									\
@@ -31,7 +31,7 @@
 	{																						\
 		MAD_DECLARE_PRIORITIZED_COMPONENT(C##TestComponentName, UComponent, PriorityLevel)			\
 	public:																					\
-		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super(inOwningWorld) {}	\
+		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super_t(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override							\
 		{																					\
 			(void)inDeltaTime;																									\
@@ -71,14 +71,14 @@ namespace MAD
 
 		public:
 			explicit CDemoCharacterController(OGameWorld* inOwningWorld)
-				: Super(inOwningWorld)
+				: Super_t(inOwningWorld)
 				, m_lookSpeed(1.0f)
 				, m_moveSpeed(300.0f)
 			{ }
 
 			virtual void OnBeginPlay() override
 			{
-				Super::OnBeginPlay();
+				Super_t::OnBeginPlay();
 
 				if (GetNetOwner()->IsLocalPlayer())
 				{
@@ -199,7 +199,7 @@ namespace MAD
 			MAD_DECLARE_COMPONENT(CTimedDeathComponent, UComponent)
 
 		public:
-			explicit CTimedDeathComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit CTimedDeathComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			                                                         , m_lifeTime(-1.0f)
 			                                                         , m_lifeTimeOver(FLT_MAX) { }
 
@@ -240,7 +240,7 @@ namespace MAD
 			MAD_DECLARE_COMPONENT(CPointLightBulletComponent, UComponent)
 
 		public:
-			explicit CPointLightBulletComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit CPointLightBulletComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 				, m_nextCycleTime(0)
 				, m_colorIndex(0)
 				, m_lightColor(Color(1, 1, 1))
@@ -257,7 +257,7 @@ namespace MAD
 
 			virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override
 			{
-				Super::GetReplicatedProperties(inOutReplInfo);
+				Super_t::GetReplicatedProperties(inOutReplInfo);
 
 				MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_lightColor, OnRep_LightColor);
 				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, CPointLightBulletComponent, m_position);
@@ -323,7 +323,7 @@ namespace MAD
 		{
 			MAD_DECLARE_COMPONENT(CSinMoveComponent, UComponent)
 		public:
-			explicit CSinMoveComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit CSinMoveComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			                                                      , m_moveSpeed(1.0f)
 			                                                      , m_distance(1.0f) { }
 

@@ -3,5 +3,5 @@
 namespace MAD
 {
 	ACharacter::ACharacter(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) { }
+		: Super_t(inOwningWorld) { }
 }

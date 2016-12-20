@@ -13,7 +13,7 @@ namespace MAD
 
 		const AEntity& owningEntity = inTargetComponent->GetOwningEntity();
 
-		ConstComponentContainer entityComponents;
+		ConstComponentContainer_t entityComponents;
 
 		owningEntity.GetEntityComponents(entityComponents);
 

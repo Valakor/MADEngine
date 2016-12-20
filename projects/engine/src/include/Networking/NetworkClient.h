@@ -22,7 +22,7 @@ namespace MAD
 		eastl::weak_ptr<ONetworkPlayer> GetLocalPlayer() const { return m_localPlayer; }
 
 		size_t GetNumPlayers() const { return m_players.size(); }
-		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;
+		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID_t inID) const;
 
 		void SendNetworkEvent(EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize);
 
@@ -32,7 +32,7 @@ namespace MAD
 		eastl::unique_ptr<UNetworkTransport> m_clientTransport;
 
 		eastl::weak_ptr<ONetworkPlayer> m_localPlayer;
-		eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<ONetworkPlayer>> m_players;
+		eastl::hash_map<NetworkPlayerID_t, eastl::shared_ptr<ONetworkPlayer>> m_players;
 
 		struct UNetObject
 		{
@@ -49,13 +49,13 @@ namespace MAD
 		void HandleDestroyObjectMessage(MDestroyObject& message);
 		void HandleEventMessage(MEvent& message);
 
-		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID, bool inIsLocalPlayer);
+		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID_t inPlayerID, bool inIsLocalPlayer);
 
 		void OnConnected();
 		void OnDisconnected();
 
-		void OnRemotePlayerConnected(NetworkPlayerID inNewPlayerID);
-		void OnRemotePlayerDisconnected(NetworkPlayerID inPlayerID);
+		void OnRemotePlayerConnected(NetworkPlayerID_t inNewPlayerID);
+		void OnRemotePlayerDisconnected(NetworkPlayerID_t inPlayerID);
 
 		void DestroyNetObjectsForRemotePlayer(const ONetworkPlayer& inPlayer);
 

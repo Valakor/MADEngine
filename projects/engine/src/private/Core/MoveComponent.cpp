@@ -6,7 +6,7 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogMoveComponent);
 
 	CMoveComponent::CMoveComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld)
+		: Super_t(inOwningWorld)
 		, m_targetComponent(nullptr)
 		, m_targetScale(0.0f)
 	{
@@ -14,7 +14,7 @@ namespace MAD
 
 	void CMoveComponent::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const
 	{
-		Super::GetReplicatedProperties(inOutReplInfo);
+		Super_t::GetReplicatedProperties(inOutReplInfo);
 
 		MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CMoveComponent, m_targetScale,    OnRep_TargetScale);
 		MAD_ADD_REPLICATION_PROPERTY_CALLBACK(inOutReplInfo, EReplicationType::Always, CMoveComponent, m_targetRotation, OnRep_TargetRotation);

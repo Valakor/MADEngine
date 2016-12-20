@@ -21,13 +21,13 @@ namespace MAD
 		void PostTick();
 
 		size_t GetNumConnectedPlayers() const { return m_players.size(); }
-		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID inID) const;
+		eastl::weak_ptr<ONetworkPlayer> GetPlayerByID(NetworkPlayerID_t inID) const;
 
 		eastl::shared_ptr<UObject> GetNetworkObject(SNetworkID inNetworkID) const;
 
 		void DestroyNetworkObject(UObject& inObject);
 
-		void SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer);
+		void SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID_t inTargetPlayer);
 	
 		eastl::shared_ptr<UObject> SpawnNetworkObject(const TTypeInfo& inTypeInfo, ONetworkPlayer& inNetOwner);
 		eastl::shared_ptr<UObject> SpawnNetworkEntity(const TTypeInfo& inTypeInfo, ONetworkPlayer& inNetOwner, OGameWorld* inOwningGameWorld, const eastl::string& inWorldLayer);
@@ -36,7 +36,7 @@ namespace MAD
 
 		eastl::unique_ptr<UNetworkTransport> m_serverTransport;
 
-		eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<ONetworkPlayer>> m_players;
+		eastl::hash_map<NetworkPlayerID_t, eastl::shared_ptr<ONetworkPlayer>> m_players;
 
 		SNetworkID::HandleType m_nextNetworkID;
 
@@ -44,11 +44,11 @@ namespace MAD
 		{
 			eastl::shared_ptr<UObject> Object;
 			eastl::shared_ptr<UNetworkState> State;
-			eastl::hash_map<NetworkPlayerID, eastl::shared_ptr<UNetworkObjectView>> NetworkViews;
+			eastl::hash_map<NetworkPlayerID_t, eastl::shared_ptr<UNetworkObjectView>> NetworkViews;
 		};
 		eastl::hash_map<SNetworkID, UNetObject> m_netObjects;
 
-		eastl::vector<eastl::pair<UNetObject, TypeID>> m_deferredSpawnMessages;
+		eastl::vector<eastl::pair<UNetObject, TypeID_t>> m_deferredSpawnMessages;
 
 		void SendNetworkStateUpdates();
 
@@ -58,10 +58,10 @@ namespace MAD
 
 		void HandleEventMessage(MEvent& message, const ONetworkPlayer& inPlayer);
 
-		eastl::shared_ptr<ONetworkPlayer> AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID);
-		void RemoveNetworkPlayer(NetworkPlayerID inPlayerID);
+		eastl::shared_ptr<ONetworkPlayer> AddNewNetworkPlayer(NetworkPlayerID_t inNewPlayerID);
+		void RemoveNetworkPlayer(NetworkPlayerID_t inPlayerID);
 
-		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID);
+		void SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID_t inPlayerID);
 
 		// Doesn't spawn on the network immediately, defers until PostTick
 		void NetworkSpawn(eastl::shared_ptr<UObject> inObject, const TTypeInfo& inTypeInfo);

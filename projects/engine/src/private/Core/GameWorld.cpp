@@ -9,7 +9,7 @@ namespace MAD
 	const eastl::string OGameWorld::s_defaultWorldLayerName = "Default_Layer";
 
 	OGameWorld::OGameWorld(OGameWorld* inOwningGameWorld)
-		: Super(inOwningGameWorld)
+		: Super_t(inOwningGameWorld)
 		, m_defaultLayerName(s_defaultWorldLayerName) {}
 
 	OGameWorld::~OGameWorld()

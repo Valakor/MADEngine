@@ -41,7 +41,7 @@ namespace MAD
 		m_serverTransport->WritePackets();
 	}
 
-	eastl::weak_ptr<ONetworkPlayer> UNetworkServer::GetPlayerByID(NetworkPlayerID inID) const
+	eastl::weak_ptr<ONetworkPlayer> UNetworkServer::GetPlayerByID(NetworkPlayerID_t inID) const
 	{
 		auto iter = m_players.find(inID);
 		return (iter != m_players.end()) ? iter->second : nullptr;
@@ -146,14 +146,14 @@ namespace MAD
 		targetObject->second.Object->OnEvent(message.m_eventType, message.m_eventData.data());
 	}
 
-	eastl::shared_ptr<ONetworkPlayer> UNetworkServer::AddNewNetworkPlayer(NetworkPlayerID inNewPlayerID)
+	eastl::shared_ptr<ONetworkPlayer> UNetworkServer::AddNewNetworkPlayer(NetworkPlayerID_t inNewPlayerID)
 	{
 		auto newPlayer = CreateDefaultObject<ONetworkPlayer>(nullptr);
 		SetPlayerID(newPlayer, inNewPlayerID);
 		return newPlayer;
 	}
 
-	void UNetworkServer::RemoveNetworkPlayer(NetworkPlayerID inPlayerID)
+	void UNetworkServer::RemoveNetworkPlayer(NetworkPlayerID_t inPlayerID)
 	{
 		MAD_ASSERT_DESC(m_players.find(inPlayerID) != m_players.end(), "Cannot remove player ID that does not exist in m_players");
 
@@ -166,7 +166,7 @@ namespace MAD
 		m_players.erase(inPlayerID);
 	}
 
-	void UNetworkServer::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID inPlayerID)
+	void UNetworkServer::SetPlayerID(eastl::shared_ptr<ONetworkPlayer> inPlayer, NetworkPlayerID_t inPlayerID)
 	{
 		MAD_ASSERT_DESC(m_players.find(inPlayerID) == m_players.end(), "Cannot assign a player to an already mapped playerID");
 
@@ -271,7 +271,7 @@ namespace MAD
 
 	void UNetworkServer::SendNetObjectsToNewPlayer(const ONetworkPlayer& inPlayer)
 	{
-		NetworkPlayerID playerID = inPlayer.GetPlayerID();
+		NetworkPlayerID_t playerID = inPlayer.GetPlayerID();
 
 		for (auto& pair : m_netObjects)
 		{
@@ -344,7 +344,7 @@ namespace MAD
 		m_netObjects.erase(netObject);
 	}
 
-	void UNetworkServer::SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer)
+	void UNetworkServer::SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID_t inTargetPlayer)
 	{
 		if (inEventTarget == EEventTarget::NetMulticast)
 		{

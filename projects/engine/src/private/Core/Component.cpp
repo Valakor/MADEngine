@@ -8,14 +8,14 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogBaseComponent);
 
 	UComponent::UComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld)
+		: Super_t(inOwningWorld)
 		, m_owningEntity(nullptr)
 		, m_isActive(true)
 		, m_parentComponent(nullptr) {}
 
 	void UComponent::Destroy()
 	{
-		Super::Destroy();
+		Super_t::Destroy();
 
 		m_isActive = false;
 	}

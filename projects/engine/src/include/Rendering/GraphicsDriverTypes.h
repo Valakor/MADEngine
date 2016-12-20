@@ -64,13 +64,13 @@ namespace MAD											\
 	struct name: public SGraphicsObjectId<name, type>	\
 	{													\
 	public:												\
-		name(): Super() { }								\
+		name(): Super_t() { }								\
 	private:											\
-		using Super = SGraphicsObjectId<name, type>;	\
+		using Super_t = SGraphicsObjectId<name, type>;	\
 		friend struct SGraphicsObjectId<name, type>;	\
 		friend struct eastl::hash<name>;				\
 		friend class UGraphicsDriver;					\
-		name(type inId) : Super(inId) { }				\
+		name(type inId) : Super_t(inId) { }				\
 	};													\
 	static_assert(sizeof(name) == sizeof(type), "");	\
 }														\

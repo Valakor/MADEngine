@@ -7,9 +7,9 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogTypeInfo);
 
-	TypeID TTypeInfo::s_currentTypeID = 0;
+	TypeID_t TTypeInfo::s_currentTypeID = 0;
 	eastl::string_hash_map<const TTypeInfo*> TTypeInfo::s_typeNameToTypeInfoMap;
-	eastl::hash_map<TypeID, const TTypeInfo*> TTypeInfo::s_typeIDToTypeInfoMap;
+	eastl::hash_map<TypeID_t, const TTypeInfo*> TTypeInfo::s_typeIDToTypeInfoMap;
 
 	const TTypeInfo* TTypeInfo::GetTypeInfo(const eastl::string& inTypeName)
 	{
@@ -22,7 +22,7 @@ namespace MAD
 		return iter->second;
 	}
 
-	const TTypeInfo* TTypeInfo::GetTypeInfo(TypeID inTypeID)
+	const TTypeInfo* TTypeInfo::GetTypeInfo(TypeID_t inTypeID)
 	{
 		auto iter = s_typeIDToTypeInfoMap.find(inTypeID);
 		if (iter == s_typeIDToTypeInfoMap.end())

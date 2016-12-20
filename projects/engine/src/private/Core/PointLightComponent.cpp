@@ -6,7 +6,7 @@
 namespace MAD
 {
 	CPointLightComponent::CPointLightComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld)
+		: Super_t(inOwningWorld)
 	{
 		m_pointLight.m_isLightEnabled = false;
 		m_pointLight.m_gpuPointLight.m_lightColor = Color(1.0f, 1.0f, 1.0f, 1.0f);

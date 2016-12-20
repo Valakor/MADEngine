@@ -8,7 +8,7 @@
 namespace MAD
 {
 	OGameWorldLayer::OGameWorldLayer(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
+		: Super_t(inOwningWorld) {}
 
 	OGameWorldLayer::~OGameWorldLayer()
 	{
@@ -26,7 +26,7 @@ namespace MAD
 			if (currentEntity->IsPendingForKill())
 			{
 				// Remove the entity's components from the component updater
-				ComponentContainer entityComponents;
+				ComponentContainer_t entityComponents;
 				
 				currentEntity->GetEntityComponents(entityComponents);
 

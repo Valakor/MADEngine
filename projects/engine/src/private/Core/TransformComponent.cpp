@@ -9,7 +9,7 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
 	CTransformComponent::CTransformComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
+		: Super_t(inOwningWorld) {}
 
 	void CTransformComponent::UpdateComponent(float inDeltaTime)
 	{

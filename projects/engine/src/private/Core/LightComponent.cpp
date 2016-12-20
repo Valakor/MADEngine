@@ -6,7 +6,7 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogLightComponent);
 
-	CLightComponent::CLightComponent(OGameWorld* inOwningWorld) : Super(inOwningWorld) {}
+	CLightComponent::CLightComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld) {}
 
 	void CLightComponent::UpdateComponent(float inDeltaTime)
 	{

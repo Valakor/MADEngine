@@ -9,7 +9,7 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogPhysicsWorld);
 
 	UPhysicsWorld::UPhysicsWorld(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
+		: Super_t(inOwningWorld) {}
 
 	void UPhysicsWorld::SimulatePhysics()
 	{

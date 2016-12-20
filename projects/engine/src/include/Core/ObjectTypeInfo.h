@@ -11,7 +11,7 @@ namespace MAD
 {
 	class OGameWorld;
 
-	using TypeID = uint16_t;
+	using TypeID_t = uint16_t;
 
 	class TTypeInfo
 	{
@@ -19,25 +19,25 @@ namespace MAD
 		using CreationFunction_t = eastl::shared_ptr<class UObject> (*) (OGameWorld*);
 	public:
 		static const TTypeInfo* GetTypeInfo(const eastl::string& inTypeName);
-		static const TTypeInfo* GetTypeInfo(TypeID inTypeID);
+		static const TTypeInfo* GetTypeInfo(TypeID_t inTypeID);
 		static void DumpTypeInfo();
 
 		TTypeInfo(const TTypeInfo* inParent, const char* inTypeName, CreationFunction_t inCreationFunc);
 
-		inline TypeID GetTypeID() const { return m_typeID; }
+		inline TypeID_t GetTypeID() const { return m_typeID; }
 		inline const TTypeInfo* GetParent() const { return m_parent; }
 		inline const char* GetTypeName() const { return m_typeName; }
 
 		template <typename ObjectType> 
 		eastl::shared_ptr<ObjectType> CreateDefaultObject(OGameWorld* inOwningGameWorld) const { return eastl::static_shared_pointer_cast<ObjectType>(m_creationFunction(inOwningGameWorld)); } // Default create an object
 	private:
-		static TypeID s_currentTypeID;
+		static TypeID_t s_currentTypeID;
 		static eastl::string_hash_map<const TTypeInfo*> s_typeNameToTypeInfoMap;
-		static eastl::hash_map<TypeID, const TTypeInfo*> s_typeIDToTypeInfoMap;
+		static eastl::hash_map<TypeID_t, const TTypeInfo*> s_typeIDToTypeInfoMap;
 
 		const CreationFunction_t m_creationFunction;
 		const char* const m_typeName;
-		const TypeID m_typeID;
+		const TypeID_t m_typeID;
 		const TTypeInfo* const m_parent;
 	};
 
@@ -79,7 +79,7 @@ namespace MAD
 		}																							\
 																									\
 	private:																						\
-		using Super = ParentClass;																	\
+		using Super_t = ParentClass;																\
 
 // Actor specific macro definitions on top of base MAD class macro definitions
 #define MAD_DECLARE_ACTOR(ClassName, ParentClass)							\

@@ -10,6 +10,9 @@ namespace MAD
 {
 	class AEntity;
 
+	using ComponentContainer_t = eastl::vector<eastl::weak_ptr<class UComponent>>;
+	using ConstComponentContainer_t = eastl::vector<eastl::weak_ptr<const class UComponent>>;
+
 	class UComponent : public UObject
 	{
 		MAD_DECLARE_BASE_COMPONENT(UComponent, UObject)

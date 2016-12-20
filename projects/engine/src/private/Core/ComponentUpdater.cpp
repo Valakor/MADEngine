@@ -23,8 +23,8 @@ namespace MAD
 		{
 			// Get the priority level of the component
 			UComponentPriorityInfo* componentPriorityInfo = inTargetComponent->GetPriorityInfo();
-			const TypeID componentTypeID = inTargetComponent->GetTypeInfo()->GetTypeID();
-			const PriorityLevel componentPriorityLevel = componentPriorityInfo->GetPriorityLevel(); // WARNING: Assumes that priority levels are not being changed after a component is added. Priority levels should only be changed before main loop begins
+			const TypeID_t componentTypeID = inTargetComponent->GetTypeInfo()->GetTypeID();
+			const PriorityLevel_t componentPriorityLevel = componentPriorityInfo->GetPriorityLevel(); // WARNING: Assumes that priority levels are not being changed after a component is added. Priority levels should only be changed before main loop begins
 
 			auto priorityLevelFindIter = m_componentPriorityBlocks.equal_range(componentPriorityLevel);
 
@@ -33,7 +33,7 @@ namespace MAD
 				if (priorityLevelFindIter.first->second.m_blockComponentTypeID == componentTypeID)
 				{
 					// Found the priority block for the target component to be deleted. We just need to delete it now
-					SComponentPriorityBlock::ComponentContainer& targetComponentContainer = priorityLevelFindIter.first->second.m_blockComponents;
+					SComponentPriorityBlock::ComponentContainer_t& targetComponentContainer = priorityLevelFindIter.first->second.m_blockComponents;
 
 					targetComponentContainer.erase(eastl::remove(targetComponentContainer.begin(), targetComponentContainer.end(), inTargetComponent), targetComponentContainer.end());
 
@@ -95,8 +95,8 @@ namespace MAD
 
 	void UComponentUpdater::RegisterComponent(eastl::shared_ptr<UComponent> inNewComponentPtr)
 	{
-		const PriorityLevel componentPriorityLevel = inNewComponentPtr->GetPriorityInfo()->GetPriorityLevel();
-		const TypeID componentTypeID = inNewComponentPtr->GetTypeInfo()->GetTypeID();
+		const PriorityLevel_t componentPriorityLevel = inNewComponentPtr->GetPriorityInfo()->GetPriorityLevel();
+		const TypeID_t componentTypeID = inNewComponentPtr->GetTypeInfo()->GetTypeID();
 
 		auto priorityBlockFindIter = m_componentPriorityBlocks.equal_range(componentPriorityLevel);
 

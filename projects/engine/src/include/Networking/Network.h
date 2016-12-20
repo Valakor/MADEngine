@@ -11,8 +11,9 @@ namespace MAD
 #define SERVER_DEFAULT_LISTEN_PORT 6000
 #define NETWORK_PROTOCOL_ID 0xdeadbeef
 
-	using NetworkPlayerID = int;
-	static const NetworkPlayerID InvalidPlayerID = -1;
+	using NetworkPlayerID_t = int;
+
+	static const NetworkPlayerID_t InvalidPlayerID = -1;
 
 	namespace ENetRole
 	{

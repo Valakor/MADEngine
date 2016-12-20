@@ -22,7 +22,7 @@ namespace MAD
 	public:
 		static const eastl::string s_defaultWorldLayerName;
 
-		using WorldLayerContainer = eastl::hash_map<eastl::string, OGameWorldLayer>;
+		using WorldLayerContainer_t = eastl::hash_map<eastl::string, OGameWorldLayer>;
 	public:
 		explicit OGameWorld(OGameWorld* inOwningGameWorld);
 
@@ -59,7 +59,7 @@ namespace MAD
 	private:
 		eastl::string m_worldName;
 		eastl::string m_defaultLayerName;
-		WorldLayerContainer m_worldLayers;
+		WorldLayerContainer_t m_worldLayers;
 		UComponentUpdater m_componentUpdater;
 	};
 

@@ -197,7 +197,7 @@ namespace MAD
 		m_server->DestroyNetworkObject(inObject);
 	}
 
-	void UNetworkManager::SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID inTargetPlayer /*= InvalidPlayerID*/)
+	void UNetworkManager::SendNetworkEvent(EEventTarget inEventTarget, EEventTypes inEventType, UObject& inTargetObject, void* inEventData, size_t inEventSize, NetworkPlayerID_t inTargetPlayer /*= InvalidPlayerID*/)
 	{
 		if (!inEventData && inEventSize > 0)
 		{

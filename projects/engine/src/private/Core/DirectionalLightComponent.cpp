@@ -6,7 +6,7 @@
 namespace MAD
 {
 	CDirectionalLightComponent::CDirectionalLightComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld)
+		: Super_t(inOwningWorld)
 	{
 		m_directionalLight.m_isLightEnabled = false;
 		m_directionalLight.m_gpuDirectionalLight.m_lightColor = Color(1.0f, 1.0f, 1.0f, 1.0f);

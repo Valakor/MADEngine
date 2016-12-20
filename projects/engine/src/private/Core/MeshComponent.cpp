@@ -12,7 +12,7 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogTransformComponent);
 
 	CMeshComponent::CMeshComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld)
+		: Super_t(inOwningWorld)
 	{
 		m_meshInstance.m_bVisible = false;
 	}

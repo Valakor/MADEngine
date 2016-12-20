@@ -7,8 +7,9 @@ namespace MAD
 {
 	class OGameWorld;
 
-	using ObjectID = uint64_t;
-	const ObjectID InvalidObjectID = eastl::numeric_limits<ObjectID>::max();
+	using ObjectID_t = uint64_t;
+
+	const ObjectID_t InvalidObjectID = eastl::numeric_limits<ObjectID_t>::max();
 	
 	class UObject
 	{
@@ -21,7 +22,7 @@ namespace MAD
 		virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const { (void)inOutReplInfo; }
 		virtual void OnEvent(EEventTypes inEventType, void* inEventData) { (void)inEventType; (void)inEventData; }
 
-		inline ObjectID GetObjectID() const { return m_objectID; }
+		inline ObjectID_t GetObjectID() const { return m_objectID; }
 		inline OGameWorld* GetOwningWorld() { return m_owningGameWorld; }
 		inline const OGameWorld* GetOwningWorld() const { return m_owningGameWorld; }
 
@@ -40,9 +41,9 @@ namespace MAD
 		virtual void OnDestroy() {}
 
 	private:
-		static ObjectID s_objectRunningUID;
+		static ObjectID_t s_objectRunningUID;
 
-		ObjectID m_objectID;
+		ObjectID_t m_objectID;
 		OGameWorld* m_owningGameWorld;
 
 		SNetworkID m_netID;

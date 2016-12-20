@@ -4,7 +4,7 @@
 
 namespace MAD
 {
-	using PriorityLevel = uint32_t;
+	using PriorityLevel_t = uint32_t;
 
 	enum EPriorityLevelReference
 	{
@@ -15,12 +15,12 @@ namespace MAD
 	class UComponentPriorityInfo
 	{
 	public:
-		explicit UComponentPriorityInfo(PriorityLevel inInitialPriorityLevel = EPriorityLevelReference::EPriorityLevel_Default) : m_priorityLevel(inInitialPriorityLevel) {}
+		explicit UComponentPriorityInfo(PriorityLevel_t inInitialPriorityLevel = EPriorityLevelReference::EPriorityLevel_Default) : m_priorityLevel(inInitialPriorityLevel) {}
 
-		inline void UpdatePriorityLevel(PriorityLevel inNewPriorityLevel) { m_priorityLevel = inNewPriorityLevel; }
+		inline void UpdatePriorityLevel(PriorityLevel_t inNewPriorityLevel) { m_priorityLevel = inNewPriorityLevel; }
 
-		inline PriorityLevel GetPriorityLevel() const { return m_priorityLevel; }
+		inline PriorityLevel_t GetPriorityLevel() const { return m_priorityLevel; }
 	private:
-		PriorityLevel m_priorityLevel;
+		PriorityLevel_t m_priorityLevel;
 	};
 }

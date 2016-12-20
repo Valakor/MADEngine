@@ -18,7 +18,7 @@ namespace MAD
 		{
 			MAD_DECLARE_ACTOR(AMattCharacter, AEntity)
 		public:
-			explicit AMattCharacter(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit AMattCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 				AddComponent<Test::CTestComponentA>();
 			}
@@ -28,7 +28,7 @@ namespace MAD
 		{
 			MAD_DECLARE_ACTOR(ADerekCharacter, AEntity)
 		public:
-			explicit ADerekCharacter(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit ADerekCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 				AddComponent<Test::CTestComponent5>();
 			}
@@ -45,7 +45,7 @@ namespace MAD
 		{
 			MAD_DECLARE_ACTOR(APointLightBullet, AEntity)
 		public:
-			explicit APointLightBullet(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit APointLightBullet(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 				auto mesh = AddComponent<CMeshComponent>();
 				mesh->LoadFrom("meshes\\bullet.obj");
@@ -70,7 +70,7 @@ namespace MAD
 		{
 			MAD_DECLARE_ACTOR(ADemoCharacter, AEntity)
 		public:
-			explicit ADemoCharacter(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit ADemoCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 				auto characterMesh = AddComponent<CMeshComponent>();
 				characterMesh->LoadFrom("engine\\meshes\\primitives\\cube.obj");
@@ -93,7 +93,7 @@ namespace MAD
 		protected:
 			virtual void PostInitializeComponents() override
 			{
-				Super::PostInitializeComponents();
+				Super_t::PostInitializeComponents();
 
 				GetFirstComponentByType<CCameraComponent>().lock()->SetActive(GetNetOwner()->IsLocalPlayer());
 			}
@@ -103,13 +103,13 @@ namespace MAD
 		{
 			MAD_DECLARE_ACTOR(ANetworkedEntity, AEntity)
 		public:
-			explicit ANetworkedEntity(OGameWorld* inOwningWorld) : Super(inOwningWorld)
+			explicit ANetworkedEntity(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 			}
 
 			virtual void GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const override
 			{
-				Super::GetReplicatedProperties(inOutReplInfo);
+				Super_t::GetReplicatedProperties(inOutReplInfo);
 
 				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, ANetworkedEntity, m_networkedFloat);
 				MAD_ADD_REPLICATION_PROPERTY(inOutReplInfo, EReplicationType::Always, ANetworkedEntity, m_networkedUInt);

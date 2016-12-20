@@ -5,7 +5,7 @@ namespace MAD
 {
 
 	CPhysicsComponent::CPhysicsComponent(OGameWorld* inOwningWorld)
-		: Super(inOwningWorld) {}
+		: Super_t(inOwningWorld) {}
 
 	void CPhysicsComponent::UpdateComponent(float inDeltaTime)
 	{

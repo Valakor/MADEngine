@@ -7,7 +7,7 @@ namespace MAD
 	{
 		void CDemoCharacterController::OnEvent(EEventTypes inEventType, void* inEventData)
 		{
-			Super::OnEvent(inEventType, inEventData);
+			Super_t::OnEvent(inEventType, inEventData);
 
 			if (inEventType == SHOOT_BULLET)
 			{
