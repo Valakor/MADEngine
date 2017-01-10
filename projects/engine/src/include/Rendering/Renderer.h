@@ -68,6 +68,9 @@ namespace MAD
 		void Draw(float inFramePercent);
 		void EndFrame();
 
+		void DrawDirectionalLighting(float inFramePercent);
+		void DrawPointLighting(float inFramePercent);
+
 		void DoVisualizeGBuffer();
 
 		ProgramId_t DetermineProgramId(const SDrawItem& inTargetDrawItem) const;

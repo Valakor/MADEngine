@@ -296,6 +296,39 @@ namespace MAD
 		}
 
 		// Do directional lighting
+		DrawDirectionalLighting(inFramePercent);
+
+		// Do point lighting
+		DrawPointLighting(inFramePercent);
+	}
+
+	void URenderer::EndFrame()
+	{
+		static bool loadedBackBufferProgram = false;
+		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
+		if (!loadedBackBufferProgram)
+		{
+			backBufferProgram = URenderPassProgram::Load("engine\\shaders\\BackBufferFinalize.hlsl");
+			loadedBackBufferProgram = true;
+		}
+
+		g_graphicsDriver.StartEventGroup(L"Copy lighting accumulation to back buffer");
+
+		// Copy the finalized linear lighting buffer to the back buffer
+		// This (will) perform HDR lighting corrections and already performs gamma correction
+		g_graphicsDriver.SetRenderTargets(&m_backBuffer, 1, nullptr);
+		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::LightingBuffer);
+		g_graphicsDriver.SetBlendState(SBlendStateId::Invalid);
+		backBufferProgram->SetProgramActive(g_graphicsDriver, 0);
+		g_graphicsDriver.DrawFullscreenQuad();
+
+		g_graphicsDriver.EndEventGroup();
+
+		g_graphicsDriver.Present();
+	}
+
+	void URenderer::DrawDirectionalLighting(float inFramePercent)
+	{
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred directional lighting");
 
 		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
@@ -305,11 +338,12 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DepthBuffer);
 
-		int i = 0;
+		uint32_t currentDirectionalLightIndex = 0;
+
 		SGPUDirectionalLight directionalLightConstants;
 		for (const auto& currentDirLight : m_queuedDirLights[m_currentStateIndex])
 		{
-			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Directional light #%d", ++i));
+			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Directional light #%d", ++currentDirectionalLightIndex));
 
 			// Interpolate the light's properties
 			const auto previousDirLight = m_queuedDirLights[1 - m_currentStateIndex].find(currentDirLight.first);
@@ -351,18 +385,21 @@ namespace MAD
 			g_graphicsDriver.EndEventGroup();
 		}
 		g_graphicsDriver.EndEventGroup();
+	}
 
-		// Do point lighting
+	void URenderer::DrawPointLighting(float inFramePercent)
+	{
+		uint32_t currentPointLightIndex = 0;
+
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
 
 		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
-		i = 0;
 		SGPUPointLight pointLightConstants;
 		for (const auto& currentPointLight : m_queuedPointLights[m_currentStateIndex])
 		{
-			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Point light #%d", ++i));
+			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Point light #%d", ++currentPointLightIndex));
 
 			// Interpolate the light's properties
 			const auto previousPointLight = m_queuedPointLights[1 - m_currentStateIndex].find(currentPointLight.first);
@@ -408,32 +445,8 @@ namespace MAD
 
 			g_graphicsDriver.EndEventGroup();
 		}
-		g_graphicsDriver.EndEventGroup();
-	}
-
-	void URenderer::EndFrame()
-	{
-		static bool loadedBackBufferProgram = false;
-		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
-		if (!loadedBackBufferProgram)
-		{
-			backBufferProgram = URenderPassProgram::Load("engine\\shaders\\BackBufferFinalize.hlsl");
-			loadedBackBufferProgram = true;
-		}
-
-		g_graphicsDriver.StartEventGroup(L"Copy lighting accumulation to back buffer");
-
-		// Copy the finalized linear lighting buffer to the back buffer
-		// This (will) perform HDR lighting corrections and already performs gamma correction
-		g_graphicsDriver.SetRenderTargets(&m_backBuffer, 1, nullptr);
-		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::LightingBuffer);
-		g_graphicsDriver.SetBlendState(SBlendStateId::Invalid);
-		backBufferProgram->SetProgramActive(g_graphicsDriver, 0);
-		g_graphicsDriver.DrawFullscreenQuad();
 
 		g_graphicsDriver.EndEventGroup();
-
-		g_graphicsDriver.Present();
 	}
 
 	void URenderer::DoVisualizeGBuffer()
