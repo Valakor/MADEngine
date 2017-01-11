@@ -10,7 +10,7 @@
 					"type": "AEntity",
 					"newComponents": [
 						{
-							"position": [150.0, 0.0, 0.0],
+							"position": [150.0, 150.0, 0.0],
 							"scale": 50.0,
 							"type": "CMeshComponent",
 							"properties": {
@@ -52,7 +52,7 @@
 					"type": "AEntity",
 					"newComponents": [
 						{
-							"position": [-150.0, 0.0, 0.0],
+							"position": [-150.0, 150.0, 0.0],
 							"scale": 50.0,
 							"type": "CMeshComponent",
 							"properties": {
@@ -78,7 +78,16 @@
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.86602540378, -0.17],
-								"intensity": 1.0
+								"intensity": 5.0
+							}
+						},
+						{
+							"type": "CDirectionalLightComponent",
+							"properties": {
+								"enabled": true,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"direction": [0.0, -0.707107, -0.707107],
+								"intensity": 5.0
 							}
 						},
 						{
@@ -91,25 +100,86 @@
 								"far": 100000.0
 							}
 						}
-					],
-					"existingComponents": [
-
 					]
 				},
 				{
 					"type": "AEntity",
 					"newComponents": [
 						{
+							"scale": 10.0,
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
 							"type": "CPointLightComponent",
 							"properties": {
 								"enabled": true,
 								"color": [1.0, 1.0, 0.0, 1.0],
-								"position": [0.0, 0.0, 0.0, 0.0]
+								"intensity": 10.0,
+								"position": [0.0, 10.0, 0.0, 0.0],
+								"outerRadius": 500.0
 							}
 						}
-					],
-					"existingComponents": [
-
+					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
+							"position": [0.0, -150.0, 0.0],
+							"scale": 50.0,
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\wooden_floor\\floor.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
+							"position": [0.0, -150.0, 500.0],
+							"scale": 100.0,
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\monkey_column.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
+							"position": [300.0, -140.0, 0.0],
+							"scale": 300.0,
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\skinny_pillar\\pillar.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
+							"position": [-450.0, -150.0, 0.0],
+							"scale": 200.0,
+							"rotation": [0.0, -45.0, 0.0],
+							"type": "CMeshComponent",
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\skinny_shelf\\skinny_shelf.obj"
+							}
+						}
 					]
 				}
 			]

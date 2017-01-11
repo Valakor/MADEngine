@@ -418,7 +418,7 @@ namespace MAD
 			g_graphicsDriver.StartEventGroup(L"Draw scene to shadow map");
 			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
-			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
 
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
 			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
