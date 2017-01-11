@@ -40,7 +40,10 @@ namespace MAD
 
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
+		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
@@ -104,7 +107,10 @@ namespace MAD
 
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
+		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
 		SetViewport(newSize.x, newSize.y);
 
@@ -205,6 +211,54 @@ namespace MAD
 		}
 
 		m_dirShadowMappingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
+	}
+
+	void URenderer::InitializePointLightShadowMappingPass(const eastl::string& inProgramPath)
+	{
+		m_depthTextureCube = eastl::make_unique<UDepthTextureCube>(static_cast<uint16_t>(4096));
+
+		g_graphicsDriver.DestroyDepthStencil(m_pointShadowMappingPassDescriptor.m_depthStencilView);
+		m_pointShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+		m_pointShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+
+		if (!m_pointShadowMappingPassDescriptor.m_rasterizerState.IsValid())
+		{
+			m_pointShadowMappingPassDescriptor.m_rasterizerState = g_graphicsDriver.CreateDepthRasterizerState();
+		}
+
+		m_pointShadowMappingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
+	}
+
+	void URenderer::PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray)
+	{
+		// Use the world space basis axis
+		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(0.5f * DirectX::XM_PI, 1.0f, 0.1f, 1000.0f);
+
+		// Calculate the points to look at for each direction
+		const Vector3 wsDirectionTargets[UDepthTextureCube::s_numTextureCubeSides] =
+		{
+			{ inWSLightPos.x + 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // +X
+			{ inWSLightPos.x - 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // -X
+			{ inWSLightPos.x       , inWSLightPos.y + 1.0f, inWSLightPos.z        }, // +Y
+			{ inWSLightPos.x       , inWSLightPos.y - 1.0f, inWSLightPos.z        }, // -Y
+			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z + 1.0f }, // +Z
+			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z - 1.0f }, // -Z
+		};
+
+		const Vector3 wsUpVectors[UDepthTextureCube::s_numTextureCubeSides] =
+		{
+			{ 0.0f, 1.0f, 0.0f }, // +X
+			{ 0.0f, 1.0f, 0.0f },  // -X
+			{ 0.0f, 0.0f,-1.0f },  // +Y (use a different up)
+			{ 0.0f, 0.0f, 1.0f },  // -Y (use a different up)
+			{ 0.0f, 1.0f, 0.0f },  // +Z
+			{ 0.0f, 1.0f, 0.0f }   // -Z
+		};
+
+		for (uint8_t i = 0; i < UDepthTextureCube::s_numTextureCubeSides; ++i)
+		{
+			inOutVPArray[i] = Matrix::CreateLookAt(inWSLightPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
+		}
 	}
 
 	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
@@ -390,13 +444,14 @@ namespace MAD
 	void URenderer::DrawPointLighting(float inFramePercent)
 	{
 		uint32_t currentPointLightIndex = 0;
+		SGPUPointLight pointLightConstants;
+		TextureCubeVPArray_t shadowMapVPMatrices;
 
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
 
-		m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
-		m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
+		m_pointLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
+		m_pointLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
-		SGPUPointLight pointLightConstants;
 		for (const auto& currentPointLight : m_queuedPointLights[m_currentStateIndex])
 		{
 			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Point light #%d", ++currentPointLightIndex));
@@ -412,9 +467,42 @@ namespace MAD
 				pointLightConstants = currentPointLight.second;
 			}
 
+			// TODO Inefficient, we should just calculate once for each point light once as long as it doesn't change position
+			/*PopulatePointShadowVPMatrices(pointLightConstants.m_lightPosition, shadowMapVPMatrices);
+
+			// Clear the resource slot for the texture cube
+			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowCube);
+
+			m_pointShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
+			m_pointShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
+
+			for (int i = 0; i < 6; ++i)
+			{
+				// Bind the current side of the shadow texture cube
+				m_depthTextureCube->BindCubeSideAsTarget(i);
+
+				// Update the view-projection matrix of the current cube side in the per point light constant buffer
+				pointLightConstants.m_viewProjectionMatrix = shadowMapVPMatrices[i];
+				g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(pointLightConstants));
+
+				// Process all of the draw items again
+				for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
+				{
+					currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
+				}
+			}
+
+			// Reset the viewport back to normal
+			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
+
+			// Bind the texture cube as shader resource
+			m_depthTextureCube->BindAsResource(ETextureSlot::ShadowCube);*/
+
 			// Transform the light's position into view space
 			pointLightConstants.m_lightPosition = Vector3::Transform(pointLightConstants.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(SGPUPointLight));
+
+			//m_pointLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 			// Instead of just drawing a full screen quad, calculate the rectangle bounds (in NDC) for the current point light
 			const float lightHalfWidth = pointLightConstants.m_lightOuterRadius;

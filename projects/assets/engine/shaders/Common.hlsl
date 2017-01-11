@@ -7,6 +7,8 @@ struct PointLight
 	float4 m_lightColor;
 	float m_lightInnerRadius;
 	float m_lightOuterRadius;
+
+	float4x4 m_viewProjectionMatrix;
 };
 
 struct DirectionalLight
@@ -87,3 +89,4 @@ Texture2D g_normalBuffer	: register(t7);
 Texture2D g_specularBuffer	: register(t8);
 Texture2D g_depthBuffer		: register(t9);
 Texture2D g_shadowMap		: register(t10);
+TextureCube g_shadowCube	: register(t11);

@@ -6,6 +6,10 @@
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/RenderingCommon.h"
 
+#include <wrl/client.h>
+
+using Microsoft::WRL::ComPtr;
+
 namespace MAD
 {
 	class UGraphicsDriver
@@ -78,6 +82,12 @@ namespace MAD
 
 		void DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax);
 		void DrawFullscreenQuad();
+
+		// EVENTUALLY RIP OUT AND REFACTOR ENTIRE GRAPHICS DRIVER
+		//=================TESTING PURPOSES=========================
+		ComPtr<ID3D11Device2> TEMPGetDevice();
+		ComPtr<ID3D11DeviceContext2> TEMPGetDeviceContext();
+		//==========================================================
 	private:
 		void CreateBackBufferRenderTargetView();
 		void RegisterInputLayout(ID3DBlob* inTargetBlob);

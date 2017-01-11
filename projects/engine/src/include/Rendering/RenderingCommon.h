@@ -41,6 +41,7 @@ namespace MAD
 		SpecularBuffer,
 		DepthBuffer,
 		ShadowMap,
+		ShadowCube,
 
 		MAX
 	};
@@ -90,15 +91,15 @@ namespace MAD
 		Color m_lightColor;
 		float m_lightInnerRadius;
 		float m_lightOuterRadius;
-
 	private:
 		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
-
+	public:
+		Matrix m_viewProjectionMatrix;
 	public:
 		static SGPUPointLight Lerp(const SGPUPointLight& a, const SGPUPointLight& b, float t);
 	};
-	static_assert(sizeof(SGPUPointLight) == 48, "");
+	static_assert(sizeof(SGPUPointLight) == 112, "");
 
 	struct SGPUDirectionalLight
 	{

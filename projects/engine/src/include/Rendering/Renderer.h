@@ -2,6 +2,8 @@
 
 #include <EASTL/string.h>
 #include <EASTl/vector.h>
+#include <EASTL/array.h>
+#include <EASTL/unique_ptr.h>
 
 #include "Rendering/GraphicsDriverTypes.h"
 #include "Rendering/RenderingCommon.h"
@@ -9,6 +11,7 @@
 #include "Rendering/RenderPassProgram.h"
 #include "Rendering/DrawItem.h"
 #include "Rendering/CameraInstance.h"
+#include "Rendering/DepthTextureCube.h"
 
 namespace MAD
 {
@@ -58,8 +61,12 @@ namespace MAD
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
-		void InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
+
+		void InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath);
+		void InitializePointLightShadowMappingPass(const eastl::string& inProgramPath);
+
+		void PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray);
 
 		void BindPerFrameConstants();
 		void SetViewport(LONG inWidth, LONG inHeight);
@@ -92,12 +99,15 @@ namespace MAD
 		
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_dirLightingPassDescriptor;
-		SRenderPassDescriptor m_dirShadowMappingPassDescriptor;
 		SRenderPassDescriptor m_pointLightingPassDescriptor;
+		SRenderPassDescriptor m_dirShadowMappingPassDescriptor;
+		SRenderPassDescriptor m_pointShadowMappingPassDescriptor;
 
 		SShaderResourceId m_shadowMapSRV;
 
 		eastl::vector<SShaderResourceId> m_gBufferShaderResources;
+
+		eastl::unique_ptr<UDepthTextureCube> m_depthTextureCube;
 
 		EVisualizeOptions m_visualizeOption;
 	};

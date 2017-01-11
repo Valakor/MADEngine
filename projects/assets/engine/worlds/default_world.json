@@ -95,6 +95,22 @@
 					"existingComponents": [
 
 					]
+				},
+				{
+					"type": "AEntity",
+					"newComponents": [
+						{
+							"type": "CPointLightComponent",
+							"properties": {
+								"enabled": true,
+								"color": [1.0, 1.0, 0.0, 1.0],
+								"position": [0.0, 0.0, 0.0, 0.0]
+							}
+						}
+					],
+					"existingComponents": [
+
+					]
 				}
 			]
 		}
