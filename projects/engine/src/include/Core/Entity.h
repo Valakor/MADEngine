@@ -73,6 +73,10 @@ namespace MAD
 		const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
 		void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
 
+#ifdef _DEBUG
+		void SetDebugName(const eastl::string& inName) { m_entityDebugName = inName; }
+		eastl::string GetDebugName() const { return m_entityDebugName; }
+#endif
 		void PrintTranslationHierarchy() const;
 	protected:
 		virtual void PostInitializeComponents() {}
@@ -95,6 +99,9 @@ namespace MAD
 	private:
 		friend class UGameWorldLoader;
 
+#ifdef _DEBUG
+		eastl::string m_entityDebugName;
+#endif
 		bool m_isPendingForKill;
 
 		AEntity* m_owningEntity;
