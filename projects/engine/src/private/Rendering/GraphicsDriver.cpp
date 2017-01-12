@@ -414,13 +414,12 @@ namespace MAD
 		{
 			if (pErrorBlob)
 			{
-				auto errorStr = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
-				LOG(LogGraphicsDevice, Error, "Failed compiling shader: %s\n\n%s\n", inFileName.c_str(), errorStr);
+				LOG(LogGraphicsDevice, Error, "Failed to compile shader:\n\n%s\n", reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
 				pErrorBlob->Release();
 			}
 			else
 			{
-				LOG(LogGraphicsDevice, Error, "Failed compiling shader: %s\n\nUNKNOWN ERROR\n");
+				LOG(LogGraphicsDevice, Error, "Failed to compile shader:\n\nUNKNOWN ERROR\n");
 			}
 
 			return false;
@@ -431,7 +430,6 @@ namespace MAD
 			pErrorBlob->Release();
 		}
 
-		//now copy to vector if we like it...
 		if (pBlobOut)
 		{
 			// Before releasing the blob, reflect the input layout from the shader (if vertex shader)

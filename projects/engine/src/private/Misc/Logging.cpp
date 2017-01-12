@@ -61,20 +61,33 @@ namespace MAD
 		bWasInitialized = false;
 	}
 
-	void ULog::LogF(const SLogCategory& inCategory, ELogVerbosity inVerbosity, const char* inFilename, int inLine, const char* inFormat, ...)
+	bool ULog::LogF(const SLogCategory& inCategory, ELogVerbosity inVerbosity, const char* inFilename, int inLine, const char* inFormat, ...)
 	{
 #if !MAD_DO_LOGGING
-		(void)inCategory; (void)inVerbosity; (void)inFilename; (void)inLine; (void)inFormat;
-		return;
+		(void)inCategory; (void)inFilename; (void)inLine; (void)inFormat;
+
+		if (inVerbosity != ELogVerbosity::Error)
+		{
+			return false;
+		}
+
+		auto result = MAD_MessageBox("Error", "Logging not enabled", MessageBoxType::Error);
+		switch (result)
+		{
+		case MessageBoxResult::Abort:
+			exit(1);
+		case MessageBoxResult::Retry:
+			break;
+		case MessageBoxResult::Ignore:
+			return false;
+		default:
+			break;
+		}
+
+		return true;
 #else
 		static char outBuf[2048];
 		HANDLE handle = nullptr;
-
-		bool bDebuggerPresent = IsDebuggerPresent() != 0;
-		if (!bDebuggerPresent && !bHasConsole && !bHasLogFile)
-		{
-			return;
-		}
 
 		int startPos = sprintf_s(outBuf, "[%s:%4i] ", inFilename, inLine);
 		MAD_ASSERT_DESC(startPos > 0, "Failed to write filename + line number to buffer.");
@@ -113,24 +126,49 @@ namespace MAD
 		vsprintf_s(outBuf + startPos, _countof(outBuf) - startPos, inFormat, args);
 		va_end(args);
 
-		auto outWide = utf8util::UTF16FromUTF8(outBuf);
+		bool bDebuggerPresent = IsDebuggerPresent() != 0;
 
-		if (bDebuggerPresent)
+		if (bDebuggerPresent || bHasConsole || bHasLogFile)
 		{
-			OutputDebugStringW(outWide.c_str());
+			auto outWide = utf8util::UTF16FromUTF8(outBuf);
+
+			if (bDebuggerPresent)
+			{
+				OutputDebugStringW(outWide.c_str());
+			}
+
+			if (bHasConsole)
+			{
+				DWORD numWritten;
+				WriteConsoleW(handle, outWide.c_str(), static_cast<DWORD>(outWide.size()), &numWritten, nullptr);
+			}
+
+			if (bHasLogFile)
+			{
+				mLogFile << outWide.c_str();
+				mLogFile.flush();
+			}
 		}
 
-		if (bHasConsole)
+		if (inVerbosity != ELogVerbosity::Error)
 		{
-			DWORD numWritten;
-			WriteConsoleW(handle, outWide.c_str(), static_cast<DWORD>(outWide.size()), &numWritten, nullptr);
+			return false;
 		}
 
-		if (bHasLogFile)
+		auto result = MAD_MessageBox("Error", outBuf, MessageBoxType::Error);
+		switch (result)
 		{
-			mLogFile << outWide.c_str();
-			mLogFile.flush();
+		case MessageBoxResult::Abort:
+			exit(1);
+		case MessageBoxResult::Retry:
+			break;
+		case MessageBoxResult::Ignore:
+			return false;
+		default:
+			break;
 		}
+
+		return true;
 #endif
 	}
 }
