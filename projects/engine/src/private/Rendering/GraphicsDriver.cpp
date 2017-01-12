@@ -24,9 +24,9 @@ namespace MAD
 	DECLARE_LOG_CATEGORY(LogGraphicsDevice);
 	DECLARE_LOG_CATEGORY(LogTextureImport);
 
-#ifdef _DEBUG
-#define HR_ASSERT_SUCCESS(hr, desc) MAD_ASSERT_DESC(SUCCEEDED(hr), desc)
+#define HR_CHECK(expr, desc) MAD_CHECK_DESC(SUCCEEDED(expr), desc)
 
+#ifdef _DEBUG
 #define ID_ASSERT_VALID(id, cache, desc)		\
 	MAD_ASSERT_DESC((id).IsValid(), desc);		\
 	MAD_ASSERT_DESC(cache.count(id) == 1, desc)
@@ -35,7 +35,6 @@ namespace MAD
 	ID_ASSERT_VALID(id, cache, desc);			\
 	auto outVar = cache[id]
 #else
-#define HR_ASSERT_SUCCESS(hr, desc) (void)(hr)
 #define ID_ASSERT_VALID(id, cache, desc) (void)0
 #define ID_GET_SAFE(outVar, id, cache, desc) auto outVar = cache[id]
 #endif
@@ -108,40 +107,33 @@ namespace MAD
 			ComPtr<ID3D11Device> d3dDevice0;
 			ComPtr<ID3D11DeviceContext> d3dDeviceContext0;
 
-			HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
-									D3D11_SDK_VERSION, d3dDevice0.ReleaseAndGetAddressOf(), &supportedFeatureLevel, d3dDeviceContext0.ReleaseAndGetAddressOf());
-			HR_ASSERT_SUCCESS(hr, "Failed to create D3D device with feature level 11_1");
+			HR_CHECK(
+				D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
+					D3D11_SDK_VERSION, d3dDevice0.ReleaseAndGetAddressOf(), &supportedFeatureLevel, d3dDeviceContext0.ReleaseAndGetAddressOf()),
+				"Failed to create D3D device with feature level 11_0");
 
 			g_d3dDevice.Reset();
-			hr = d3dDevice0.As(&g_d3dDevice);
-			HR_ASSERT_SUCCESS(hr, "Failed to get device as D3d 11_2");
+			HR_CHECK(d3dDevice0.As(&g_d3dDevice), "Failed to get device as D3d 11_2");
 
 			g_d3dDeviceContext.Reset();
-			hr = d3dDeviceContext0.As(&g_d3dDeviceContext);
-			HR_ASSERT_SUCCESS(hr, "Failed to get device context as D3d 11_2");
+			HR_CHECK(d3dDeviceContext0.As(&g_d3dDeviceContext), "Failed to get device context as D3d 11_2");
 
 #ifdef _DEBUG
 			g_d3dEvent.Reset();
-			hr = g_d3dDeviceContext.As(&g_d3dEvent);
-			HR_ASSERT_SUCCESS(hr, "Failed to get debug event interface");
+			HR_CHECK(g_d3dDeviceContext.As(&g_d3dEvent), "Failed to get debug event interface");
 #endif
 		}
 
 		void CreateSwapChain(HWND inWindow)
 		{
-			HRESULT hr;
-
 			ComPtr<IDXGIDevice3> dxgiDevice;
-			hr = g_d3dDevice.As(&dxgiDevice);
-			HR_ASSERT_SUCCESS(hr, "Failed to get DXGI device from D3D device");
+			HR_CHECK(g_d3dDevice.As(&dxgiDevice), "Failed to get DXGI device from D3D device");
 
 			ComPtr<IDXGIAdapter2> dxgiAdapter;
-			hr = dxgiDevice->GetParent(__uuidof(IDXGIAdapter2), &dxgiAdapter);
-			HR_ASSERT_SUCCESS(hr, "Failed to get DXGI adapter from DXGI device");
+			HR_CHECK(dxgiDevice->GetParent(__uuidof(IDXGIAdapter2), &dxgiAdapter), "Failed to get DXGI adapter from DXGI device");
 
 			ComPtr<IDXGIFactory3> dxgiFactory;
-			hr = dxgiAdapter->GetParent(_uuidof(IDXGIFactory3), &dxgiFactory);
-			HR_ASSERT_SUCCESS(hr, "Failed to get DXGI factory from DXGI adapter");
+			HR_CHECK(dxgiAdapter->GetParent(_uuidof(IDXGIFactory3), &dxgiFactory), "Failed to get DXGI factory from DXGI adapter");
 
 			DXGI_SWAP_CHAIN_DESC1 scd;
 			MEM_ZERO(scd);
@@ -166,12 +158,10 @@ namespace MAD
 			scfd.Windowed = TRUE;
 
 			ComPtr<IDXGISwapChain1> swapChain;
-			hr = dxgiFactory->CreateSwapChainForHwnd(g_d3dDevice.Get(), inWindow, &scd, &scfd, nullptr, swapChain.ReleaseAndGetAddressOf());
-			HR_ASSERT_SUCCESS(hr, "Failed to create swap chain");
+			HR_CHECK(dxgiFactory->CreateSwapChainForHwnd(g_d3dDevice.Get(), inWindow, &scd, &scfd, nullptr, swapChain.ReleaseAndGetAddressOf()), "Failed to create swap chain");
 
 			g_dxgiSwapChain.Reset();
-			hr = swapChain.As(&g_dxgiSwapChain);
-			HR_ASSERT_SUCCESS(hr, "Failed to get SwapChain1 as SwapChain2");
+			HR_CHECK(swapChain.As(&g_dxgiSwapChain), "Failed to get SwapChain1 as SwapChain2");
 		}
 	}
 
@@ -180,8 +170,7 @@ namespace MAD
 	void UGraphicsDriver::CreateBackBufferRenderTargetView()
 	{
 		ComPtr<ID3D11Texture2D> backBuffer;
-		HRESULT hr = g_dxgiSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()));
-		HR_ASSERT_SUCCESS(hr, "Failed to get back buffer from swap chain");
+		HR_CHECK(g_dxgiSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf())), "Failed to get back buffer from swap chain");
 
 		if (m_backBuffer.IsValid())
 		{
@@ -202,17 +191,14 @@ namespace MAD
 		renderTargetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		renderTargetDesc.Texture2D.MipSlice = 0;
 
-		hr = g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), &renderTargetDesc, backBufferRTV.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create render target view from back buffer");
+		HR_CHECK(g_d3dDevice->CreateRenderTargetView(backBuffer.Get(), &renderTargetDesc, backBufferRTV.GetAddressOf()), "Failed to create render target view from back buffer");
 	}
 
 	void UGraphicsDriver::RegisterInputLayout(ID3DBlob* inTargetBlob)
 	{
 		// Reflect shader info
 		ID3D11ShaderReflection* pVertexShaderReflection = nullptr;
-
-		HRESULT hr = D3DReflect(inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pVertexShaderReflection);
-		HR_ASSERT_SUCCESS(hr, "Failed to reflect on the shader");
+		HR_CHECK(D3DReflect(inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pVertexShaderReflection), "Failed to reflect on the shader");
 		
 		// Get shader info
 		D3D11_SHADER_DESC shaderDesc;
@@ -231,9 +217,10 @@ namespace MAD
 		pVertexShaderReflection->Release();
 
 		// Register new Input Layout
-		if (inputLayoutFlags != 0 && !UInputLayoutCache::RegisterInputLayout(*this, inputLayoutFlags, inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize()))
+		if (inputLayoutFlags != 0)
 		{
-			MAD_ASSERT_DESC(false, "Failed to register input layout reflected from VS shader");
+			HR_CHECK(UInputLayoutCache::RegisterInputLayout(*this, inputLayoutFlags, inTargetBlob->GetBufferPointer(), inTargetBlob->GetBufferSize()),
+				"Failed to register input layout reflected from VS shader");
 		}
 	}
 
@@ -308,8 +295,7 @@ namespace MAD
 		ID_ASSERT_VALID(m_backBuffer, g_renderTargetStore, "Back buffer should be valid if the device has been created");
 		g_renderTargetStore[m_backBuffer].Reset();
 		
-		HRESULT hr = g_dxgiSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-		HR_ASSERT_SUCCESS(hr, "Failed to resize swap chain");
+		HR_CHECK(g_dxgiSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), "Failed to resize swap chain");
 
 		CreateBackBufferRenderTargetView();
 	}
@@ -386,8 +372,6 @@ namespace MAD
 
 	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines)
 	{
-		HRESULT hr = S_OK;
-
 		DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
 		// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
@@ -407,7 +391,7 @@ namespace MAD
 
 		ID3DBlob* pErrorBlob = nullptr;
 		ID3DBlob* pBlobOut = nullptr;
-		hr = D3DCompileFromFile(wideName.c_str(), inShaderMacroDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
+		HRESULT hr = D3DCompileFromFile(wideName.c_str(), inShaderMacroDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
 			dwShaderFlags, 0, &pBlobOut, &pErrorBlob);
 
 		if (FAILED(hr))
@@ -511,8 +495,7 @@ namespace MAD
 		}
 		
 		ComPtr<ID3D11Texture2D> backingTex;
-		HRESULT hr = g_d3dDevice->CreateTexture2D(&backingTexDesc, nullptr, backingTex.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create backing texture for Render Target");
+		HR_CHECK(g_d3dDevice->CreateTexture2D(&backingTexDesc, nullptr, backingTex.GetAddressOf()), "Failed to create backing texture for Render Target");
 
 		D3D11_RENDER_TARGET_VIEW_DESC renderTargetDesc;
 		MEM_ZERO(renderTargetDesc);
@@ -521,8 +504,7 @@ namespace MAD
 		renderTargetDesc.Texture2D.MipSlice = 0;
 
 		ComPtr<ID3D11RenderTargetView> renderTarget;
-		hr = g_d3dDevice->CreateRenderTargetView(backingTex.Get(), &renderTargetDesc, renderTarget.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create render target from backing texture");
+		HR_CHECK(g_d3dDevice->CreateRenderTargetView(backingTex.Get(), &renderTargetDesc, renderTarget.GetAddressOf()), "Failed to create render target from backing texture");
 
 		if (outOptionalShaderResource)
 		{
@@ -534,8 +516,7 @@ namespace MAD
 			shaderResourceDesc.Texture2D.MipLevels = 1;
 
 			ComPtr<ID3D11ShaderResourceView> shaderResource;
-			hr = g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf());
-			HR_ASSERT_SUCCESS(hr, "Failed to create shader resource view from backing texture");
+			HR_CHECK(g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf()), "Failed to create shader resource view from backing texture");
 
 			auto shaderResourceId = SShaderResourceId::Next();
 			g_shaderResourceViewStore.insert({ shaderResourceId, shaderResource });
@@ -555,8 +536,7 @@ namespace MAD
 	SInputLayoutId UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const
 	{
 		ComPtr<ID3D11InputLayout> inputLayout;
-		HRESULT hr = g_d3dDevice->CreateInputLayout(inElements, inNumElements, inCompiledVSByteCode, inByteCodeSize, inputLayout.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed creating input layout");
+		HR_CHECK(g_d3dDevice->CreateInputLayout(inElements, inNumElements, inCompiledVSByteCode, inByteCodeSize, inputLayout.GetAddressOf()), "Failed creating input layout");
 
 		auto inputLayoutId = SInputLayoutId::Next();
 		g_inputLayoutStore.insert({ inputLayoutId, inputLayout });
@@ -591,8 +571,7 @@ namespace MAD
 		}
 		
 		ComPtr<ID3D11SamplerState> samplerState;
-		HRESULT hr = g_d3dDevice->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create sampler state");
+		HR_CHECK(g_d3dDevice->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf()), "Failed to create sampler state");
 
 		auto samplerStateId = SSamplerStateId::Next();
 		g_samplerStateStore.insert({ samplerStateId, samplerState });
@@ -621,8 +600,7 @@ namespace MAD
 		}
 
 		ComPtr<ID3D11Texture2D> backingTex;
-		HRESULT hr = g_d3dDevice->CreateTexture2D(&backingTexDesc, nullptr, backingTex.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create backing texture for depth stencil");
+		HR_CHECK(g_d3dDevice->CreateTexture2D(&backingTexDesc, nullptr, backingTex.GetAddressOf()), "Failed to create backing texture for depth stencil");
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilDesc;
 		MEM_ZERO(depthStencilDesc);
@@ -631,8 +609,7 @@ namespace MAD
 		depthStencilDesc.Texture2D.MipSlice = 0;
 
 		ComPtr<ID3D11DepthStencilView> depthStencil;
-		hr = g_d3dDevice->CreateDepthStencilView(backingTex.Get(), &depthStencilDesc, depthStencil.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create depth stencil view from backing texture");
+		HR_CHECK(g_d3dDevice->CreateDepthStencilView(backingTex.Get(), &depthStencilDesc, depthStencil.GetAddressOf()), "Failed to create depth stencil view from backing texture");
 
 		if (outOptionalShaderResource)
 		{
@@ -644,8 +621,7 @@ namespace MAD
 			shaderResourceDesc.Texture2D.MipLevels = 1;
 
 			ComPtr<ID3D11ShaderResourceView> shaderResource;
-			hr = g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf());
-			HR_ASSERT_SUCCESS(hr, "Failed to create shader resource view from backing texture");
+			HR_CHECK(g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf()), "Failed to create shader resource view from backing texture");
 
 			auto shaderResourceId = SShaderResourceId::Next();
 			g_shaderResourceViewStore.insert({ shaderResourceId, shaderResource });
@@ -685,8 +661,7 @@ namespace MAD
 		stateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 		ComPtr<ID3D11DepthStencilState> depthStencilState;
-		HRESULT hr = g_d3dDevice->CreateDepthStencilState(&stateDesc, depthStencilState.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create depth stencil state");
+		HR_CHECK(g_d3dDevice->CreateDepthStencilState(&stateDesc, depthStencilState.GetAddressOf()), "Failed to create depth stencil state");
 
 		auto depthStencilStateId = SDepthStencilStateId::Next();
 		g_depthStencilStateStore.insert({ depthStencilStateId, depthStencilState });
@@ -703,8 +678,7 @@ namespace MAD
 		rasterDesc.DepthClipEnable = true;
 
 		ComPtr<ID3D11RasterizerState1> raster;
-		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create rasterizer state");
+		HR_CHECK(g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf()), "Failed to create rasterizer state");
 
 		auto rasterId = SRasterizerStateId::Next();
 		g_rasterizerStateStore.insert({ rasterId, raster });
@@ -724,8 +698,7 @@ namespace MAD
 		rasterDesc.SlopeScaledDepthBias = 1.5f;
 
 		ComPtr<ID3D11RasterizerState1> raster;
-		HRESULT hr = g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create rasterizer state");
+		HR_CHECK(g_d3dDevice->CreateRasterizerState1(&rasterDesc, raster.GetAddressOf()), "Failed to create rasterizer state");
 
 		auto rasterId = SRasterizerStateId::Next();
 		g_rasterizerStateStore.insert({ rasterId, raster });
@@ -750,8 +723,7 @@ namespace MAD
 		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 		ComPtr<ID3D11BlendState1> blendState;
-		HRESULT hr = g_d3dDevice->CreateBlendState1(&blendDesc, blendState.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create blend state");
+		HR_CHECK(g_d3dDevice->CreateBlendState1(&blendDesc, blendState.GetAddressOf()), "Failed to create blend state");
 
 		auto blendStateId = SBlendStateId::Next();
 		g_blendStateStore.insert({ blendStateId, blendState });
@@ -776,8 +748,7 @@ namespace MAD
 		initialData.SysMemSlicePitch = 0;
 
 		ComPtr<ID3D11Buffer> buffer;
-		HRESULT hr = g_d3dDevice->CreateBuffer(&bufferDesc, inData ? &initialData : nullptr, buffer.GetAddressOf());
-		HR_ASSERT_SUCCESS(hr, "Failed to create graphics buffer");
+		HR_CHECK(g_d3dDevice->CreateBuffer(&bufferDesc, inData ? &initialData : nullptr, buffer.GetAddressOf()), "Failed to create graphics buffer");
 
 		auto bufferId = SBufferId::Next();
 		g_bufferStore.insert({ bufferId, buffer });
@@ -1002,8 +973,7 @@ namespace MAD
 
 	void UGraphicsDriver::SetFullScreen(bool inIsFullscreen) const
 	{
-		HRESULT hr = g_dxgiSwapChain->SetFullscreenState(inIsFullscreen, nullptr);
-		HR_ASSERT_SUCCESS(hr, "Failed to set fullscreen state");
+		HR_CHECK(g_dxgiSwapChain->SetFullscreenState(inIsFullscreen, nullptr), "Failed to set fullscreen state");
 	}
 
 	void UGraphicsDriver::ClearBackBuffer(const float inColor[4])
