@@ -398,32 +398,34 @@ namespace MAD
 
 		// Disable optimizations to further improve shader debugging
 		dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+		// Enable highest level of optimizations
+		dwShaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
 #endif
 
-		const size_t cSize = inFileName.length() + 1;
-		size_t retCount;
-		std::wstring wc(cSize, L'#');
-		mbstowcs_s(&retCount, &wc[0], cSize, inFileName.c_str(), _TRUNCATE);
+		eastl::wstring wideName = utf8util::UTF16FromUTF8(inFileName);
 
 		ID3DBlob* pErrorBlob = nullptr;
 		ID3DBlob* pBlobOut = nullptr;
-		hr = D3DCompileFromFile(wc.c_str(), inShaderMacroDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
+		hr = D3DCompileFromFile(wideName.c_str(), inShaderMacroDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, inShaderEntryPoint.c_str(), inShaderModel.c_str(),
 			dwShaderFlags, 0, &pBlobOut, &pErrorBlob);
+
 		if (FAILED(hr))
 		{
 			if (pErrorBlob)
 			{
-				static wchar_t szBuffer[4096];
-				_snwprintf_s(szBuffer, 4096, _TRUNCATE,
-					L"%hs",
-					(char*)pErrorBlob->GetBufferPointer());
-				OutputDebugString(szBuffer);
-				MessageBox(nullptr, szBuffer, L"Error", MB_OK);
+				auto errorStr = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
+				LOG(LogGraphicsDevice, Error, "Failed compiling shader: %s\n\n%s\n", inFileName.c_str(), errorStr);
 				pErrorBlob->Release();
-				MAD_ASSERT_DESC(hr == S_OK, "Shader Compilation Failed");
 			}
+			else
+			{
+				LOG(LogGraphicsDevice, Error, "Failed compiling shader: %s\n\nUNKNOWN ERROR\n");
+			}
+
 			return false;
 		}
+
 		if (pErrorBlob)
 		{
 			pErrorBlob->Release();
