@@ -76,11 +76,11 @@
 				},
 				{
 					"type": "AEntity",
-					"name": "Center Point Light",
-					"position": [0.0, 10.0, 0.0],
+					"name": "West Point Light",
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
+							"position": [-150.0, 10.0, 0.0],
 							"scale": 10.0,
 							"properties": {
 								"visible": true,
@@ -90,7 +90,7 @@
 						{
 							"type": "CPointLightComponent",
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"color": [0.0, 1.0, 0.0, 1.0],
 								"intensity": 5.0,
 								"outerRadius": 500.0
@@ -101,10 +101,10 @@
 				{
 					"type": "AEntity",
 					"name": "South Point Light",
-					"position": [0.0, 10.0, 100.0],
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
+							"position": [0.0, 10.0, 150.0],
 							"scale": 10.0,
 							"properties": {
 								"visible": true,
@@ -114,7 +114,7 @@
 						{
 							"type": "CPointLightComponent",
 							"properties":{
-								"enabled": true,
+								"enabled": false,
 								"color": [0.0, 1.0, 1.0, 1.0],
 								"intensity": 10.0,
 								"outerRadius": 500.0
@@ -125,6 +125,30 @@
 				{
 					"type": "AEntity",
 					"name": "North Point Light",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 10.0, -350.0],
+							"scale": 10.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CPointLightComponent",
+							"properties":{
+								"enabled": true,
+								"color": [0.0, 1.0, 0.0, 1.0],
+								"intensity": 20.0,
+								"outerRadius": 500.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Wooden Floor",
 					"newComponents": [
 						{
 							"type": "CMeshComponent",

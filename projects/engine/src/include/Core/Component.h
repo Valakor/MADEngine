@@ -33,6 +33,7 @@ namespace MAD
 
 		void AttachComponent(eastl::shared_ptr<UComponent> inChildComponent);
 		
+		void UpdateWorldTransform();
 		void SetWorldScale(float inScale);
 		void SetWorldRotation(const Quaternion& inRotation);
 		void SetWorldTranslation(const Vector3& inTranslation);
@@ -58,7 +59,6 @@ namespace MAD
 	private:
 		friend class AEntity;
 
-		void UpdateWorldTransform();
 		void UpdateChildWorldTransforms();
 	private:
 		AEntity* m_owningEntity;

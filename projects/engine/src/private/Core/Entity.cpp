@@ -17,6 +17,18 @@ namespace MAD
 		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
 		{
 			m_rootComponent = m_entityComponents.front();
+
+		}
+
+		m_rootComponent->UpdateWorldTransform();
+
+		// Now that we've finalized a root component for the entity, we need to attach every child component of the current entity to the root
+		for (auto& currentChildComp : m_entityComponents)
+		{
+			if (currentChildComp != m_rootComponent)
+			{
+				m_rootComponent->AttachComponent(currentChildComp);
+			}
 		}
 
 		if (IsNetworkSpawned())
