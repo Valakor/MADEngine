@@ -128,16 +128,15 @@ namespace MAD
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
-		eastl::shared_ptr<ComponentType> newComponent = CreateDefaultObject<ComponentType>(inTypeInfo, GetOwningWorld());;
-
-		newComponent->SetOwningEntity(*this);
-		
 		MAD_ASSERT_DESC(GetOwningWorld() != nullptr, "Error: Every entity should have a valid owning UGameWorld!!!");
-
 		if (!GetOwningWorld())
 		{
 			return nullptr;
 		}
+
+		eastl::shared_ptr<ComponentType> newComponent = CreateDefaultObject<ComponentType>(inTypeInfo, GetOwningWorld());
+
+		newComponent->SetOwningEntity(*this);
 
 		// Before adding the component to the entity, we need to register it with the owning world's component updater
 		GetOwningWorld()->GetComponentUpdater().RegisterComponent(newComponent);

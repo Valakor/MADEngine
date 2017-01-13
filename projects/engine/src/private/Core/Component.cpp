@@ -24,6 +24,15 @@ namespace MAD
 	{
 		if (inChildComponent)
 		{
+			auto targetCompFindIter = eastl::find(m_childComponents.cbegin(), m_childComponents.cend(), inChildComponent);
+
+			MAD_ASSERT_DESC(targetCompFindIter == m_childComponents.cend(), "Error: Trying to attach a child component that is already a child component");
+
+			if (targetCompFindIter != m_childComponents.cend())
+			{
+				return;
+			}
+
 			m_childComponents.push_back(inChildComponent);
 			inChildComponent->m_parentComponent = this;
 

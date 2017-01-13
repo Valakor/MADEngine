@@ -13,19 +13,38 @@ namespace MAD
 
 	void AEntity::PostInitialize()
 	{
-		// If the entity has already set it's root component, we should set the root component to the first component of the entity (if it exists)
+		// If an entity doesn't have any children component, attach a default scene component (?)
+		if (m_entityComponents.empty())
+		{
+			AddComponent<UComponent>();
+		}
+
+		// Cases we have to worry about:
+		// 1. An entity that initializes its own components in constructor and assigns root component properly before attaching other components
+		// 2. An entity loaded (root component only attached at this point)
+		// 3. An entity that initializes its own components in constructor and doesn't assign root component (root component only attached at this point)
+
 		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
 		{
-			m_rootComponent = m_entityComponents.front();
+			// If an entity doesn't have a root, find the first component tree root and assign that to be the root component
+			for (const auto& currentChildComp : m_entityComponents)
+			{
+				if (!currentChildComp->GetParent())
+				{
+					m_rootComponent = currentChildComp;
+					break;
+				}
+			}
 
+			MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: An entity shouldn't have no components that are roots of a component tree");
 		}
 
 		m_rootComponent->UpdateWorldTransform();
 
-		// Now that we've finalized a root component for the entity, we need to attach every child component of the current entity to the root
 		for (auto& currentChildComp : m_entityComponents)
 		{
-			if (currentChildComp != m_rootComponent)
+			// We only want to attach components without parents to the root component (indication of tree root)
+			if (currentChildComp != m_rootComponent && !currentChildComp->GetParent())
 			{
 				m_rootComponent->AttachComponent(currentChildComp);
 			}
@@ -38,6 +57,9 @@ namespace MAD
 				component->SetNetIdentity(GetNetID(), GetNetRole(), GetNetOwner());
 			}
 		}
+
+		// At this point, the components' hierarchy is setup properly and world transforms are computed properly. Components can
+		// assume that they have a root component (except the root component)
 
 		for (auto component : m_entityComponents)
 		{
