@@ -14,6 +14,8 @@ namespace MAD
 {
 	namespace Test
 	{
+#pragma region Default Entities
+
 		class AMattCharacter : public AEntity
 		{
 			MAD_DECLARE_ACTOR(AMattCharacter, AEntity)
@@ -40,6 +42,45 @@ namespace MAD
 		public:
 			explicit ASpatialCharacter(OGameWorld* inOwningWorld);
 		};
+
+#pragma endregion
+
+#pragma region Transform Hierarchy Root Assignment Testing
+		// Testing to make sure that assigning the root component (within spawned entities) works properly if you assigned pre, post, or in the middle
+
+		class APreRootAssignedCharacter : public AEntity
+		{
+			MAD_DECLARE_ACTOR(APreRootAssignedCharacter, AEntity)
+		public:
+			explicit APreRootAssignedCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
+			{
+				// Assign root to the first component at the beginning
+			}
+		};
+
+		class AMidRootAssignedCharacter : public AEntity
+		{
+			MAD_DECLARE_ACTOR(AMidRootAssignedCharacter, AEntity)
+		public:
+			explicit AMidRootAssignedCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
+			{
+				// Assign root to the first component in the middle
+			}
+		};
+
+		class APostRootAssignedCharacter : public AEntity
+		{
+			MAD_DECLARE_ACTOR(APostRootAssignedCharacter, AEntity)
+		public:
+			explicit APostRootAssignedCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
+			{
+				// Assign root to the first component at the end
+			}
+		};
+
+#pragma endregion
+
+#pragma region Demo Entities
 
 		class APointLightBullet : public AEntity
 		{
@@ -118,5 +159,8 @@ namespace MAD
 			float m_networkedFloat;
 			uint32_t m_networkedUInt;
 		};
+
+#pragma endregion
+
 	}
 }
