@@ -57,7 +57,7 @@
 						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.86602540378, -0.17],
 								"intensity": 1.0
@@ -66,7 +66,7 @@
 						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.707107, -0.707107],
 								"intensity": 1.0
@@ -93,6 +93,7 @@
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"intensity": 10.0,
+								"innerRadius": 100.0,
 								"outerRadius": 800.0
 							}
 						}
@@ -191,7 +192,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, -150.0, 100.0],
+							"position": [0.0, -150.0, 50.0],
 							"scale": 100.0,
 							"properties": {
 								"visible": true,
