@@ -35,7 +35,6 @@ namespace MAD
 
 			m_childComponents.push_back(inChildComponent);
 			inChildComponent->m_parentComponent = this;
-
 			inChildComponent->UpdateWorldTransform();
 		}
 	}
@@ -83,7 +82,8 @@ namespace MAD
 		if (m_parentComponent)
 		{
 			// Find the delta between the target position and the current position and apply that to our local position to move ourselves
-			adjustedLocalTranslation += (inTranslation - m_componentWorldTransform.GetTranslation());
+			//adjustedLocalTranslation += (inTranslation - m_componentWorldTransform.GetTranslation());
+			adjustedLocalTranslation = inTranslation - m_parentComponent->GetWorldTransform().GetTranslation();
 		}
 
 		SetRelativeTranslation(adjustedLocalTranslation);
@@ -130,6 +130,17 @@ namespace MAD
 		for (const auto& currentChild : m_childComponents)
 		{
 			currentChild->PrintTranslationHierarchy(inDepth + 1);
+		}
+	}
+
+	void UComponent::PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const
+	{
+		// Push it's own world transform on to the stack and then passes it to it's children in order
+		inOutTransformQueue.push(m_componentWorldTransform);
+
+		for (const auto& currentChildComp : m_childComponents)
+		{
+			currentChildComp->PopulateTransformQueue(inOutTransformQueue);
 		}
 	}
 

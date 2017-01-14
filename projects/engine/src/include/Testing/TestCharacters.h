@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/Character.h"
-#include "Core/TestComponents.h"
 
 #include "Core/PointLightComponent.h"
 #include "Core/MeshComponent.h"
@@ -9,6 +8,8 @@
 #include "Core/MoveComponent.h"
 
 #include "Networking/Network.h"
+
+#include "Testing/TestComponents.h"
 
 namespace MAD
 {
@@ -48,6 +49,11 @@ namespace MAD
 #pragma region Transform Hierarchy Root Assignment Testing
 		// Testing to make sure that assigning the root component (within spawned entities) works properly if you assigned pre, post, or in the middle
 
+		static const Vector3 WorldTranslation1(10.0f, 5.0f, 15.0f);
+		static const Vector3 WorldTranslation2(20.0f, 0.0f, 5.0f);
+		static const Vector3 WorldTranslation3(17.0f, 1.0f, 22.0f);
+		static const Vector3 WorldTranslation4(30.0f, 15.0f, 1.0f);
+
 		class APreRootAssignedCharacter : public AEntity
 		{
 			MAD_DECLARE_ACTOR(APreRootAssignedCharacter, AEntity)
@@ -55,6 +61,23 @@ namespace MAD
 			explicit APreRootAssignedCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 				// Assign root to the first component at the beginning
+				auto rootSpatialComp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->SetWorldTranslation(WorldTranslation1);
+				SetRootComponent(rootSpatialComp);
+
+				auto firstLevelChild1Comp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->AttachComponent(firstLevelChild1Comp);
+				firstLevelChild1Comp->SetWorldTranslation(WorldTranslation2);
+
+				auto firstLevelChild2Comp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->AttachComponent(firstLevelChild2Comp);
+				firstLevelChild2Comp->SetWorldTranslation(WorldTranslation3);
+
+				auto secondLevelChild1Comp = AddComponent<CSpatialComponent>();
+				firstLevelChild1Comp->AttachComponent(secondLevelChild1Comp);
+				secondLevelChild1Comp->SetWorldTranslation(WorldTranslation4);
+
+				auto orphanChildComp = AddComponent<CSpatialComponent>();
 			}
 		};
 
@@ -65,6 +88,25 @@ namespace MAD
 			explicit AMidRootAssignedCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 				// Assign root to the first component in the middle
+				auto rootSpatialComp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->SetWorldTranslation(WorldTranslation1);
+
+				auto firstLevelChild1Comp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->AttachComponent(firstLevelChild1Comp);
+				firstLevelChild1Comp->SetWorldTranslation(WorldTranslation2);
+
+				auto firstLevelChild2Comp = AddComponent<CSpatialComponent>();
+
+				SetRootComponent(rootSpatialComp);
+
+				rootSpatialComp->AttachComponent(firstLevelChild2Comp);
+				firstLevelChild2Comp->SetWorldTranslation(WorldTranslation3);
+
+				auto secondLevelChild1Comp = AddComponent<CSpatialComponent>();
+				firstLevelChild1Comp->AttachComponent(secondLevelChild1Comp);
+				secondLevelChild1Comp->SetWorldTranslation(WorldTranslation4);
+
+				auto orphanChildComp = AddComponent<CSpatialComponent>();
 			}
 		};
 
@@ -75,6 +117,50 @@ namespace MAD
 			explicit APostRootAssignedCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
 			{
 				// Assign root to the first component at the end
+				auto rootSpatialComp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->SetWorldTranslation(WorldTranslation1);
+
+				auto firstLevelChild1Comp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->AttachComponent(firstLevelChild1Comp);
+				firstLevelChild1Comp->SetWorldTranslation(WorldTranslation2);
+
+				auto firstLevelChild2Comp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->AttachComponent(firstLevelChild2Comp);
+				firstLevelChild2Comp->SetWorldTranslation(WorldTranslation3);
+
+				auto secondLevelChild1Comp = AddComponent<CSpatialComponent>();
+				firstLevelChild1Comp->AttachComponent(secondLevelChild1Comp);
+				secondLevelChild1Comp->SetWorldTranslation(WorldTranslation4);
+
+				SetRootComponent(rootSpatialComp);
+
+				auto orphanChildComp = AddComponent<CSpatialComponent>();
+			}
+		};
+
+		class ANoRootAssignedCharacter : public AEntity
+		{
+			MAD_DECLARE_ACTOR(ANoRootAssignedCharacter, AEntity)
+		public:
+			explicit ANoRootAssignedCharacter(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
+			{
+				// Assign root to the first component at the end
+				auto rootSpatialComp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->SetWorldTranslation(WorldTranslation1);
+
+				auto firstLevelChild1Comp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->AttachComponent(firstLevelChild1Comp);
+				firstLevelChild1Comp->SetWorldTranslation(WorldTranslation2);
+
+				auto firstLevelChild2Comp = AddComponent<CSpatialComponent>();
+				rootSpatialComp->AttachComponent(firstLevelChild2Comp);
+				firstLevelChild2Comp->SetWorldTranslation(WorldTranslation3);
+
+				auto secondLevelChild1Comp = AddComponent<CSpatialComponent>();
+				firstLevelChild1Comp->AttachComponent(secondLevelChild1Comp);
+				secondLevelChild1Comp->SetWorldTranslation(WorldTranslation4);
+
+				auto orphanChildComp = AddComponent<CSpatialComponent>();
 			}
 		};
 

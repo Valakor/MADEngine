@@ -2,6 +2,7 @@
 
 #include <EASTL/shared_ptr.h>
 #include <EASTL/vector.h>
+#include <EASTL/queue.h>
 #include <EASTL/type_traits.h>
 
 #include "Core/Component.h"
@@ -78,6 +79,7 @@ namespace MAD
 		eastl::string GetDebugName() const { return m_entityDebugName; }
 #endif
 		void PrintTranslationHierarchy() const;
+		void PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const;
 	protected:
 		virtual void PostInitializeComponents() {}
 		virtual void OnBeginPlay() {}

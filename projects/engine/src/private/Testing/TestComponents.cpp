@@ -1,5 +1,5 @@
-#include "Core/TestComponents.h"
-#include "Core/TestCharacters.h"
+#include "Testing/TestComponents.h"
+#include "Testing/TestCharacters.h"
 
 namespace MAD
 {

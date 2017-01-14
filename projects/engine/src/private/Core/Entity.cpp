@@ -112,6 +112,16 @@ namespace MAD
 		return m_rootComponent->PrintTranslationHierarchy(0);
 	}
 
+	void AEntity::PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const
+	{
+		if (!m_rootComponent)
+		{
+			return;
+		}
+
+		m_rootComponent->PopulateTransformStack(inOutTransformQueue);
+	}
+
 	void AEntity::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const
 	{
 		Super_t::GetReplicatedProperties(inOutReplInfo);

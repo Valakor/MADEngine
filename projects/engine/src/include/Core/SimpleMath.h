@@ -60,10 +60,15 @@ namespace MAD
 		Vector3 GetForward() const { Vector3 forward = m_cachedTransform.Forward(); forward.Normalize(); return forward; }
 		Vector3 GetRight() const { Vector3 right = m_cachedTransform.Right(); right.Normalize(); return right; }
 		Vector3 GetUp() const { Vector3 up = m_cachedTransform.Up(); up.Normalize(); return up; }
+		eastl::string ToString() const;
 
 		void SetScale(float inScale);
 		void SetRotation(const Quaternion& inRotation);
 		void SetTranslation(const Vector3& inTranslation);
+
+		bool operator!=(const ULinearTransform& inOtherTransform) const;
+		bool operator==(const ULinearTransform& inOtherTransform) const;
+
 
 		static ULinearTransform Lerp(const ULinearTransform& a, const ULinearTransform& b, float t); // Both transforms must be in the same space
 

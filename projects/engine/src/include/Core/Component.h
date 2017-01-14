@@ -2,6 +2,7 @@
 
 #include <EASTL/vector.h>
 #include <EASTL/shared_ptr.h>
+#include <EASTL/queue.h>
 
 #include "Core/Object.h"
 #include "Core/SimpleMath.h"
@@ -56,6 +57,7 @@ namespace MAD
 		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
 
 		void PrintTranslationHierarchy(uint8_t inDepth) const;
+		void PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const;
 	private:
 		friend class AEntity;
 
