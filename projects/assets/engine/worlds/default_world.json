@@ -60,7 +60,7 @@
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.86602540378, -0.17],
-								"intensity": 5.0
+								"intensity": 1.0
 							}
 						},
 						{
@@ -69,7 +69,7 @@
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.707107, -0.707107],
-								"intensity": 5.0
+								"intensity": 1.0
 							}
 						}
 					]
@@ -92,7 +92,7 @@
 							"properties": {
 								"enabled": true,
 								"color": [0.0, 1.0, 0.0, 1.0],
-								"intensity": 5.0,
+								"intensity": 2.0,
 								"outerRadius": 500.0
 							}
 						}
@@ -116,7 +116,7 @@
 							"properties":{
 								"enabled": true,
 								"color": [0.0, 0.0, 1.0, 1.0],
-								"intensity": 10.0,
+								"intensity": 2.0,
 								"outerRadius": 500.0
 							}
 						}
@@ -140,7 +140,7 @@
 							"properties":{
 								"enabled": true,
 								"color": [1.0, 0.0, 0.0, 1.0],
-								"intensity": 20.0,
+								"intensity": 2.0,
 								"outerRadius": 500.0
 							}
 						}

@@ -182,6 +182,7 @@ namespace MAD
 
 				auto pointLight = AddComponent<CPointLightComponent>();
 				pointLight->SetEnabled(true);
+				pointLight->SetIntensity(10.0f);
 				mesh->AttachComponent(pointLight);
 
 				auto pointLightBullet = AddComponent<CPointLightBulletComponent>();

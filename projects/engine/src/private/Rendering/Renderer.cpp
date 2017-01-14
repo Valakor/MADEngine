@@ -197,6 +197,21 @@ namespace MAD
 		m_dirLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
 	}
 
+	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
+	{
+		m_pointLightingPassDescriptor.m_depthStencilView = SDepthStencilId::Invalid;
+		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+
+		m_pointLightingPassDescriptor.m_renderTargets.clear();
+		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+
+		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+
+		m_pointLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inLightingPassProgramPath);
+
+		m_pointLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
+	}
+
 	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
 	{
 		g_graphicsDriver.DestroyDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView);
@@ -259,21 +274,6 @@ namespace MAD
 		{
 			inOutVPArray[i] = Matrix::CreateLookAt(inWSLightPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
 		}
-	}
-
-	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
-	{
-		m_pointLightingPassDescriptor.m_depthStencilView = SDepthStencilId::Invalid;
-		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
-
-		m_pointLightingPassDescriptor.m_renderTargets.clear();
-		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
-
-		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
-
-		m_pointLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inLightingPassProgramPath);
-
-		m_pointLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
 	}
 
 	void URenderer::BindPerFrameConstants()
