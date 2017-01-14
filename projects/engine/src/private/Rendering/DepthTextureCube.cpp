@@ -34,7 +34,7 @@ namespace MAD
 		depthCubeDesc.CPUAccessFlags = 0;
 		depthCubeDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-		MAD_ASSERT_DESC(d3dDevice->CreateTexture2D(&depthCubeDesc, nullptr, depthCubeTexture2D.GetAddressOf()) >= 0, "Error: Creating backing texture for texture cube failed!");
+		DX_HRESULT(d3dDevice->CreateTexture2D(&depthCubeDesc, nullptr, depthCubeTexture2D.GetAddressOf()), "Error: Creating backing texture for texture cube failed!");
 
 		// Create the depth stencil view for each of the faces
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthCubeDSVDesc;
@@ -51,7 +51,7 @@ namespace MAD
 			// Create a render target view for the current face
 			depthCubeDSVDesc.Texture2DArray.FirstArraySlice = i;
 
-			MAD_ASSERT_DESC(d3dDevice->CreateDepthStencilView(depthCubeTexture2D.Get(), &depthCubeDSVDesc, m_textureCubeDSVs[i].GetAddressOf()) >= 0, "Error: Creating depth stencil view for texture cube failed!");
+			DX_HRESULT(d3dDevice->CreateDepthStencilView(depthCubeTexture2D.Get(), &depthCubeDSVDesc, m_textureCubeDSVs[i].GetAddressOf()), "Error: Creating depth stencil view for texture cube failed!");
 		}
 
 		// Create the shader resource view for the depth texture cube
@@ -64,7 +64,7 @@ namespace MAD
 		textureCubeSRDesc.TextureCube.MostDetailedMip = 0;
 		textureCubeSRDesc.TextureCube.MipLevels = static_cast<UINT>(-1);
 
-		MAD_ASSERT_DESC(d3dDevice->CreateShaderResourceView(depthCubeTexture2D.Get(), &textureCubeSRDesc, m_textureCubeSRV.GetAddressOf()) >= 0, "Error: Creating shader resource view for depth texture cube failed!");
+		DX_HRESULT(d3dDevice->CreateShaderResourceView(depthCubeTexture2D.Get(), &textureCubeSRDesc, m_textureCubeSRV.GetAddressOf()), "Error: Creating shader resource view for depth texture cube failed!");
 	}
 
 	void UDepthTextureCube::BindCubeSideAsTarget(uint8_t inCubeSide)

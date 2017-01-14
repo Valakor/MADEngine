@@ -6,6 +6,21 @@
 
 namespace MAD
 {
+#ifdef _DEBUG
+#define DX_HRESULT(DXOp, ErrorMsg)				\
+	do											\
+	{											\
+		HRESULT hr = (DXOp);					\
+												\
+		if (!SUCCEEDED(hr))						\
+		{										\
+			MAD_ASSERT_DESC(false, ErrorMsg);	\
+		}										\
+	} while (0)
+#elif
+#define DX_HRESULT(DXOp, ErrorMsg) (DXOp)
+#endif
+
 #define DECLARE_SLOT_TO_INTEGRAL(SlotEnum) \
 	inline constexpr eastl::underlying_type<SlotEnum>::type AsIntegral(SlotEnum e) \
 	{ \

@@ -17,8 +17,7 @@
 		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super_t(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override				\
 		{																		\
-			(void)inDeltaTime;																									\
-			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());		\
+			(void)inDeltaTime;													\
 		}																		\
 	};																			\
 
@@ -34,8 +33,7 @@
 		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super_t(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override							\
 		{																					\
-			(void)inDeltaTime;																									\
-			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());		\
+			(void)inDeltaTime;																\
 		}																					\
 	};																						\
 
