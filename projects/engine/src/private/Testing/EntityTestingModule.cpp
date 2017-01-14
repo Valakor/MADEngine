@@ -64,10 +64,10 @@ namespace MAD
 			auto noRootAssignedChar = inTestingGameWorld.SpawnEntity<ANoRootAssignedCharacter>();
 
 			// Perform checks on the transform hierarchy of all of the characters and make sure that they're the same
-			preRootAssignedChar->PopulateTransformStack(entityTransformHierarchyQueue[ERootAssignment_Pre]);
-			midRootAssignedChar->PopulateTransformStack(entityTransformHierarchyQueue[ERootAssignment_Mid]);
-			postRootAssignedChar->PopulateTransformStack(entityTransformHierarchyQueue[ERootAssignment_Post]);
-			noRootAssignedChar->PopulateTransformStack(entityTransformHierarchyQueue[ERootAssignment_None]);
+			preRootAssignedChar->PopulateTransformQueue(entityTransformHierarchyQueue[ERootAssignment_Pre]);
+			midRootAssignedChar->PopulateTransformQueue(entityTransformHierarchyQueue[ERootAssignment_Mid]);
+			postRootAssignedChar->PopulateTransformQueue(entityTransformHierarchyQueue[ERootAssignment_Post]);
+			noRootAssignedChar->PopulateTransformQueue(entityTransformHierarchyQueue[ERootAssignment_None]);
 
 			size_t preStackSize = entityTransformHierarchyQueue[ERootAssignment_Pre].size();
 			size_t midStackSize = entityTransformHierarchyQueue[ERootAssignment_Mid].size();

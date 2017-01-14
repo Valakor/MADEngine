@@ -119,7 +119,7 @@ namespace MAD
 			return;
 		}
 
-		m_rootComponent->PopulateTransformStack(inOutTransformQueue);
+		m_rootComponent->PopulateTransformQueue(inOutTransformQueue);
 	}
 
 	void AEntity::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const
