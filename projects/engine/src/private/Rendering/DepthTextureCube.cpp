@@ -36,6 +36,8 @@ namespace MAD
 
 		DX_HRESULT(d3dDevice->CreateTexture2D(&depthCubeDesc, nullptr, depthCubeTexture2D.GetAddressOf()), "Error: Creating backing texture for texture cube failed!");
 
+		depthCubeTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof("Depth Cube"), "Depth Cube");
+
 		// Create the depth stencil view for each of the faces
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthCubeDSVDesc;
 
@@ -44,7 +46,7 @@ namespace MAD
 		depthCubeDSVDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		depthCubeDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY; // Specifies how the render target will be accessed
 		depthCubeDSVDesc.Texture2DArray.MipSlice = 0;
-		depthCubeDSVDesc.Texture2DArray.ArraySize = 1; // We are only create render targets one at a time for each face
+		depthCubeDSVDesc.Texture2DArray.ArraySize = 1; // We only create depth stencil views one at a time for each face
 
 		for (uint8_t i = 0; i < UDepthTextureCube::s_numTextureCubeSides; ++i)
 		{
@@ -80,7 +82,7 @@ namespace MAD
 		d3dDeviceContext->PSSetShaderResources(static_cast<UINT>(ETextureSlot::ShadowCube), 0, nullptr);
 
 		// Clear the target depth stencil view
-		d3dDeviceContext->ClearDepthStencilView(m_textureCubeDSVs[inCubeSide].Get(), 0, 1.0f, 0);
+		d3dDeviceContext->ClearDepthStencilView(m_textureCubeDSVs[inCubeSide].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		// Bind the depth stencil view that corresponds with the target cube side
 		d3dDeviceContext->OMSetRenderTargets(0, nullptr, m_textureCubeDSVs[inCubeSide].Get());

@@ -25,7 +25,7 @@ namespace MAD
 	public:
 		explicit UDepthTextureCube(uint16_t inTextureRes);
 
-		// Binds a cube side as the render target
+		// Binds a cube side as the depth stencil view
 		void BindCubeSideAsTarget(uint8_t inCubeSide);
 
 		// Binds the entire texture cube as a shader resource at specified texture slot

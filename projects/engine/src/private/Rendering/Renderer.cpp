@@ -247,7 +247,7 @@ namespace MAD
 	void URenderer::PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
-		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(0.5f * DirectX::XM_PI, 1.0f, 0.1f, 1000.0f);
+		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(0.5f * DirectX::XM_PI, 1.0f, 0.1f, 1000000.0f);
 
 		// Calculate the points to look at for each direction
 		const Vector3 wsDirectionTargets[UDepthTextureCube::s_numTextureCubeSides] =
@@ -468,7 +468,7 @@ namespace MAD
 			}
 
 			// TODO Inefficient, we should just calculate once for each point light once as long as it doesn't change position
-			/*PopulatePointShadowVPMatrices(pointLightConstants.m_lightPosition, shadowMapVPMatrices);
+			PopulatePointShadowVPMatrices(pointLightConstants.m_lightPosition, shadowMapVPMatrices);
 
 			// Clear the resource slot for the texture cube
 			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowCube);
@@ -478,6 +478,8 @@ namespace MAD
 
 			for (int i = 0; i < 6; ++i)
 			{
+				g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Shadow Cube Side #%d", i));
+
 				// Bind the current side of the shadow texture cube
 				m_depthTextureCube->BindCubeSideAsTarget(i);
 
@@ -490,19 +492,22 @@ namespace MAD
 				{
 					currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
 				}
+
+				g_graphicsDriver.EndEventGroup();
 			}
 
 			// Reset the viewport back to normal
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 
 			// Bind the texture cube as shader resource
-			m_depthTextureCube->BindAsResource(ETextureSlot::ShadowCube);*/
+			m_depthTextureCube->BindAsResource(ETextureSlot::ShadowCube);
 
 			// Transform the light's position into view space
 			pointLightConstants.m_lightPosition = Vector3::Transform(pointLightConstants.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(SGPUPointLight));
 
-			//m_pointLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
+			m_pointLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
+			m_pointLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
 			// Instead of just drawing a full screen quad, calculate the rectangle bounds (in NDC) for the current point light
 			const float lightHalfWidth = pointLightConstants.m_lightOuterRadius;
