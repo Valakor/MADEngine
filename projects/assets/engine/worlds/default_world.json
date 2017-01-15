@@ -8,50 +8,6 @@
 			"entities": [
 				{
 					"type": "AEntity",
-					"name": "Right Cube",
-					"newComponents": [
-						{
-							"type": "CMeshComponent",
-							"position": [150.0, 150.0, 0.0],
-							"scale": 50.0,
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"type": "CSinMoveComponent",
-							"properties": {
-								"speed": 0.8,
-								"distance": 200.0
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Left Cube",
-					"newComponents": [
-						{
-							"type": "CMeshComponent",
-							"position": [-150.0, 150.0, 0.0],
-							"scale": 50.0,
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"type": "CSinMoveComponent",
-							"properties": {
-								"speed": 0.8,
-								"distance": 200.0
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
 					"name": "Directional Lights",
 					"newComponents": [
 						{
@@ -79,8 +35,19 @@
 					"name": "Center Point Light",
 					"newComponents": [
 						{
-							"type": "CMeshComponent",
+							"type": "CPointLightComponent",
 							"position": [0.0, 10.0, 0.0],
+							"rotation": [-90.0, 0.0, 0.0],
+							"properties": {
+								"enabled": true,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"intensity": 10.0,
+								"innerRadius": 50.0,
+								"outerRadius": 800.0
+							}
+						},
+						{
+							"type": "CMeshComponent",
 							"scale": 10.0,
 							"properties": {
 								"visible": true,
@@ -88,13 +55,10 @@
 							}
 						},
 						{
-							"type": "CPointLightComponent",
+							"type": "CCircularMoveComponent",
 							"properties": {
-								"enabled": true,
-								"color": [1.0, 1.0, 1.0, 1.0],
-								"intensity": 10.0,
-								"innerRadius": 100.0,
-								"outerRadius": 800.0
+								"angular_speed": 180.0,
+								"radius": 100.0
 							}
 						}
 					]
@@ -192,7 +156,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, -150.0, 50.0],
+							"position": [0.0, -150.0, 350.0],
 							"scale": 100.0,
 							"properties": {
 								"visible": true,
@@ -207,7 +171,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [100.0, -140.0, 0.0],
+							"position": [200.0, -140.0, 0.0],
 							"scale": 300.0,
 							"properties": {
 								"visible": true,
@@ -222,9 +186,9 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [-150.0, -150.0, 0.0],
+							"position": [0.0, -150.0, -200.0],
 							"scale": 200.0,
-							"rotation": [0.0, -45.0, 0.0],
+							"rotation": [0.0, -90.0, 0.0],
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\skinny_shelf\\skinny_shelf.obj"
@@ -238,9 +202,9 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [-250.0, -150.0, 250.0],
+							"position": [-250.0, -150.0, 0.0],
 							"scale": 2.5,
-							"rotation": [0.0, -45.0, 0.0],
+							"rotation": [0.0, -30.0, 0.0],
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\wooden_chair\\chair.obj"

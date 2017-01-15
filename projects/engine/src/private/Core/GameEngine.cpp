@@ -23,6 +23,7 @@
 #include "Networking/NetworkState.h"
 
 #include "Testing/TestCharacters.h"
+#include "Testing/TestComponents.h"
 #include "Testing/EntityTestingModule.h"
 
 using eastl::string;
@@ -93,6 +94,7 @@ namespace MAD
 			Test::CPointLightBulletComponent::StaticClass();
 			Test::CDemoCharacterController::StaticClass();
 			Test::CSinMoveComponent::StaticClass();
+			Test::CCircularMoveComponent::StaticClass();
 		}
 	}
 

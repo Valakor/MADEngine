@@ -35,6 +35,10 @@ namespace MAD
 		virtual void Destroy() override;
 		bool IsPendingForKill() const { return m_isPendingForKill; }
 	
+		Vector3 GetForward() const;
+		Vector3 GetRight() const;
+		Vector3 GetUp() const;
+
 		const ULinearTransform& GetWorldTransform() const;
 		float GetWorldScale() const;
 		const Quaternion& GetWorldRotation() const;

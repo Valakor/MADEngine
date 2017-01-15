@@ -351,5 +351,51 @@ namespace MAD
 			float m_distance;
 			Vector3 m_initialPosition;
 		};
+
+		class CCircularMoveComponent : public UComponent
+		{
+			MAD_DECLARE_COMPONENT(CCircularMoveComponent, UComponent)
+		public:
+			explicit CCircularMoveComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
+				, m_currentRotationAngle(0.0f)
+				, m_angularSpeed(1.0f)
+				, m_radius(1.0f) { }
+
+			virtual void UpdateComponent(float inDeltaTime) override
+			{
+				Vector3 resultPosition;
+				const Vector3 entityUp = GetOwningEntity().GetUp();
+				const Vector3 entityRight = GetOwningEntity().GetRight();
+
+				m_currentRotationAngle += m_angularSpeed * inDeltaTime;
+
+				if (m_currentRotationAngle >= 360.0f)
+				{
+					m_currentRotationAngle -= 360.0f;
+				}
+
+				resultPosition = m_initialPosition + (m_radius * (entityRight * cos(ConvertToRadians(m_currentRotationAngle)) + entityUp * sin(ConvertToRadians(m_currentRotationAngle))));
+
+				GetOwningEntity().SetWorldTranslation(resultPosition);
+			}
+
+			virtual void Load(const UGameWorldLoader& inLoader) override
+			{
+				inLoader.GetFloat("angular_speed", m_angularSpeed);
+				inLoader.GetFloat("radius", m_radius);
+			}
+
+			virtual void OnBeginPlay() override
+			{
+				m_initialPosition = GetOwningEntity().GetWorldTranslation();
+			}
+
+		private:
+			float m_currentRotationAngle;
+			float m_angularSpeed; // in degrees
+			float m_radius;
+			Vector3 m_initialPosition;
+		};
+
 	}
 }

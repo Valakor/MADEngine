@@ -95,6 +95,27 @@ namespace MAD
 		Super_t::Destroy();
 	}
 
+	Vector3 AEntity::GetForward() const
+	{
+		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot get forward vector for an entity that doesn't have a root component");
+
+		return m_rootComponent->GetComponentForward();
+	}
+
+	Vector3 AEntity::GetRight() const
+	{
+		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot get right vector for an entity that doesn't have a root component");
+
+		return m_rootComponent->GetComponentRight();
+	}
+
+	Vector3 AEntity::GetUp() const
+	{
+		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot get up vector for an entity that doesn't have a root component");
+
+		return m_rootComponent->GetComponentUp();
+	}
+
 	OGameWorld& AEntity::GetWorld()
 	{
 		return *m_owningWorldLayer->GetOwningWorld();

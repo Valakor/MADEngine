@@ -110,6 +110,21 @@ namespace MAD
 		UpdateWorldTransform();
 	}
 
+	Vector3 UComponent::GetComponentForward() const
+	{
+		return m_componentWorldTransform.GetForward();
+	}
+
+	Vector3 UComponent::GetComponentRight() const
+	{
+		return m_componentWorldTransform.GetRight();
+	}
+
+	Vector3 UComponent::GetComponentUp() const
+	{
+		return m_componentWorldTransform.GetUp();
+	}
+
 	bool UComponent::IsOwnerValid() const
 	{
 		// A component is valid only if it's owner isn't marked pending for kill

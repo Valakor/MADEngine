@@ -43,6 +43,10 @@ namespace MAD
 		void SetRelativeRotation(const Quaternion& inRotation);
 		void SetRelativeTranslation(const Vector3& inTranslation);
 
+		Vector3 GetComponentForward() const;
+		Vector3 GetComponentRight() const;
+		Vector3 GetComponentUp() const;
+
 		const ULinearTransform& GetWorldTransform() const { return m_componentWorldTransform; }
 		float GetWorldScale() const { return m_componentWorldTransform.GetScale(); }
 		const Quaternion& GetWorldRotation() const { return m_componentWorldTransform.GetRotation(); }
