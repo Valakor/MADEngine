@@ -321,22 +321,31 @@ namespace MAD
 		{
 			MAD_DECLARE_COMPONENT(CSinMoveComponent, UComponent)
 		public:
-			explicit CSinMoveComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
-			                                                      , m_moveSpeed(1.0f)
-			                                                      , m_distance(1.0f) { }
+			explicit CSinMoveComponent(OGameWorld* inOwningWorld)
+				: Super_t(inOwningWorld)
+				, m_enabled(false)
+				, m_moveSpeed(1.0f)
+				, m_distance(1.0f)
+			{ }
 
 			virtual void UpdateComponent(float) override
 			{
-				/*auto root = GetOwningEntity().GetRootComponent();
+				if (!m_enabled)
+				{
+					return;
+				}
+
+				auto root = GetOwningEntity().GetRootComponent();
 				
 				float gameTime = gEngine->GetGameTime();
 				Vector3 offset = Vector3::Up * sinf(gameTime * m_moveSpeed) * m_distance;
 
-				root->SetWorldTranslation(m_initialPosition + offset);*/
+				root->SetWorldTranslation(m_initialPosition + offset);
 			}
 
 			virtual void Load(const UGameWorldLoader& inLoader) override
 			{
+				inLoader.GetBool("enabled", m_enabled);
 				inLoader.GetFloat("speed", m_moveSpeed);
 				inLoader.GetFloat("distance", m_distance);
 			}
@@ -347,6 +356,7 @@ namespace MAD
 			}
 
 		private:
+			bool m_enabled;
 			float m_moveSpeed;
 			float m_distance;
 			Vector3 m_initialPosition;
@@ -357,12 +367,18 @@ namespace MAD
 			MAD_DECLARE_COMPONENT(CCircularMoveComponent, UComponent)
 		public:
 			explicit CCircularMoveComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
+				, m_enabled(false)
 				, m_currentRotationAngle(0.0f)
 				, m_angularSpeed(1.0f)
 				, m_radius(1.0f) { }
 
 			virtual void UpdateComponent(float inDeltaTime) override
 			{
+				if (!m_enabled)
+				{
+					return;
+				}
+
 				Vector3 resultPosition;
 				const Vector3 entityUp = GetOwningEntity().GetUp();
 				const Vector3 entityRight = GetOwningEntity().GetRight();
@@ -381,6 +397,7 @@ namespace MAD
 
 			virtual void Load(const UGameWorldLoader& inLoader) override
 			{
+				inLoader.GetBool("enabled", m_enabled);
 				inLoader.GetFloat("angular_speed", m_angularSpeed);
 				inLoader.GetFloat("radius", m_radius);
 			}
@@ -391,6 +408,7 @@ namespace MAD
 			}
 
 		private:
+			bool m_enabled;
 			float m_currentRotationAngle;
 			float m_angularSpeed; // in degrees
 			float m_radius;

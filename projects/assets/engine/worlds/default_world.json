@@ -16,13 +16,13 @@
 								"enabled": false,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.86602540378, -0.17],
-								"intensity": 1.0
+								"intensity": 3.0
 							}
 						},
 						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.707107, -0.707107],
 								"intensity": 1.0
@@ -36,29 +36,29 @@
 					"newComponents": [
 						{
 							"type": "CPointLightComponent",
-							"position": [0.0, 10.0, 0.0],
-							"rotation": [-90.0, 0.0, 0.0],
+							"position": [0.0, 150.0, 0.0],
 							"properties": {
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
-								"intensity": 10.0,
+								"intensity": 5.0,
 								"innerRadius": 50.0,
-								"outerRadius": 800.0
+								"outerRadius": 1500.0
 							}
 						},
 						{
 							"type": "CMeshComponent",
-							"scale": 10.0,
+							"scale": 5.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						},
 						{
-							"type": "CCircularMoveComponent",
+							"type": "CSinMoveComponent",
 							"properties": {
-								"angular_speed": 180.0,
-								"radius": 100.0
+								"enabled": false,
+								"speed": 5.0,
+								"distance": 100.0
 							}
 						}
 					]
@@ -142,7 +142,7 @@
 						{
 							"type": "CMeshComponent",
 							"position": [0.0, -150.0, 0.0],
-							"scale": 50.0,
+							"scale": 100.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\wooden_floor\\floor.obj"
@@ -156,7 +156,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, -150.0, 350.0],
+							"position": [-250.0, -150.0, 0.0],
 							"scale": 100.0,
 							"properties": {
 								"visible": true,
@@ -174,7 +174,7 @@
 							"position": [200.0, -140.0, 0.0],
 							"scale": 300.0,
 							"properties": {
-								"visible": true,
+								"visible": false,
 								"mesh": "engine\\meshes\\primitives\\skinny_pillar\\pillar.obj"
 							}
 						}
@@ -190,7 +190,7 @@
 							"scale": 200.0,
 							"rotation": [0.0, -90.0, 0.0],
 							"properties": {
-								"visible": true,
+								"visible": false,
 								"mesh": "engine\\meshes\\primitives\\skinny_shelf\\skinny_shelf.obj"
 							}
 						}
@@ -202,11 +202,10 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [-250.0, -150.0, 0.0],
+							"position": [0.0, -150.0, 150.0],
 							"scale": 2.5,
-							"rotation": [0.0, -30.0, 0.0],
 							"properties": {
-								"visible": true,
+								"visible": false,
 								"mesh": "engine\\meshes\\primitives\\wooden_chair\\chair.obj"
 							}
 						}

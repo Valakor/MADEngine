@@ -264,8 +264,8 @@ namespace MAD
 		{
 			{ 0.0f, 1.0f, 0.0f }, // +X
 			{ 0.0f, 1.0f, 0.0f },  // -X
-			{ 0.0f, 0.0f,-1.0f },  // +Y (use a different up)
-			{ 0.0f, 0.0f, 1.0f },  // -Y (use a different up)
+			{ 0.0f, 0.0f, -1.0f },  // +Y (use a different up)
+			{ 0.0f, 0.0f, -1.0f },  // -Y (use a different up)
 			{ 0.0f, 1.0f, 0.0f },  // +Z
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};

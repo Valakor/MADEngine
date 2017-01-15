@@ -83,6 +83,7 @@ namespace MAD
 		void DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax);
 		void DrawFullscreenQuad();
 
+
 		// EVENTUALLY RIP OUT AND REFACTOR ENTIRE GRAPHICS DRIVER
 		//=================TESTING PURPOSES=========================
 		ComPtr<ID3D11Device2> TEMPGetDevice();

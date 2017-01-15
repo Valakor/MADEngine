@@ -77,9 +77,10 @@ float CalculateShadowFactor(float3 positionVS)
 #ifdef POINT_LIGHT
 	float3 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix).xyz;
 	float3 lightPositionWS = mul(float4(g_pointLight.m_lightPosition, 1.0), g_cameraInverseViewMatrix).xyz;
-	float3 directionVec = normalize(positionWS - lightPositionWS);
+	float3 sampleVec = positionWS - lightPositionWS;
+	float3 normalizedSampleVec = normalize(sampleVec);
 	
-	return g_shadowCube.Sample(g_linearSampler, directionVec).r;
+	return g_shadowCube.Sample(g_shadowCubeSampler, normalizedSampleVec).r;
 #else
 	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
 	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);
