@@ -49,19 +49,21 @@ namespace MAD
 		{
 			auto& currentDrawItem = constructedDrawItems[i];
 
-			GetOwningEntity().GetObjectID();
-			currentDrawItem.m_uniqueID = MakeDrawItemID(GetOwningEntity().GetObjectID(), i);
+			currentDrawItem.m_uniqueID = MakeDrawItemID(GetOwningEntity().GetObjectID(), GetObjectID(), i);
 			targetRenderer.QueueDrawItem(currentDrawItem);
 		}
 	}
 
-	size_t CMeshComponent::MakeDrawItemID(size_t inMeshObjectID, size_t inDrawItemIdx)
+	size_t CMeshComponent::MakeDrawItemID(size_t inMeshObjectID, size_t inMeshCompID, size_t inDrawItemIdx)
 	{
 		size_t a = eastl::hash<size_t>{}(inMeshObjectID);
-		size_t b = eastl::hash<size_t>{}(inDrawItemIdx);
+		size_t b = eastl::hash<size_t>{}(inMeshCompID);
+		size_t c = eastl::hash<size_t>{}(inDrawItemIdx);
 
 		// Boost reference implementation of hash_combine
 		a ^= b + 0x9e3779b9 + (a << 6) + (a >> 2);
+		a ^= c + 0x9e3779b9 + (a << 6) + (a >> 2);
+
 		return a;
 	}
 

@@ -247,7 +247,7 @@ namespace MAD
 	void URenderer::PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
-		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(0.5f * DirectX::XM_PI, 1.0f, 100.0f, 100000.0f);
+		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
 
 		// Calculate the points to look at for each direction
 		const Vector3 wsDirectionTargets[UDepthTextureCube::s_numTextureCubeSides] =
@@ -265,7 +265,7 @@ namespace MAD
 			{ 0.0f, 1.0f, 0.0f }, // +X
 			{ 0.0f, 1.0f, 0.0f },  // -X
 			{ 0.0f, 0.0f, -1.0f },  // +Y (use a different up)
-			{ 0.0f, 0.0f, -1.0f },  // -Y (use a different up)
+			{ 0.0f, 0.0f, 1.0f },  // -Y (use a different up)
 			{ 0.0f, 1.0f, 0.0f },  // +Z
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};
@@ -444,7 +444,7 @@ namespace MAD
 	void URenderer::DrawPointLighting(float inFramePercent)
 	{
 		uint32_t currentPointLightIndex = 0;
-		SGPUPointLight pointLightConstants;
+		SPerPointLightConstants pointLightConstants;
 		TextureCubeVPArray_t shadowMapVPMatrices;
 
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
@@ -460,15 +460,17 @@ namespace MAD
 			const auto previousPointLight = m_queuedPointLights[1 - m_currentStateIndex].find(currentPointLight.first);
 			if (previousPointLight != m_queuedPointLights[1 - m_currentStateIndex].end())
 			{
-				pointLightConstants = SGPUPointLight::Lerp(previousPointLight->second, currentPointLight.second, inFramePercent);
+				pointLightConstants.m_pointLight = SGPUPointLight::Lerp(previousPointLight->second, currentPointLight.second, inFramePercent);
 			}
 			else
 			{
-				pointLightConstants = currentPointLight.second;
+				pointLightConstants.m_pointLight = currentPointLight.second;
 			}
 
 			// TODO Inefficient, we should just calculate once for each point light once as long as it doesn't change position
-			PopulatePointShadowVPMatrices(pointLightConstants.m_lightPosition, shadowMapVPMatrices);
+			PopulatePointShadowVPMatrices(pointLightConstants.m_pointLight.m_lightPosition, shadowMapVPMatrices);
+
+			memcpy(pointLightConstants.m_pointLightVPMatrices, shadowMapVPMatrices.data(), shadowMapVPMatrices.size() * sizeof(Matrix));
 
 			// Clear the resource slot for the texture cube
 			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowCube);
@@ -484,7 +486,7 @@ namespace MAD
 				m_depthTextureCube->BindCubeSideAsTarget(i);
 
 				// Update the view-projection matrix of the current cube side in the per point light constant buffer
-				pointLightConstants.m_viewProjectionMatrix = shadowMapVPMatrices[i];
+				pointLightConstants.m_pointLight.m_viewProjectionMatrix = shadowMapVPMatrices[i];
 				g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(pointLightConstants));
 
 				// Process all of the draw items again
@@ -503,17 +505,21 @@ namespace MAD
 			m_depthTextureCube->BindAsResource(ETextureSlot::ShadowCube);
 
 			// Transform the light's position into view space
-			pointLightConstants.m_lightPosition = Vector3::Transform(pointLightConstants.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
-			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(SGPUPointLight));
+			pointLightConstants.m_pointLight.m_lightPosition = Vector3::Transform(pointLightConstants.m_pointLight.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
+			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(pointLightConstants));
 
 			m_pointLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_pointLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
 			// Instead of just drawing a full screen quad, calculate the rectangle bounds (in NDC) for the current point light
-			const float lightHalfWidth = pointLightConstants.m_lightOuterRadius;
+			const float lightHalfWidth = pointLightConstants.m_pointLight.m_lightOuterRadius;
 			const float lightHalfHeight = lightHalfWidth;
 
-			Vector4 lightMinPosHS = { pointLightConstants.m_lightPosition.x, pointLightConstants.m_lightPosition.y, pointLightConstants.m_lightPosition.z, 1.0f };
+			Vector4 lightMinPosHS = { pointLightConstants.m_pointLight.m_lightPosition.x,
+									  pointLightConstants.m_pointLight.m_lightPosition.y,
+									  pointLightConstants.m_pointLight.m_lightPosition.z,
+									  1.0f };
+
 			Vector4 lightMaxPosHS = lightMinPosHS;
 
 			// Calculate the min and the max extents in the x and y axis for the light in view space (so we can transform them into NDC space)

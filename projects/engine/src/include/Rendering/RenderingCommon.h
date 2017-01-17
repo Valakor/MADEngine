@@ -195,6 +195,8 @@ namespace MAD
 	struct SPerPointLightConstants
 	{
 		SGPUPointLight m_pointLight;
+
+		Matrix m_pointLightVPMatrices[6];
 	};
 
 	struct SPerDirectionalLightConstants

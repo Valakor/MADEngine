@@ -75,12 +75,29 @@ float3 CalculateL(float3 positionVS)
 float CalculateShadowFactor(float3 positionVS)
 {
 #ifdef POINT_LIGHT
-	float3 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix).xyz;
-	float3 lightPositionWS = mul(float4(g_pointLight.m_lightPosition, 1.0), g_cameraInverseViewMatrix).xyz;
-	float3 sampleVec = positionWS - lightPositionWS;
-	float3 normalizedSampleVec = normalize(sampleVec);
+	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
+	float4 lightPositionWS = mul(float4(g_pointLight.m_lightPosition, 1.0), g_cameraInverseViewMatrix);
+	float3 sampleVec = positionWS.xyz - lightPositionWS.xyz;
+
+	float calculatedDepth = 0.0;
+
+	// Goal: Retrieve the depth of the pixel with correct perspective
+	// Potential Solution: Go through each VP matrix and see which once produces a value in the correct range, the z value will be the depth
+	for (int i = 0;i < 6; ++i)
+	{
+		float4 positionLS = mul(positionWS, g_pointLightVPMatrices[i]);
+
+		positionLS.xyz /= positionLS.w;
+
+		// Check the coordinates of the position to see if its in the correct NDC range
+		if (positionLS.x >= -1.0 && positionLS.x <= 1.0 && positionLS.y >= -1.0 && positionLS.y <= 1.0 && positionLS.z >= 0 && positionLS.z <= 1.0)
+		{
+			calculatedDepth = positionLS.z;
+			break;
+		}
+	}
 	
-	return g_shadowCube.Sample(g_shadowCubeSampler, normalizedSampleVec).r;
+	return g_shadowCube.SampleCmpLevelZero(g_shadowMapSampler, sampleVec, calculatedDepth).r;
 #else
 	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
 	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);

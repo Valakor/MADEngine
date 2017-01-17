@@ -106,7 +106,11 @@ namespace MAD
 #define MAD_DECLARE_BASE_COMPONENT(BaseComponent, ParentClass)																		\
 	MAD_DECLARE_CLASS(BaseComponent, ParentClass)																					\
 	public:																															\
-		virtual UComponentPriorityInfo* GetPriorityInfo() { return nullptr; }														\
+		virtual UComponentPriorityInfo* GetPriorityInfo()																			\
+		{																															\
+			static UComponentPriorityInfo s_componentPriorityInfo(EPriorityLevelReference::EPriorityLevel_Default);					\
+			return &s_componentPriorityInfo;																						\
+		}
 
 #define MAD_DECLARE_COMPONENT(ComponentClass, ParentClass)																	\
 	MAD_DECLARE_COMPONENT_COMMON(ComponentClass, ParentClass, EPriorityLevelReference::EPriorityLevel_Default)				\
