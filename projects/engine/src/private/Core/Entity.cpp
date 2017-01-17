@@ -13,10 +13,41 @@ namespace MAD
 
 	void AEntity::PostInitialize()
 	{
-		// If the entity has already set it's root component, we should set the root component to the first component of the entity (if it exists)
+		// If an entity doesn't have any children component, attach a default scene component (?)
+		if (m_entityComponents.empty())
+		{
+			AddComponent<UComponent>();
+		}
+
+		// Cases we have to worry about:
+		// 1. An entity that initializes its own components in constructor and assigns root component properly before attaching other components
+		// 2. An entity loaded (root component only attached at this point)
+		// 3. An entity that initializes its own components in constructor and doesn't assign root component (root component only attached at this point)
+
 		if (!m_entityComponents.empty() && m_rootComponent == nullptr)
 		{
-			m_rootComponent = m_entityComponents.front();
+			// If an entity doesn't have a root, find the first component tree root and assign that to be the root component
+			for (const auto& currentChildComp : m_entityComponents)
+			{
+				if (!currentChildComp->GetParent())
+				{
+					m_rootComponent = currentChildComp;
+					break;
+				}
+			}
+
+			MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: An entity shouldn't have no components that are roots of a component tree");
+		}
+
+		m_rootComponent->UpdateWorldTransform();
+
+		for (auto& currentChildComp : m_entityComponents)
+		{
+			// We only want to attach components without parents to the root component (indication of tree root)
+			if (currentChildComp != m_rootComponent && !currentChildComp->GetParent())
+			{
+				m_rootComponent->AttachComponent(currentChildComp);
+			}
 		}
 
 		if (IsNetworkSpawned())
@@ -26,6 +57,9 @@ namespace MAD
 				component->SetNetIdentity(GetNetID(), GetNetRole(), GetNetOwner());
 			}
 		}
+
+		// At this point, the components' hierarchy is setup properly and world transforms are computed properly. Components can
+		// assume that they have a root component (except the root component)
 
 		for (auto component : m_entityComponents)
 		{
@@ -61,6 +95,27 @@ namespace MAD
 		Super_t::Destroy();
 	}
 
+	Vector3 AEntity::GetForward() const
+	{
+		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot get forward vector for an entity that doesn't have a root component");
+
+		return m_rootComponent->GetComponentForward();
+	}
+
+	Vector3 AEntity::GetRight() const
+	{
+		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot get right vector for an entity that doesn't have a root component");
+
+		return m_rootComponent->GetComponentRight();
+	}
+
+	Vector3 AEntity::GetUp() const
+	{
+		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot get up vector for an entity that doesn't have a root component");
+
+		return m_rootComponent->GetComponentUp();
+	}
+
 	OGameWorld& AEntity::GetWorld()
 	{
 		return *m_owningWorldLayer->GetOwningWorld();
@@ -76,6 +131,16 @@ namespace MAD
 		MAD_ASSERT_DESC(m_rootComponent != nullptr, "Error: Cannot print translation hierarchy for an entity that doesn't have a root component");
 
 		return m_rootComponent->PrintTranslationHierarchy(0);
+	}
+
+	void AEntity::PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const
+	{
+		if (!m_rootComponent)
+		{
+			return;
+		}
+
+		m_rootComponent->PopulateTransformQueue(inOutTransformQueue);
 	}
 
 	void AEntity::GetReplicatedProperties(eastl::vector<SObjectReplInfo>& inOutReplInfo) const

@@ -31,6 +31,7 @@ namespace MAD
 		{ "NORMAL_MAP", EProgramIdMask::GBuffer_NormalMap },
 
 		{ "POINT_LIGHT", EProgramIdMask::Lighting_PointLight },
+		{ "DIRECTIONAL_LIGHT", EProgramIdMask::Lighting_DirectionalLight }
 	};
 
 	const eastl::hash_map<eastl::string, EMetaFlagType> UProgramPermutor::s_metaFlagStringToTypeMap =

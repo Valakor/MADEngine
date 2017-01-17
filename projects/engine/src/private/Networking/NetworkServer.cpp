@@ -3,9 +3,10 @@
 #include <time.h>
 
 #include "Core/GameEngine.h"
-#include "Core/TestCharacters.h"
 #include "Misc/Logging.h"
 #include "Networking/NetworkManager.h"
+
+#include "Testing/TestCharacters.h"
 
 using namespace yojimbo;
 

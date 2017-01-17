@@ -1,4 +1,4 @@
-#include "Core/TestCharacters.h"
+#include "Testing/TestCharacters.h"
 #include <EASTL/weak_ptr.h>
 #include "Core/TransformComponent.h"
 

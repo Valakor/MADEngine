@@ -2,6 +2,7 @@
 
 #include <EASTL/shared_ptr.h>
 #include <EASTL/vector.h>
+#include <EASTL/queue.h>
 #include <EASTL/type_traits.h>
 
 #include "Core/Component.h"
@@ -34,6 +35,10 @@ namespace MAD
 		virtual void Destroy() override;
 		bool IsPendingForKill() const { return m_isPendingForKill; }
 	
+		Vector3 GetForward() const;
+		Vector3 GetRight() const;
+		Vector3 GetUp() const;
+
 		const ULinearTransform& GetWorldTransform() const;
 		float GetWorldScale() const;
 		const Quaternion& GetWorldRotation() const;
@@ -73,7 +78,12 @@ namespace MAD
 		const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
 		void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
 
+#ifdef _DEBUG
+		void SetDebugName(const eastl::string& inName) { m_entityDebugName = inName; }
+		eastl::string GetDebugName() const { return m_entityDebugName; }
+#endif
 		void PrintTranslationHierarchy() const;
+		void PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const;
 	protected:
 		virtual void PostInitializeComponents() {}
 		virtual void OnBeginPlay() {}
@@ -95,6 +105,9 @@ namespace MAD
 	private:
 		friend class UGameWorldLoader;
 
+#ifdef _DEBUG
+		eastl::string m_entityDebugName;
+#endif
 		bool m_isPendingForKill;
 
 		AEntity* m_owningEntity;
@@ -121,16 +134,15 @@ namespace MAD
 	{
 		static_assert(eastl::is_base_of<UComponent, ComponentType>::value, "Error: You may only create components that are of type UComponent or more derived");
 
-		eastl::shared_ptr<ComponentType> newComponent = CreateDefaultObject<ComponentType>(inTypeInfo, GetOwningWorld());;
-
-		newComponent->SetOwningEntity(*this);
-		
 		MAD_ASSERT_DESC(GetOwningWorld() != nullptr, "Error: Every entity should have a valid owning UGameWorld!!!");
-
 		if (!GetOwningWorld())
 		{
 			return nullptr;
 		}
+
+		eastl::shared_ptr<ComponentType> newComponent = CreateDefaultObject<ComponentType>(inTypeInfo, GetOwningWorld());
+
+		newComponent->SetOwningEntity(*this);
 
 		// Before adding the component to the entity, we need to register it with the owning world's component updater
 		GetOwningWorld()->GetComponentUpdater().RegisterComponent(newComponent);

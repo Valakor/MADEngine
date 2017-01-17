@@ -17,8 +17,7 @@
 		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super_t(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override				\
 		{																		\
-			(void)inDeltaTime;																									\
-			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());		\
+			(void)inDeltaTime;													\
 		}																		\
 	};																			\
 
@@ -34,8 +33,7 @@
 		explicit C##TestComponentName(OGameWorld* inOwningWorld) : Super_t(inOwningWorld) {}	\
 		virtual void UpdateComponent(float inDeltaTime) override							\
 		{																					\
-			(void)inDeltaTime;																									\
-			LOG(Log##TestComponentName, Log, "Updating " #TestComponentName " for %s #%d\n", GetOwningEntity().GetTypeInfo()->GetTypeName(), GetOwningEntity().GetObjectID());		\
+			(void)inDeltaTime;																\
 		}																					\
 	};																						\
 
@@ -323,22 +321,31 @@ namespace MAD
 		{
 			MAD_DECLARE_COMPONENT(CSinMoveComponent, UComponent)
 		public:
-			explicit CSinMoveComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
-			                                                      , m_moveSpeed(1.0f)
-			                                                      , m_distance(1.0f) { }
+			explicit CSinMoveComponent(OGameWorld* inOwningWorld)
+				: Super_t(inOwningWorld)
+				, m_enabled(false)
+				, m_moveSpeed(1.0f)
+				, m_distance(1.0f)
+			{ }
 
 			virtual void UpdateComponent(float) override
 			{
-				/*auto root = GetOwningEntity().GetRootComponent();
+				if (!m_enabled)
+				{
+					return;
+				}
+
+				auto root = GetOwningEntity().GetRootComponent();
 				
 				float gameTime = gEngine->GetGameTime();
 				Vector3 offset = Vector3::Up * sinf(gameTime * m_moveSpeed) * m_distance;
 
-				root->SetWorldTranslation(m_initialPosition + offset);*/
+				root->SetWorldTranslation(m_initialPosition + offset);
 			}
 
 			virtual void Load(const UGameWorldLoader& inLoader) override
 			{
+				inLoader.GetBool("enabled", m_enabled);
 				inLoader.GetFloat("speed", m_moveSpeed);
 				inLoader.GetFloat("distance", m_distance);
 			}
@@ -349,9 +356,64 @@ namespace MAD
 			}
 
 		private:
+			bool m_enabled;
 			float m_moveSpeed;
 			float m_distance;
 			Vector3 m_initialPosition;
 		};
+
+		class CCircularMoveComponent : public UComponent
+		{
+			MAD_DECLARE_COMPONENT(CCircularMoveComponent, UComponent)
+		public:
+			explicit CCircularMoveComponent(OGameWorld* inOwningWorld) : Super_t(inOwningWorld)
+				, m_enabled(false)
+				, m_currentRotationAngle(0.0f)
+				, m_angularSpeed(1.0f)
+				, m_radius(1.0f) { }
+
+			virtual void UpdateComponent(float inDeltaTime) override
+			{
+				if (!m_enabled)
+				{
+					return;
+				}
+
+				Vector3 resultPosition;
+				const Vector3 entityUp = GetOwningEntity().GetUp();
+				const Vector3 entityRight = GetOwningEntity().GetRight();
+
+				m_currentRotationAngle += m_angularSpeed * inDeltaTime;
+
+				if (m_currentRotationAngle >= 360.0f)
+				{
+					m_currentRotationAngle -= 360.0f;
+				}
+
+				resultPosition = m_initialPosition + (m_radius * (entityRight * cos(ConvertToRadians(m_currentRotationAngle)) + entityUp * sin(ConvertToRadians(m_currentRotationAngle))));
+
+				GetOwningEntity().SetWorldTranslation(resultPosition);
+			}
+
+			virtual void Load(const UGameWorldLoader& inLoader) override
+			{
+				inLoader.GetBool("enabled", m_enabled);
+				inLoader.GetFloat("angular_speed", m_angularSpeed);
+				inLoader.GetFloat("radius", m_radius);
+			}
+
+			virtual void OnBeginPlay() override
+			{
+				m_initialPosition = GetOwningEntity().GetWorldTranslation();
+			}
+
+		private:
+			bool m_enabled;
+			float m_currentRotationAngle;
+			float m_angularSpeed; // in degrees
+			float m_radius;
+			Vector3 m_initialPosition;
+		};
+
 	}
 }

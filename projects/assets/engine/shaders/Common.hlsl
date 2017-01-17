@@ -7,6 +7,8 @@ struct PointLight
 	float4 m_lightColor;
 	float m_lightInnerRadius;
 	float m_lightOuterRadius;
+
+	float4x4 m_viewProjectionMatrix;
 };
 
 struct DirectionalLight
@@ -49,6 +51,9 @@ cbuffer CBPerFrameConstants : register(b1)
 cbuffer CBPerPointLightConstants : register(b2)
 {
 	PointLight g_pointLight;
+
+	// TEMP: Testing
+	float4x4 g_pointLightVPMatrices[6];
 };
 
 cbuffer CBPerDirectionalLightConstants : register(b3)
@@ -72,7 +77,6 @@ SamplerState g_pointSampler			: register(s0);
 SamplerState g_linearSampler		: register(s1);
 SamplerState g_trilinearSampler		: register(s2);
 SamplerState g_anisotropicSampler	: register(s3);
-
 SamplerComparisonState g_shadowMapSampler : register(s4);
 
 Texture2D g_diffuseMap	: register(t0);
@@ -87,3 +91,4 @@ Texture2D g_normalBuffer	: register(t7);
 Texture2D g_specularBuffer	: register(t8);
 Texture2D g_depthBuffer		: register(t9);
 Texture2D g_shadowMap		: register(t10);
+TextureCube g_shadowCube	: register(t11);

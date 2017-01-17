@@ -19,9 +19,12 @@
 #include "Core/LightComponent.h"
 #include "Core/DirectionalLightComponent.h"
 #include "Core/PointLightComponent.h"
-#include "Core/TestCharacters.h"
 
 #include "Networking/NetworkState.h"
+
+#include "Testing/TestCharacters.h"
+#include "Testing/TestComponents.h"
+#include "Testing/EntityTestingModule.h"
 
 using eastl::string;
 
@@ -91,6 +94,7 @@ namespace MAD
 			Test::CPointLightBulletComponent::StaticClass();
 			Test::CDemoCharacterController::StaticClass();
 			Test::CSinMoveComponent::StaticClass();
+			Test::CCircularMoveComponent::StaticClass();
 		}
 	}
 
@@ -167,7 +171,7 @@ namespace MAD
 
 		//TEMPSerializeObject();
 
-		//TEMPTestTransformHierarchy();
+		TEMPTestTransformHierarchy();
 
 		while (m_bContinue)
 		{
@@ -281,8 +285,8 @@ namespace MAD
 		m_worlds.clear();
 
 		UGameWorldLoader loader;
-		//loader.LoadWorld("engine\\worlds\\default_world.json");
-		loader.LoadWorld("engine\\worlds\\sponza_world.json");
+		loader.LoadWorld("engine\\worlds\\default_world.json");
+		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
 	}
 
 	void UGameEngine::TEMPSerializeObject()
@@ -325,14 +329,7 @@ namespace MAD
 		{
 			eastl::shared_ptr<OGameWorld> defaultWorld = m_worlds[0];
 
-			auto spatialMattCharacter = defaultWorld->SpawnEntity<MAD::Test::ASpatialCharacter>();
-			auto spatialDerekCharacter = defaultWorld->SpawnEntity<MAD::Test::ASpatialCharacter>();
-
-			spatialMattCharacter->AttachEntity(spatialDerekCharacter);
-
-			spatialMattCharacter->SetWorldTranslation(Vector3(10.0f, -7.5f, 1.0f));
-
-			spatialMattCharacter->PrintTranslationHierarchy();
+			MAD_ASSERT_DESC(Test::TestEntityModule(*defaultWorld), "Error: The entity testing module didn't pass all of the tests!");
 		}
 	}
 

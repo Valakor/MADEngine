@@ -12,6 +12,17 @@ namespace MAD
 		UpdateCachedTransform();
 	}
 
+	eastl::string ULinearTransform::ToString() const
+	{
+		eastl::string resultTransformString;
+
+		resultTransformString.sprintf("s: %f, r: <%f, %f, %f, %f>, t: <%f, %f, %f>", m_scale,
+			m_rotation.x, m_rotation.y, m_rotation.z, m_rotation.w,
+			m_translation.x, m_translation.y, m_translation.z);
+
+		return resultTransformString;
+	}
+
 	void ULinearTransform::SetScale(float inScale)
 	{
 		m_scale = inScale;
@@ -28,6 +39,16 @@ namespace MAD
 	{
 		m_translation = inTranslation;
 		UpdateCachedTransform();
+	}
+
+	bool ULinearTransform::operator!=(const ULinearTransform& inOtherTransform) const
+	{
+		return !(*this == inOtherTransform);
+	}
+
+	bool ULinearTransform::operator==(const ULinearTransform& inOtherTransform) const
+	{
+		return (FloatEqual(m_scale, inOtherTransform.m_scale)) && (m_rotation == inOtherTransform.m_rotation) && (m_translation == inOtherTransform.m_translation);
 	}
 
 	void ULinearTransform::UpdateCachedTransform()

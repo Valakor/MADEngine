@@ -8,92 +8,246 @@
 			"entities": [
 				{
 					"type": "AEntity",
+					"name": "Cardinal Axis",
 					"newComponents": [
 						{
-							"position": [150.0, 0.0, 0.0],
-							"scale": 50.0,
+							"type": "UComponent",
+							"properties": {
+							}
+						},
+						{
 							"type": "CMeshComponent",
+							"position": [100.0, 0.0, 0.0],
+							"scale": 10.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						},
 						{
-							"type": "CSinMoveComponent",
+							"type": "CMeshComponent",
+							"position": [0.0, 100.0, 0.0],
+							"scale": 10.0,
 							"properties": {
-								"speed": 0.8,
-								"distance": 200.0
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, -100.0],
+							"scale": 10.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						}
 					]
 				},
 				{
 					"type": "AEntity",
+					"name": "Directional Lights",
 					"newComponents": [
 						{
-							"position": [0.0, 0.0, 0.0],
-							"scale": 50.0,
+							"type": "CDirectionalLightComponent",
+							"properties": {
+								"enabled": false,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"direction": [0.0, -0.86602540378, -0.17],
+								"intensity": 3.0
+							}
+						},
+						{
+							"type": "CDirectionalLightComponent",
+							"properties": {
+								"enabled": false,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"direction": [0.0, -0.707107, -0.707107],
+								"intensity": 1.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Center Point Light",
+					"newComponents": [
+						{
+							"type": "CPointLightComponent",
+							"position": [-150.0, 175.0, 0.0],
+							"rotation": [-90.0, 0.0, 0.0],
+							"properties": {
+								"enabled": true,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"intensity": 15.0,
+								"innerRadius": 50.0,
+								"outerRadius": 600.0
+							}
+						},
+						{
 							"type": "CMeshComponent",
+							"scale": 5.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CCircularMoveComponent",
+							"properties": {
+								"enabled": true,
+								"angular_speed": 65.0,
+								"radius": 150.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "West Point Light",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [-150.0, 10.0, 0.0],
+							"scale": 10.0,
 							"properties": {
 								"visible": false,
 								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						},
 						{
-							"type": "CSinMoveComponent",
+							"type": "CPointLightComponent",
 							"properties": {
-								"speed": 0.8,
-								"distance": 200.0
+								"enabled": false,
+								"color": [0.0, 1.0, 0.0, 1.0],
+								"intensity": 2.0,
+								"outerRadius": 500.0
 							}
 						}
 					]
 				},
 				{
 					"type": "AEntity",
+					"name": "South Point Light",
 					"newComponents": [
 						{
-							"position": [-150.0, 0.0, 0.0],
-							"scale": 50.0,
 							"type": "CMeshComponent",
+							"position": [0.0, 10.0, 150.0],
+							"scale": 10.0,
 							"properties": {
-								"visible": true,
+								"visible": false,
 								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						},
 						{
-							"type": "CSinMoveComponent",
-							"properties": {
-								"speed": 0.8,
-								"distance": 200.0
+							"type": "CPointLightComponent",
+							"properties":{
+								"enabled": false,
+								"color": [0.0, 0.0, 1.0, 1.0],
+								"intensity": 2.0,
+								"outerRadius": 500.0
 							}
 						}
 					]
 				},
 				{
 					"type": "AEntity",
+					"name": "North Point Light",
 					"newComponents": [
 						{
-							"type": "CDirectionalLightComponent",
+							"type": "CMeshComponent",
+							"position": [0.0, 10.0, -350.0],
+							"scale": 10.0,
 							"properties": {
-								"enabled": true,
-								"color": [1.0, 1.0, 1.0, 1.0],
-								"direction": [0.0, -0.86602540378, -0.17],
-								"intensity": 1.0
+								"visible": false,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
 							}
 						},
 						{
-							"type": "CCameraComponent",
-							"position": [0.0, 0.0, 500.0],
-							"rotation": [0.0, 0.0, 0.0],
-							"properties": {
-								"fov": 60.0,
-								"near": 3.0,
-								"far": 100000.0
+							"type": "CPointLightComponent",
+							"properties":{
+								"enabled": false,
+								"color": [1.0, 0.0, 0.0, 1.0],
+								"intensity": 2.0,
+								"outerRadius": 500.0
 							}
 						}
-					],
-					"existingComponents": [
-
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Wooden Floor",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, 0.0],
+							"scale": 100.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\wooden_floor\\floor.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Monkey Column",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [-350.0, 0.0, -250.0],
+							"scale": 100.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\monkey_column.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Skinny Shelf",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [100.0, 0.0, 150.0],
+							"rotation": [0.0, -45.0, 0.0],
+							"scale": 100.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\skinny_shelf\\skinny_shelf.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Wooden Chair",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [-150.0, 0.0, 0.0],
+							"scale": 15.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\nanosuit\\nanosuit.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Skinny Pillar",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, -250.0],
+							"scale": 150.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\skinny_pillar\\pillar.obj"
+							}
+						}
 					]
 				}
 			]

@@ -24,9 +24,17 @@ namespace MAD
 	{
 		if (inChildComponent)
 		{
+			auto targetCompFindIter = eastl::find(m_childComponents.cbegin(), m_childComponents.cend(), inChildComponent);
+
+			MAD_ASSERT_DESC(targetCompFindIter == m_childComponents.cend(), "Error: Trying to attach a child component that is already a child component");
+
+			if (targetCompFindIter != m_childComponents.cend())
+			{
+				return;
+			}
+
 			m_childComponents.push_back(inChildComponent);
 			inChildComponent->m_parentComponent = this;
-
 			inChildComponent->UpdateWorldTransform();
 		}
 	}
@@ -74,7 +82,8 @@ namespace MAD
 		if (m_parentComponent)
 		{
 			// Find the delta between the target position and the current position and apply that to our local position to move ourselves
-			adjustedLocalTranslation += (inTranslation - m_componentWorldTransform.GetTranslation());
+			//adjustedLocalTranslation += (inTranslation - m_componentWorldTransform.GetTranslation());
+			adjustedLocalTranslation = inTranslation - m_parentComponent->GetWorldTransform().GetTranslation();
 		}
 
 		SetRelativeTranslation(adjustedLocalTranslation);
@@ -101,6 +110,21 @@ namespace MAD
 		UpdateWorldTransform();
 	}
 
+	Vector3 UComponent::GetComponentForward() const
+	{
+		return m_componentWorldTransform.GetForward();
+	}
+
+	Vector3 UComponent::GetComponentRight() const
+	{
+		return m_componentWorldTransform.GetRight();
+	}
+
+	Vector3 UComponent::GetComponentUp() const
+	{
+		return m_componentWorldTransform.GetUp();
+	}
+
 	bool UComponent::IsOwnerValid() const
 	{
 		// A component is valid only if it's owner isn't marked pending for kill
@@ -121,6 +145,17 @@ namespace MAD
 		for (const auto& currentChild : m_childComponents)
 		{
 			currentChild->PrintTranslationHierarchy(inDepth + 1);
+		}
+	}
+
+	void UComponent::PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const
+	{
+		// Push it's own world transform on to the stack and then passes it to it's children in order
+		inOutTransformQueue.push(m_componentWorldTransform);
+
+		for (const auto& currentChildComp : m_childComponents)
+		{
+			currentChildComp->PopulateTransformQueue(inOutTransformQueue);
 		}
 	}
 

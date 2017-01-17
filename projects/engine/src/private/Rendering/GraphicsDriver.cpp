@@ -1068,6 +1068,16 @@ namespace MAD
 		DrawSubscreenQuad(fullscreenQuadMin, fullscreenQuadMax);
 	}
 
+	ComPtr<ID3D11Device2> UGraphicsDriver::TEMPGetDevice()
+	{
+		return g_d3dDevice;
+	}
+
+	ComPtr<ID3D11DeviceContext2> UGraphicsDriver::TEMPGetDeviceContext()
+	{
+		return g_d3dDeviceContext;
+	}
+
 	void UGraphicsDriver::StartEventGroup(const eastl::wstring& inName)
 	{
 #ifdef _DEBUG

@@ -2,6 +2,7 @@
 
 #include <EASTL/vector.h>
 #include <EASTL/shared_ptr.h>
+#include <EASTL/queue.h>
 
 #include "Core/Object.h"
 #include "Core/SimpleMath.h"
@@ -33,6 +34,7 @@ namespace MAD
 
 		void AttachComponent(eastl::shared_ptr<UComponent> inChildComponent);
 		
+		void UpdateWorldTransform();
 		void SetWorldScale(float inScale);
 		void SetWorldRotation(const Quaternion& inRotation);
 		void SetWorldTranslation(const Vector3& inTranslation);
@@ -40,6 +42,10 @@ namespace MAD
 		void SetRelativeScale(float inScale);
 		void SetRelativeRotation(const Quaternion& inRotation);
 		void SetRelativeTranslation(const Vector3& inTranslation);
+
+		Vector3 GetComponentForward() const;
+		Vector3 GetComponentRight() const;
+		Vector3 GetComponentUp() const;
 
 		const ULinearTransform& GetWorldTransform() const { return m_componentWorldTransform; }
 		float GetWorldScale() const { return m_componentWorldTransform.GetScale(); }
@@ -55,10 +61,10 @@ namespace MAD
 		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
 
 		void PrintTranslationHierarchy(uint8_t inDepth) const;
+		void PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const;
 	private:
 		friend class AEntity;
 
-		void UpdateWorldTransform();
 		void UpdateChildWorldTransforms();
 	private:
 		AEntity* m_owningEntity;

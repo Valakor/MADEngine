@@ -6,6 +6,21 @@
 
 namespace MAD
 {
+#ifdef _DEBUG
+#define DX_HRESULT(DXOp, ErrorMsg)				\
+	do											\
+	{											\
+		HRESULT hr = (DXOp);					\
+												\
+		if (!SUCCEEDED(hr))						\
+		{										\
+			MAD_ASSERT_DESC(false, ErrorMsg);	\
+		}										\
+	} while (0)
+#else
+#define DX_HRESULT(DXOp, ErrorMsg) (DXOp)
+#endif
+
 #define DECLARE_SLOT_TO_INTEGRAL(SlotEnum) \
 	inline constexpr eastl::underlying_type<SlotEnum>::type AsIntegral(SlotEnum e) \
 	{ \
@@ -41,6 +56,7 @@ namespace MAD
 		SpecularBuffer,
 		DepthBuffer,
 		ShadowMap,
+		ShadowCube,
 
 		MAX
 	};
@@ -90,15 +106,15 @@ namespace MAD
 		Color m_lightColor;
 		float m_lightInnerRadius;
 		float m_lightOuterRadius;
-
 	private:
 		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
-
+	public:
+		Matrix m_viewProjectionMatrix;
 	public:
 		static SGPUPointLight Lerp(const SGPUPointLight& a, const SGPUPointLight& b, float t);
 	};
-	static_assert(sizeof(SGPUPointLight) == 48, "");
+	static_assert(sizeof(SGPUPointLight) == 112, "");
 
 	struct SGPUDirectionalLight
 	{
@@ -179,6 +195,8 @@ namespace MAD
 	struct SPerPointLightConstants
 	{
 		SGPUPointLight m_pointLight;
+
+		Matrix m_pointLightVPMatrices[6];
 	};
 
 	struct SPerDirectionalLightConstants
