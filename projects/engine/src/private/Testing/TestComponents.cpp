@@ -19,7 +19,7 @@ namespace MAD
 					auto bulletLightComponent = bullet->GetFirstComponentByType<CPointLightBulletComponent>().lock();
 					if (bulletLightComponent)
 					{
-						Vector3 bulletInitVelocity = GetOwningEntity().GetWorldTransform().GetForward() * 700.0f;
+						Vector3 bulletInitVelocity = GetOwningEntity().GetWorldTransform().GetForward() * 170.0f;
 						bulletLightComponent->SetBulletVelocity(bulletInitVelocity);
 						bullet->SetWorldTranslation(GetOwningEntity().GetWorldTranslation());
 					}

@@ -17,7 +17,7 @@ namespace MAD
 			MAD_ASSERT_DESC(false, ErrorMsg);	\
 		}										\
 	} while (0)
-#elif
+#else
 #define DX_HRESULT(DXOp, ErrorMsg) (DXOp)
 #endif
 

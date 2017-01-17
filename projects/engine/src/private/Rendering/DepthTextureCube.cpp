@@ -36,8 +36,9 @@ namespace MAD
 
 		DX_HRESULT(d3dDevice->CreateTexture2D(&depthCubeDesc, nullptr, depthCubeTexture2D.GetAddressOf()), "Error: Creating backing texture for texture cube failed!");
 
+#ifdef _DEBUG
 		depthCubeTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof("Depth Cube"), "Depth Cube");
-
+#endif
 		// Create the depth stencil view for each of the faces
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthCubeDSVDesc;
 

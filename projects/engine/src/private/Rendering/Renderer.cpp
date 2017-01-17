@@ -256,16 +256,16 @@ namespace MAD
 			{ inWSLightPos.x - 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // -X
 			{ inWSLightPos.x       , inWSLightPos.y + 1.0f, inWSLightPos.z        }, // +Y
 			{ inWSLightPos.x       , inWSLightPos.y - 1.0f, inWSLightPos.z        }, // -Y
-			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z + 1.0f }, // +Z
-			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z - 1.0f }, // -Z
+			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z - 1.0f }, // +Z
+			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z + 1.0f }, // -Z
 		};
 
 		const Vector3 wsUpVectors[UDepthTextureCube::s_numTextureCubeSides] =
 		{
 			{ 0.0f, 1.0f, 0.0f }, // +X
 			{ 0.0f, 1.0f, 0.0f },  // -X
-			{ 0.0f, 0.0f, -1.0f },  // +Y (use a different up)
-			{ 0.0f, 0.0f, 1.0f },  // -Y (use a different up)
+			{ 0.0f, 0.0f, 1.0f },  // +Y (use a different up)
+			{ 0.0f, 0.0f, -1.0f },  // -Y (use a different up)
 			{ 0.0f, 1.0f, 0.0f },  // +Z
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};

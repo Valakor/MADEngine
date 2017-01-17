@@ -79,6 +79,8 @@ float CalculateShadowFactor(float3 positionVS)
 	float4 lightPositionWS = mul(float4(g_pointLight.m_lightPosition, 1.0), g_cameraInverseViewMatrix);
 	float3 sampleVec = positionWS.xyz - lightPositionWS.xyz;
 
+	sampleVec.z = -sampleVec.z; // Reverse the z since our coordinate system is negative z forward
+
 	float calculatedDepth = 0.0;
 
 	// Goal: Retrieve the depth of the pixel with correct perspective

@@ -74,7 +74,8 @@
 					"newComponents": [
 						{
 							"type": "CPointLightComponent",
-							"position": [0.0, 50.0, 0.0],
+							"position": [-150.0, 175.0, 0.0],
+							"rotation": [-90.0, 0.0, 0.0],
 							"properties": {
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
@@ -92,11 +93,11 @@
 							}
 						},
 						{
-							"type": "CSinMoveComponent",
+							"type": "CCircularMoveComponent",
 							"properties": {
-								"enabled": false,
-								"speed": 5.0,
-								"distance": 100.0
+								"enabled": true,
+								"angular_speed": 65.0,
+								"radius": 150.0
 							}
 						}
 					]
@@ -194,10 +195,10 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [-250.0, 0.0, 0.0],
+							"position": [-350.0, 0.0, -250.0],
 							"scale": 100.0,
 							"properties": {
-								"visible": false,
+								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\monkey_column.obj"
 							}
 						}
@@ -209,7 +210,8 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [100.0, 0.0, -150.0],
+							"position": [100.0, 0.0, 150.0],
+							"rotation": [0.0, -45.0, 0.0],
 							"scale": 100.0,
 							"properties": {
 								"visible": true,
@@ -224,11 +226,26 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, -150.0, 250.0],
-							"scale": 2.5,
+							"position": [-150.0, 0.0, 0.0],
+							"scale": 15.0,
 							"properties": {
-								"visible": false,
-								"mesh": "engine\\meshes\\primitives\\wooden_chair\\chair.obj"
+								"visible": true,
+								"mesh": "engine\\meshes\\nanosuit\\nanosuit.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Skinny Pillar",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, -250.0],
+							"scale": 150.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\skinny_pillar\\pillar.obj"
 							}
 						}
 					]
