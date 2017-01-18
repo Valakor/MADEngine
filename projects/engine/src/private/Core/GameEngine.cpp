@@ -66,6 +66,11 @@ namespace MAD
 		{
 			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Depth);
 		}
+
+		void OnEnableDebugPrimitives()
+		{
+			gEngine->GetRenderer().ToggleDebugLayerEnabled();
+		}
 	}
 
 	namespace
@@ -310,6 +315,7 @@ namespace MAD
 			.RegisterEvent("SpecularView", '3')
 			.RegisterEvent("NormalsView", '4')
 			.RegisterEvent("DepthView", '5')
+			.RegisterEvent("DebugView", '6')
 			.Finalize(true);
 
 		SControlScheme("CameraDebug")
@@ -342,6 +348,7 @@ namespace MAD
 		renderScheme.BindEvent<&OnEnableSpecular>("SpecularView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableDebugPrimitives>("DebugView", EInputEvent::IE_KeyDown);
 
 		debugScheme.BindEvent<UGameEngine, &UGameEngine::ReloadAllWorlds>("ReloadWorld", EInputEvent::IE_KeyDown, this);
 
