@@ -169,9 +169,7 @@ namespace MAD
 		// In the future, update defaults by configuration file
 		TEMPInitializeGameContext();
 
-		//TEMPSerializeObject();
-
-		TEMPTestTransformHierarchy();
+		ExecuteEngineTests();
 
 		while (m_bContinue)
 		{
@@ -231,6 +229,77 @@ namespace MAD
 		return m_worlds[inIndex];
 	}
 
+	int32_t UGameEngine::GetWorldIndex(const eastl::string& inWorldName) const
+	{
+		const size_t numWorlds = m_worlds.size();
+		for (size_t i = 0; i < numWorlds; ++i)
+		{
+			if (m_worlds[i]->GetWorldName() == inWorldName)
+			{
+				return static_cast<int32_t>(i);
+			}
+		}
+
+		return -1;
+	}
+
+	bool UGameEngine::ReloadWorld(size_t inWorldIndex)
+	{
+		if (inWorldIndex >= m_worlds.size())
+		{
+			return false;
+		}
+
+		// Swap and pop the last world with the index specified
+		const eastl::string targetWorldRelativePath = m_worlds[inWorldIndex]->GetWorldRelativePath();
+
+		m_worlds[inWorldIndex] = m_worlds.back();
+
+		m_worlds.pop_back();
+
+		UGameWorldLoader gameWorldLoader;
+
+		return gameWorldLoader.LoadWorld(targetWorldRelativePath);
+	}
+
+	bool UGameEngine::ReloadWorld(const eastl::string& inWorldName)
+	{
+		if (inWorldName.empty())
+		{
+			return false;
+		}
+
+		int32_t targetWorldIndex = GetWorldIndex(inWorldName);
+
+		if (targetWorldIndex == -1)
+		{
+			return false;
+		}
+
+		return ReloadWorld(static_cast<size_t>(targetWorldIndex));
+	}
+
+	void UGameEngine::ReloadAllWorlds()
+	{
+		const size_t numWorlds = m_worlds.size();
+
+		for (size_t i = 0; i < numWorlds; ++i)
+		{
+			ReloadWorld(i);
+		}
+	}
+
+	void UGameEngine::ExecuteEngineTests()
+	{
+		// Assumes that the default world loaded in correctly
+		if (!m_worlds.empty())
+		{
+			eastl::shared_ptr<OGameWorld> defaultWorld = m_worlds[0];
+
+			MAD_ASSERT_DESC(Test::TestEntityModule(*defaultWorld), "Error: The entity testing module didn't pass all of the tests!");
+		}
+	}
+
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
 	void UGameEngine::TEMPInitializeGameContext()
 	{
@@ -274,17 +343,11 @@ namespace MAD
 		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
 
-		debugScheme.BindEvent<UGameEngine, &UGameEngine::TEMPReloadWorld>("ReloadWorld", EInputEvent::IE_KeyDown, this);
+		debugScheme.BindEvent<UGameEngine, &UGameEngine::ReloadAllWorlds>("ReloadWorld", EInputEvent::IE_KeyDown, this);
 
 		// Load the world _after_ setting up control schemes. (We could probably define those in the world file or something as well)
-		TEMPReloadWorld();
-	}
-
-	void UGameEngine::TEMPReloadWorld()
-	{
-		m_worlds.clear();
-
 		UGameWorldLoader loader;
+
 		loader.LoadWorld("engine\\worlds\\default_world.json");
 		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
 	}
@@ -319,17 +382,6 @@ namespace MAD
 			deserializationBuffer = serializationBuffer;
 
 			activeNetworkState.SerializeState(deserializationBuffer, true);
-		}
-	}
-
-	void UGameEngine::TEMPTestTransformHierarchy()
-	{
-		// Assumes that the default world loaded in correctly
-		if (!m_worlds.empty())
-		{
-			eastl::shared_ptr<OGameWorld> defaultWorld = m_worlds[0];
-
-			MAD_ASSERT_DESC(Test::TestEntityModule(*defaultWorld), "Error: The entity testing module didn't pass all of the tests!");
 		}
 	}
 

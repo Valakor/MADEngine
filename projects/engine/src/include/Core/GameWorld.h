@@ -44,8 +44,10 @@ namespace MAD
 		void FinalizeSpawnEntity(eastl::shared_ptr<AEntity> inEntity);
 		
 		const eastl::string& GetWorldName() const { return m_worldName; }
+		const eastl::string& GetWorldRelativePath() const { return m_worldRelativePath; }
 		const eastl::string& GetDefaultLayerName() const { return m_defaultLayerName; }
 		void SetWorldName(const eastl::string& inWorldName) { if (!inWorldName.empty()) m_worldName = inWorldName; }
+		void SetWorldRelativePath(const eastl::string& inWorldRelativePath) { if (!inWorldRelativePath.empty()) m_worldRelativePath = inWorldRelativePath; }
 		void SetDefaultLayerName(const eastl::string& inDefaultLayerName) { m_defaultLayerName = inDefaultLayerName; }
 
 		// Removes any entities (and their components) that pending to be killed
@@ -58,6 +60,7 @@ namespace MAD
 		void UpdatePostPhysics(float inDeltaTime);
 	private:
 		eastl::string m_worldName;
+		eastl::string m_worldRelativePath;
 		eastl::string m_defaultLayerName;
 		WorldLayerContainer_t m_worldLayers;
 		UComponentUpdater m_componentUpdater;

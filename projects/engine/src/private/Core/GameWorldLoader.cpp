@@ -19,6 +19,7 @@ namespace MAD
 
 	bool UGameWorldLoader::LoadWorld(const eastl::string& inWorldFilePath)
 	{
+		m_relativeFilePath = inWorldFilePath;
 		m_fullFilePath = UAssetCache::GetAssetRoot() + inWorldFilePath;
 
 		LOG(LogGameWorldLoader, Log, "Loading game world `%s`\n", inWorldFilePath.c_str());
@@ -64,7 +65,7 @@ namespace MAD
 		LOG(LogGameWorldLoader, Log, "World name: %s\n", worldName.c_str());
 
 		// Create world
-		eastl::weak_ptr<OGameWorld> gameWorld_weak = gEngine->SpawnGameWorld<OGameWorld>(worldName);
+		eastl::weak_ptr<OGameWorld> gameWorld_weak = gEngine->SpawnGameWorld<OGameWorld>(worldName, m_relativeFilePath);
 		m_world = gameWorld_weak.lock();
 
 		// Load world configuration

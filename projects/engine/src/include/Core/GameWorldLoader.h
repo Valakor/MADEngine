@@ -29,7 +29,9 @@ namespace MAD
 		rapidjson::Document m_doc;
 		rapidjson::Value* m_currentValue = nullptr;
 
+		eastl::string m_relativeFilePath;
 		eastl::string m_fullFilePath;
+
 		eastl::shared_ptr<class OGameWorld> m_world;
 
 		bool LoadWorld(rapidjson::Value& inRoot);

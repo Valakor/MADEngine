@@ -35,12 +35,12 @@ namespace MAD
 		void Stop();
 
 		template <typename WorldType>
-		eastl::weak_ptr<WorldType> SpawnGameWorld(const eastl::string& inWorldName);
+		eastl::weak_ptr<WorldType> SpawnGameWorld(const eastl::string& inWorldName, const eastl::string& inWorldRelativePath);
 
 		// Since the TTypeInfo doesn't explicitly give us class information, the CommonAncetorWorldType
 		// is used as a "I know it is at least derived from this"
 		template <typename CommonAncestorWorldType>
-		eastl::weak_ptr<CommonAncestorWorldType> SpawnGameWorld(const TTypeInfo& inTypeInfo, const eastl::string& inWorldName);
+		eastl::weak_ptr<CommonAncestorWorldType> SpawnGameWorld(const TTypeInfo& inTypeInfo, const eastl::string& inWorldName, const eastl::string& inWorldRelativePath);
 
 		bool IsSimulating() const { return m_isSimulating; }
 		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
@@ -57,9 +57,16 @@ namespace MAD
 		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
 		UNetworkManager& GetNetworkManager() { return m_networkManager; }
 	private:
+		int32_t GetWorldIndex(const eastl::string& inWorldName) const;
+
+		// TODO Reloading world doesn't totally work with the network because we don't respawn the player again
+		bool ReloadWorld(size_t inWorldIndex);
+		bool ReloadWorld(const eastl::string& inWorldName);
+		void ReloadAllWorlds();
+
+		void ExecuteEngineTests();
+
 		void TEMPInitializeGameContext();
-		void TEMPTestTransformHierarchy();
-		void TEMPReloadWorld();
 		void TEMPSerializeObject();
 	private:
 		const int MAX_SIMULATION_STEPS = 10;
@@ -86,14 +93,14 @@ namespace MAD
 	};
 
 	template <typename WorldType>
-	eastl::weak_ptr<WorldType> UGameEngine::SpawnGameWorld(const eastl::string& inWorldName)
+	eastl::weak_ptr<WorldType> UGameEngine::SpawnGameWorld(const eastl::string& inWorldName, const eastl::string& inWorldRelativePath)
 	{
 		static_assert(eastl::is_base_of<OGameWorld, WorldType>::value, "Error: You may only spawn game worlds that are of type UGameWorld or more derived");
-		return SpawnGameWorld<WorldType>(*WorldType::StaticClass(), inWorldName);
+		return SpawnGameWorld<WorldType>(*WorldType::StaticClass(), inWorldName, inWorldRelativePath);
 	}
 
 	template <typename CommonAncestorWorldType>
-	eastl::weak_ptr<CommonAncestorWorldType> UGameEngine::SpawnGameWorld(const TTypeInfo& inTypeInfo, const eastl::string& inWorldName)
+	eastl::weak_ptr<CommonAncestorWorldType> UGameEngine::SpawnGameWorld(const TTypeInfo& inTypeInfo, const eastl::string& inWorldName, const eastl::string& inWorldRelativePath)
 	{
 		static_assert(eastl::is_base_of<OGameWorld, CommonAncestorWorldType>::value, "Error: You may only spawn game worlds that are of type UGameWorld or more derived");
 
@@ -101,6 +108,7 @@ namespace MAD
 		eastl::shared_ptr<CommonAncestorWorldType> newWorld = CreateDefaultObject<CommonAncestorWorldType>(inTypeInfo, nullptr);;
 
 		newWorld->SetWorldName(inWorldName);
+		newWorld->SetWorldRelativePath(inWorldRelativePath);
 
 		m_worlds.emplace_back(newWorld);
 
