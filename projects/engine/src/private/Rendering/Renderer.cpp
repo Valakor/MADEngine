@@ -47,12 +47,6 @@ namespace MAD
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
-		Matrix cardinalAxisMatrix;
-
-		cardinalAxisMatrix.Translation(Vector3(0.0f, 0.5f, 0.0f));
-
-		DrawDebugTransform(cardinalAxisMatrix, 1.0f, 100.0f);
-
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
 	}
@@ -74,6 +68,11 @@ namespace MAD
 		{
 			result.first->second.m_previousDrawTransform = &iter->second.m_transform;
 		}
+	}
+
+	void URenderer::QueueDebugDrawItem(const SDrawItem& inDebugDrawItem)
+	{
+		m_debugDrawItems.push_back(inDebugDrawItem);
 	}
 
 	void URenderer::QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight)
@@ -121,29 +120,12 @@ namespace MAD
 		m_debugDrawItems.push_back(lineDrawItem);
 	}
 
-	void URenderer::DrawDebugTransform(const Matrix& inWSTransform, float inDuration, float inAxisScale)
-	{
-		const Vector4 unitX(inAxisScale, 0.0f, 0.0f, 1.0f);
-		const Vector4 unitY(0.0f, inAxisScale, 0.0f, 1.0f);
-		const Vector4 unitZ(0.0f, 0.0f, -inAxisScale, 1.0f);
-
-		// Construct multiple lines for the transform
-		Vector3 transformWSStarts[3] = { inWSTransform.Translation(), inWSTransform.Translation(), inWSTransform.Translation() };
-		Vector3 transformWSEnds[3] = { Vector4::Transform(unitX, inWSTransform), Vector4::Transform(unitY, inWSTransform),Vector4::Transform(unitZ, inWSTransform) };
-		Color transformColors[3] = { Color(1.0f,0.0f,0.0f), Color(0.0f, 1.0f, 0.0f), Color(0.0f, 0.0f, 1.0f) }; // x(Red), y(Green), z(Blue)
-
-		for (size_t i = 0; i < 3; ++i)
-		{
-			DrawDebugLine(transformWSStarts[i], transformWSEnds[i], inDuration, transformColors[i]);
-		}
-	}
-
 	void URenderer::ClearRenderItems()
 	{
 		m_currentStateIndex = 1 - m_currentStateIndex;
 
 		// TODO Currently doesn't effectively support dynamic debug line drawing because we need to setup a way of batching up debug line draws
-		//m_debugDrawItems.clear();
+		m_debugDrawItems.clear();
 		m_queuedDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
 		m_queuedPointLights[m_currentStateIndex].clear();

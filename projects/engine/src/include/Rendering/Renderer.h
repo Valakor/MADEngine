@@ -36,11 +36,11 @@ namespace MAD
 		void Shutdown();
 
 		void QueueDrawItem(const SDrawItem& inDrawItem);
+		void QueueDebugDrawItem(const SDrawItem& inDebugDrawItem);
 		void QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight);
 		void QueuePointLight(size_t inID, const SGPUPointLight& inPointLight);
 
 		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(0.0, 0.0, 0.0));
-		void DrawDebugTransform(const Matrix& inWSTransform, float inDuration, float inAxisScale = 1.0f);
 
 		void ClearRenderItems();
 

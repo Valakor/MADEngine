@@ -8,6 +8,19 @@
 			"entities": [
 				{
 					"type": "AEntity",
+					"name": "Cardinal Axis",
+					"newComponents": [
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.25, 0.0],
+							"properties": {
+								"debug_scale": 100.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
 					"name": "Directional Lights",
 					"newComponents": [
 						{
@@ -60,6 +73,14 @@
 								"enabled": true,
 								"angular_speed": 65.0,
 								"radius": 150.0
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.0, 0.0],
+							"properties": {
+								"enabled": false,
+								"debug_scale": 10.0
 							}
 						}
 					]
@@ -163,6 +184,13 @@
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\monkey_column.obj"
 							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": true
+							}
 						}
 					]
 				},
@@ -178,6 +206,13 @@
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\skinny_shelf\\skinny_shelf.obj"
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": true
 							}
 						}
 					]
@@ -208,6 +243,13 @@
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\skinny_pillar\\pillar.obj"
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": true
 							}
 						}
 					]
