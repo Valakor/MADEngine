@@ -247,7 +247,7 @@ namespace MAD
 	void URenderer::PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
-		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
+		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 3.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
 
 		// Calculate the points to look at for each direction
 		const Vector3 wsDirectionTargets[UDepthTextureCube::s_numTextureCubeSides] =

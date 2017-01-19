@@ -12,5 +12,13 @@ namespace MAD
 		float m_farPlaneDistance;
 		float m_exposure;
 		ULinearTransform m_transform;
+
+		SCameraInstance()
+		{
+			m_verticalFOV = ConvertToRadians(60.0f);
+			m_nearPlaneDistance = 3.0f;
+			m_farPlaneDistance = 10000.0f;
+			m_exposure = 1.0f;
+		}
 	};
 }
