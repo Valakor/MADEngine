@@ -47,6 +47,12 @@ namespace MAD
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
+		Matrix cardinalAxisMatrix;
+
+		cardinalAxisMatrix.Translation(Vector3(0.0f, 0.5f, 0.0f));
+
+		DrawDebugTransform(cardinalAxisMatrix, 1.0f, 100.0f);
+
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
 	}
@@ -93,9 +99,7 @@ namespace MAD
 
 	void URenderer::DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor /*= Color(0.0, 0.0, 0.0)*/)
 	{
-		UNREFERENCED_PARAMETER(inWSStart);
-		UNREFERENCED_PARAMETER(inWSEnd);
-		UNREFERENCED_PARAMETER(inLineColor);
+		UNREFERENCED_PARAMETER(inDuration);
 
 		const Vector3 inMSStart(Vector3::Zero);
 		const Vector3 inMSEnd(inWSEnd - inWSStart);
@@ -103,19 +107,18 @@ namespace MAD
 		// Construct draw item for line
 		SDrawItem lineDrawItem;
 
-		memset(&lineDrawItem, 0, sizeof(SDrawItem));
-
 		lineDrawItem.m_transform = ULinearTransform(); // Start with identity
 		lineDrawItem.m_drawCommand = EDrawCommand::VertexDraw;
 		lineDrawItem.m_rasterizerState = m_debugPassDescriptor.m_rasterizerState;
 		lineDrawItem.m_primitiveTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
-		lineDrawItem.m_inputLayout = UInputLayoutCache::GetInputLayout(EInputLayoutSemantic::Position | EInputLayoutSemantic::Normal);
 		lineDrawItem.m_vertexCount = 2;
 		lineDrawItem.m_vertexBufferOffset = 0; // No sub-meshes obviously
 
-		PopulateDebugLineVertices(lineDrawItem.m_vertexBuffers);
+		PopulateDebugLineVertices(inMSStart, inMSEnd, inLineColor, lineDrawItem.m_vertexBuffers);
 
 		lineDrawItem.m_transform.SetTranslation(inWSStart);
+
+		m_debugDrawItems.push_back(lineDrawItem);
 	}
 
 	void URenderer::DrawDebugTransform(const Matrix& inWSTransform, float inDuration, float inAxisScale)
@@ -127,7 +130,7 @@ namespace MAD
 		// Construct multiple lines for the transform
 		Vector3 transformWSStarts[3] = { inWSTransform.Translation(), inWSTransform.Translation(), inWSTransform.Translation() };
 		Vector3 transformWSEnds[3] = { Vector4::Transform(unitX, inWSTransform), Vector4::Transform(unitY, inWSTransform),Vector4::Transform(unitZ, inWSTransform) };
-		Color transformColors[3] = { Color(1.0f,0.0f,0.0f), Color(0.0f, 1.0f, 0.0f), Color(0.0f, 0.0f, 1.0f) }; // RGB
+		Color transformColors[3] = { Color(1.0f,0.0f,0.0f), Color(0.0f, 1.0f, 0.0f), Color(0.0f, 0.0f, 1.0f) }; // x(Red), y(Green), z(Blue)
 
 		for (size_t i = 0; i < 3; ++i)
 		{
@@ -139,7 +142,8 @@ namespace MAD
 	{
 		m_currentStateIndex = 1 - m_currentStateIndex;
 
-		m_debugDrawItems.clear();
+		// TODO Currently doesn't effectively support dynamic debug line drawing because we need to setup a way of batching up debug line draws
+		//m_debugDrawItems.clear();
 		m_queuedDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
 		m_queuedPointLights[m_currentStateIndex].clear();
@@ -277,7 +281,7 @@ namespace MAD
 		}
 
 		m_debugPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
-		m_debugPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
+		m_debugPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
 	}
 
 	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
@@ -350,7 +354,10 @@ namespace MAD
 
 		// Create two vertex arrays (one for position, one for color)
 		Vector3 vertexPositionData[2] = { inMSStart, inMSEnd };
-		Vector3 vertexColorData[2] = { Vector3(inLineColor.R, inLineColor.G, inLineColor.B), Vector3(inLineColor.R, inLineColor.G, inLineColor.B) };
+		Vector3 vertexColorData[2] = { Vector3(inLineColor.R(), inLineColor.G(), inLineColor.B()), Vector3(inLineColor.R(), inLineColor.G(), inLineColor.B()) };
+
+		inOutLineVertexData.emplace_back(g_graphicsDriver, EVertexBufferSlot::Position, EInputLayoutSemantic::Position, vertexPositionData, static_cast<uint32_t>(sizeof(Vector3)), 2);
+		inOutLineVertexData.emplace_back(g_graphicsDriver, EVertexBufferSlot::Normal, EInputLayoutSemantic::Normal, vertexColorData, static_cast<uint32_t>(sizeof(Vector3)), 2);
 	}
 
 	void URenderer::BindPerFrameConstants()
@@ -433,7 +440,7 @@ namespace MAD
 		DrawPointLighting(inFramePercent);
 
 		// Always perform the forward debug pass after the main deferred pass
-		//DrawDebugPrimitives(inFramePercent);
+		DrawDebugPrimitives(inFramePercent);
 	}
 
 	void URenderer::EndFrame()
@@ -637,12 +644,16 @@ namespace MAD
 
 		g_graphicsDriver.StartEventGroup(L"Debug Pass Layer");
 
+		// Make sure the g buffer depth stencil shader resource view is not bound because we're using it as our depth stencil view here
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DepthBuffer);
+
 		m_debugPassDescriptor.ApplyPassState(g_graphicsDriver);
+		m_debugPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 
 		// Process the debug draw items
 		for (auto& currentDebugDrawItem : m_debugDrawItems)
 		{
-			currentDebugDrawItem.Draw(g_graphicsDriver, inFramePerecent, m_perFrameConstants, true);
+			currentDebugDrawItem.Draw(g_graphicsDriver, inFramePerecent, m_perFrameConstants, false);
 		}
 
 		g_graphicsDriver.EndEventGroup();

@@ -8,44 +8,6 @@
 			"entities": [
 				{
 					"type": "AEntity",
-					"name": "Cardinal Axis",
-					"newComponents": [
-						{
-							"type": "UComponent",
-							"properties": {
-							}
-						},
-						{
-							"type": "CMeshComponent",
-							"position": [100.0, 0.0, 0.0],
-							"scale": 10.0,
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"type": "CMeshComponent",
-							"position": [0.0, 100.0, 0.0],
-							"scale": 10.0,
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						},
-						{
-							"type": "CMeshComponent",
-							"position": [0.0, 0.0, -100.0],
-							"scale": 10.0,
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\cube.obj"
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
 					"name": "Directional Lights",
 					"newComponents": [
 						{

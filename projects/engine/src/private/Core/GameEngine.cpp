@@ -12,16 +12,17 @@
 #include "Misc/AssetCache.h"
 #include "Rendering/Renderer.h"
 
-// TESTING
 #include "Core/Character.h"
 #include "Core/CameraComponent.h"
 #include "Core/MeshComponent.h"
 #include "Core/LightComponent.h"
 #include "Core/DirectionalLightComponent.h"
 #include "Core/PointLightComponent.h"
+#include "Core/DebugTransformComponent.h"
 
 #include "Networking/NetworkState.h"
 
+// TESTING
 #include "Testing/TestCharacters.h"
 #include "Testing/TestComponents.h"
 #include "Testing/EntityTestingModule.h"
@@ -91,6 +92,7 @@ namespace MAD
 			CDirectionalLightComponent::StaticClass();
 			CPointLightComponent::StaticClass();
 			CMoveComponent::StaticClass();
+			CDebugTransformComponent::StaticClass();
 
 			Test::APointLightBullet::StaticClass();
 			Test::ADemoCharacter::StaticClass();

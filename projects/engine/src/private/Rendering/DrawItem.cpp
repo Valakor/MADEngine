@@ -28,7 +28,10 @@ namespace MAD
 		}
 		inGraphicsDriver.SetInputLayout(UInputLayoutCache::GetInputLayout(inputLayout));
 
-		inGraphicsDriver.SetIndexBuffer(m_indexBuffer, m_indexOffset);
+		if (m_indexBuffer.IsValid())
+		{
+			inGraphicsDriver.SetIndexBuffer(m_indexBuffer, m_indexOffset);
+		}
 
 		SPerDrawConstants perDrawConstants;
 
