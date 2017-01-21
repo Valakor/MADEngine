@@ -5,6 +5,15 @@ namespace MAD
 {
 	namespace Test
 	{
+		void RegisterComponentTypes()
+		{
+			CTimedDeathComponent::StaticClass();
+			CPointLightBulletComponent::StaticClass();
+			CDemoCharacterController::StaticClass();
+			CSinMoveComponent::StaticClass();
+			CCircularMoveComponent::StaticClass();
+		}
+
 		void CDemoCharacterController::OnEvent(EEventTypes inEventType, void* inEventData)
 		{
 			Super_t::OnEvent(inEventType, inEventData);

@@ -94,14 +94,8 @@ namespace MAD
 			CMoveComponent::StaticClass();
 			CDebugTransformComponent::StaticClass();
 
-			Test::APointLightBullet::StaticClass();
-			Test::ADemoCharacter::StaticClass();
-
-			Test::CTimedDeathComponent::StaticClass();
-			Test::CPointLightBulletComponent::StaticClass();
-			Test::CDemoCharacterController::StaticClass();
-			Test::CSinMoveComponent::StaticClass();
-			Test::CCircularMoveComponent::StaticClass();
+			Test::RegisterEntityTypes();
+			Test::RegisterComponentTypes();
 		}
 	}
 

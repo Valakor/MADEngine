@@ -63,6 +63,8 @@ namespace MAD
 		MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentI, 8);
 		MAD_DEFINE_PRIORITIZED_TEST_COMPONENT(TestComponentJ, 9);
 
+		void RegisterComponentTypes();
+
 		class CDemoCharacterController : public UComponent
 		{
 			MAD_DECLARE_COMPONENT(CDemoCharacterController, UComponent)

@@ -15,6 +15,8 @@ namespace MAD
 {
 	namespace Test
 	{
+		void RegisterEntityTypes();
+
 #pragma region Default Entities
 
 		class AMattCharacter : public AEntity
