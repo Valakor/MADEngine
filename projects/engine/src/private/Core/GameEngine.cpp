@@ -12,16 +12,17 @@
 #include "Misc/AssetCache.h"
 #include "Rendering/Renderer.h"
 
-// TESTING
 #include "Core/Character.h"
 #include "Core/CameraComponent.h"
 #include "Core/MeshComponent.h"
 #include "Core/LightComponent.h"
 #include "Core/DirectionalLightComponent.h"
 #include "Core/PointLightComponent.h"
+#include "Core/DebugTransformComponent.h"
 
 #include "Networking/NetworkState.h"
 
+// TESTING
 #include "Testing/TestCharacters.h"
 #include "Testing/TestComponents.h"
 #include "Testing/EntityTestingModule.h"
@@ -66,6 +67,11 @@ namespace MAD
 		{
 			gEngine->GetRenderer().SetGBufferVisualizeOption(EVisualizeOptions::Depth);
 		}
+
+		void OnEnableDebugPrimitives()
+		{
+			gEngine->GetRenderer().ToggleDebugLayerEnabled();
+		}
 	}
 
 	namespace
@@ -86,15 +92,10 @@ namespace MAD
 			CDirectionalLightComponent::StaticClass();
 			CPointLightComponent::StaticClass();
 			CMoveComponent::StaticClass();
+			CDebugTransformComponent::StaticClass();
 
-			Test::APointLightBullet::StaticClass();
-			Test::ADemoCharacter::StaticClass();
-
-			Test::CTimedDeathComponent::StaticClass();
-			Test::CPointLightBulletComponent::StaticClass();
-			Test::CDemoCharacterController::StaticClass();
-			Test::CSinMoveComponent::StaticClass();
-			Test::CCircularMoveComponent::StaticClass();
+			Test::RegisterEntityTypes();
+			Test::RegisterComponentTypes();
 		}
 	}
 
@@ -310,6 +311,7 @@ namespace MAD
 			.RegisterEvent("SpecularView", '3')
 			.RegisterEvent("NormalsView", '4')
 			.RegisterEvent("DepthView", '5')
+			.RegisterEvent("DebugView", '6')
 			.Finalize(true);
 
 		SControlScheme("CameraDebug")
@@ -329,6 +331,7 @@ namespace MAD
 			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
 			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
 			.RegisterEvent("Shoot", VK_LBUTTON)
+			.RegisterEvent("DebugLine", VK_RBUTTON)
 			.RegisterEvent("MouseMode", 'M')
 			.Finalize(true);
 
@@ -342,6 +345,7 @@ namespace MAD
 		renderScheme.BindEvent<&OnEnableSpecular>("SpecularView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnEnableDebugPrimitives>("DebugView", EInputEvent::IE_KeyDown);
 
 		debugScheme.BindEvent<UGameEngine, &UGameEngine::ReloadAllWorlds>("ReloadWorld", EInputEvent::IE_KeyDown, this);
 

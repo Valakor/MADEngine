@@ -11,6 +11,14 @@
 
 namespace MAD
 {
+	enum class EDrawCommand : uint8_t
+	{
+		VertexDraw, // Vertex Buffer
+		IndexedDraw, // Index Buffer
+
+		MAX
+	};
+
 	struct SDrawItem
 	{
 		SDrawItem();
@@ -22,6 +30,7 @@ namespace MAD
 		ULinearTransform* m_previousDrawTransform;
 
 		eastl::vector<UVertexArray> m_vertexBuffers;
+		UINT m_vertexCount;
 		UINT m_vertexBufferOffset;
 
 		SBufferId m_indexBuffer;
@@ -38,5 +47,7 @@ namespace MAD
 		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology;
 
 		SRasterizerStateId m_rasterizerState;
+
+		EDrawCommand m_drawCommand;
 	};
 }

@@ -27,6 +27,13 @@ namespace MAD
 		Depth
 	};
 
+	struct SDebugHandle
+	{
+		double m_initialGameTime;
+		float m_duration;
+		SDrawItem m_debugDrawItem;
+	};
+
 	class URenderer
 	{
 	public:
@@ -36,8 +43,11 @@ namespace MAD
 		void Shutdown();
 
 		void QueueDrawItem(const SDrawItem& inDrawItem);
+		void QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration = 0.0f);
 		void QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight);
 		void QueuePointLight(size_t inID, const SGPUPointLight& inPointLight);
+
+		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(0.0, 0.0, 0.0));
 
 		void ClearRenderItems();
 
@@ -56,17 +66,19 @@ namespace MAD
 		SRasterizerStateId GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
-
+		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
 	private:
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
+		void InitializeDebugPass(const eastl::string& inProgramPath);
 
 		void InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath);
 		void InitializePointLightShadowMappingPass(const eastl::string& inProgramPath);
 
 		void PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray);
+		void PopulateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);
 
 		void BindPerFrameConstants();
 		void SetViewport(LONG inWidth, LONG inHeight);
@@ -75,8 +87,11 @@ namespace MAD
 		void Draw(float inFramePercent);
 		void EndFrame();
 
+		void ClearExpiredDebugDrawItems();
+
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
+		void DrawDebugPrimitives(float inFramePerecent);
 
 		void DoVisualizeGBuffer();
 
@@ -89,10 +104,14 @@ namespace MAD
 		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
 		Color m_clearColor;
+		bool m_isDebugLayerEnabled;
 
 		// Double-buffer draw items for current and past frame for state interpolation
 		int m_currentStateIndex;
 		SCameraInstance m_camera[2];
+
+		eastl::vector<SDebugHandle> m_debugDrawItems;
+
 		eastl::hash_map<size_t, SDrawItem> m_queuedDrawItems[2];
 		eastl::hash_map<size_t, SGPUDirectionalLight> m_queuedDirLights[2];
 		eastl::hash_map<size_t, SGPUPointLight> m_queuedPointLights[2];
@@ -102,6 +121,7 @@ namespace MAD
 		SRenderPassDescriptor m_pointLightingPassDescriptor;
 		SRenderPassDescriptor m_dirShadowMappingPassDescriptor;
 		SRenderPassDescriptor m_pointShadowMappingPassDescriptor;
+		SRenderPassDescriptor m_debugPassDescriptor;
 
 		SShaderResourceId m_shadowMapSRV;
 

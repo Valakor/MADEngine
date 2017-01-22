@@ -100,6 +100,7 @@ namespace MAD
 
 			// Vertices / indices
 			currentDrawItem.m_vertexBufferOffset = m_subMeshes[i].m_vertexStart;
+			currentDrawItem.m_vertexCount = m_subMeshes[i].m_vertexCount;
 			currentDrawItem.m_vertexBuffers.push_back(m_gpuPositions);
 
 			if (!m_gpuNormals.Empty())

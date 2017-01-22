@@ -20,7 +20,8 @@ namespace MAD
 	URenderer::URenderer(): m_frame(static_cast<decltype(m_frame)>(-1))
 	                      , m_window(nullptr)
 	                      , m_currentStateIndex(0)
-	                      , m_visualizeOption(EVisualizeOptions::None) { }
+	                      , m_visualizeOption(EVisualizeOptions::None)
+						  , m_isDebugLayerEnabled(true) { }
 
 	bool URenderer::Init(UGameWindow& inWindow)
 	{
@@ -41,6 +42,7 @@ namespace MAD
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
 
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
@@ -68,6 +70,17 @@ namespace MAD
 		}
 	}
 
+	void URenderer::QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration /*= 0.0f*/)
+	{
+		SDebugHandle debugHandle;
+
+		debugHandle.m_initialGameTime = gEngine->GetGameTimeDouble();
+		debugHandle.m_duration = inDuration;
+		debugHandle.m_debugDrawItem = inDebugDrawItem;
+
+		m_debugDrawItems.emplace_back(debugHandle);
+	}
+
 	void URenderer::QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight)
 	{
 		auto result = m_queuedDirLights[m_currentStateIndex].insert({ inID, inDirectionalLight });
@@ -89,9 +102,38 @@ namespace MAD
 		(void)result;
 	}
 
+	void URenderer::DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor /*= Color(0.0, 0.0, 0.0)*/)
+	{
+		const Vector3 inMSStart(Vector3::Zero);
+		const Vector3 inMSEnd(inWSEnd - inWSStart);
+
+		// Construct draw item for line
+		SDebugHandle lineDebugHandle;
+
+		SDrawItem lineDrawItem;
+
+		lineDrawItem.m_transform = ULinearTransform(); // Start with identity
+		lineDrawItem.m_drawCommand = EDrawCommand::VertexDraw;
+		lineDrawItem.m_rasterizerState = m_debugPassDescriptor.m_rasterizerState;
+		lineDrawItem.m_primitiveTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
+		lineDrawItem.m_vertexCount = 2;
+		lineDrawItem.m_vertexBufferOffset = 0; // No sub-meshes obviously
+
+		PopulateDebugLineVertices(inMSStart, inMSEnd, inLineColor, lineDrawItem.m_vertexBuffers);
+
+		lineDrawItem.m_transform.SetTranslation(inWSStart);
+
+		QueueDebugDrawItem(lineDrawItem, inDuration);
+	}
+
 	void URenderer::ClearRenderItems()
 	{
 		m_currentStateIndex = 1 - m_currentStateIndex;
+
+		// TODO Currently doesn't effectively support dynamic debug line drawing because we need to setup a way of batching up debug line draws
+
+		// Clear out the expired debug draw items
+		ClearExpiredDebugDrawItems();
 
 		m_queuedDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
@@ -108,6 +150,7 @@ namespace MAD
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
+		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
 
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
@@ -212,6 +255,26 @@ namespace MAD
 		m_pointLightingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
 	}
 
+	void URenderer::InitializeDebugPass(const eastl::string& inProgramPath)
+	{
+		// For the render target, we want to render directly into the light accumulation buffer
+		m_debugPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+
+		// The debug pass will use the same depth stencil view of the g-buffer pass since
+		// we don't want debug lines to draw over pre-existing objects in the scene (unless they're non-occluded of course)
+		m_debugPassDescriptor.m_depthStencilView = m_gBufferPassDescriptor.m_depthStencilView;
+		m_debugPassDescriptor.m_depthStencilState = m_gBufferPassDescriptor.m_depthStencilState;
+
+		if (!m_debugPassDescriptor.m_rasterizerState.IsValid())
+		{
+			// Since we only want to draw lines/points, our rasterizer state needs to rasterizer using wireframe
+			m_debugPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_WIREFRAME, D3D11_CULL_NONE);
+		}
+
+		m_debugPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
+		m_debugPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+	}
+
 	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
 	{
 		g_graphicsDriver.DestroyDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView);
@@ -274,6 +337,18 @@ namespace MAD
 		{
 			inOutVPArray[i] = Matrix::CreateLookAt(inWSLightPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
 		}
+	}
+
+	void URenderer::PopulateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData)
+	{
+		inOutLineVertexData.clear();
+
+		// Create two vertex arrays (one for position, one for color)
+		Vector3 vertexPositionData[2] = { inMSStart, inMSEnd };
+		Vector3 vertexColorData[2] = { Vector3(inLineColor.R(), inLineColor.G(), inLineColor.B()), Vector3(inLineColor.R(), inLineColor.G(), inLineColor.B()) };
+
+		inOutLineVertexData.emplace_back(g_graphicsDriver, EVertexBufferSlot::Position, EInputLayoutSemantic::Position, vertexPositionData, static_cast<uint32_t>(sizeof(Vector3)), 2);
+		inOutLineVertexData.emplace_back(g_graphicsDriver, EVertexBufferSlot::Normal, EInputLayoutSemantic::Normal, vertexColorData, static_cast<uint32_t>(sizeof(Vector3)), 2);
 	}
 
 	void URenderer::BindPerFrameConstants()
@@ -354,6 +429,9 @@ namespace MAD
 
 		// Do point lighting
 		DrawPointLighting(inFramePercent);
+
+		// Always perform the forward debug pass after the main deferred pass
+		DrawDebugPrimitives(inFramePercent);
 	}
 
 	void URenderer::EndFrame()
@@ -379,6 +457,16 @@ namespace MAD
 		g_graphicsDriver.EndEventGroup();
 
 		g_graphicsDriver.Present();
+	}
+
+	void URenderer::ClearExpiredDebugDrawItems()
+	{
+		const float currentGameTime = gEngine->GetGameTimeDouble();
+
+		m_debugDrawItems.erase(eastl::remove_if(m_debugDrawItems.begin(), m_debugDrawItems.end(), [currentGameTime](const SDebugHandle& inDebugHandle)
+		{
+			return (currentGameTime - inDebugHandle.m_initialGameTime) > inDebugHandle.m_duration;
+		}), m_debugDrawItems.end());
 	}
 
 	void URenderer::DrawDirectionalLighting(float inFramePercent)
@@ -543,6 +631,30 @@ namespace MAD
 			g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
 
 			g_graphicsDriver.EndEventGroup();
+		}
+
+		g_graphicsDriver.EndEventGroup();
+	}
+
+	void URenderer::DrawDebugPrimitives(float inFramePerecent)
+	{
+		if (!m_isDebugLayerEnabled)
+		{
+			return;
+		}
+
+		g_graphicsDriver.StartEventGroup(L"Debug Pass Layer");
+
+		// Make sure the g buffer depth stencil shader resource view is not bound because we're using it as our depth stencil view here
+		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DepthBuffer);
+
+		m_debugPassDescriptor.ApplyPassState(g_graphicsDriver);
+		m_debugPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+
+		// Process the debug draw items
+		for (auto& currentDebugDrawItem : m_debugDrawItems)
+		{
+			currentDebugDrawItem.m_debugDrawItem.Draw(g_graphicsDriver, inFramePerecent, m_perFrameConstants, false);
 		}
 
 		g_graphicsDriver.EndEventGroup();

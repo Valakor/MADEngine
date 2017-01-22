@@ -31,5 +31,12 @@ namespace MAD
 			// Without proper parent-child attachments, setting world space properties are treated as setting relative properties
 			//grandchildSpatialComponent.lock()->SetWorldTranslation(Vector3(1.0f, 0.0f, 2.0f)); 
 		}
+
+		void RegisterEntityTypes()
+		{
+			Test::APointLightBullet::StaticClass();
+			Test::ADemoCharacter::StaticClass();
+		}
+
 	}
 }

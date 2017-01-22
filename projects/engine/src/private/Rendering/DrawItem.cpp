@@ -5,12 +5,15 @@
 
 namespace MAD
 {
-	SDrawItem::SDrawItem(): m_uniqueID(0)
-	                      , m_previousDrawTransform(nullptr)
-	                      , m_vertexBufferOffset(0)
-	                      , m_indexOffset(0)
-	                      , m_indexCount(0)
-	                      , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED) { }
+	SDrawItem::SDrawItem()
+		: m_uniqueID(0)
+		, m_previousDrawTransform(nullptr)
+		, m_vertexBufferOffset(0)
+		, m_vertexCount(0)
+	    , m_indexOffset(0)
+	    , m_indexCount(0)
+	    , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED)
+	    , m_drawCommand(EDrawCommand::IndexedDraw) { } // TODO Rethink the default draw command later
 
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, SRasterizerStateId inRasterStateOverride)
 	{
@@ -25,7 +28,10 @@ namespace MAD
 		}
 		inGraphicsDriver.SetInputLayout(UInputLayoutCache::GetInputLayout(inputLayout));
 
-		inGraphicsDriver.SetIndexBuffer(m_indexBuffer, m_indexOffset);
+		if (m_indexBuffer.IsValid())
+		{
+			inGraphicsDriver.SetIndexBuffer(m_indexBuffer, m_indexOffset);
+		}
 
 		SPerDrawConstants perDrawConstants;
 
@@ -68,6 +74,15 @@ namespace MAD
 		}
 
 		inGraphicsDriver.SetPrimitiveTopology(m_primitiveTopology);
-		inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
+
+		switch (m_drawCommand)
+		{
+		case EDrawCommand::VertexDraw:
+			inGraphicsDriver.Draw(m_vertexCount, 0);
+			break;
+		case EDrawCommand::IndexedDraw:
+			inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
+			break;
+		}
 	}
 }
