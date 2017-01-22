@@ -26,38 +26,6 @@ namespace MAD
 
 #define HR_CHECK(expr, desc) MAD_CHECK_DESC(SUCCEEDED(expr), desc)
 
-#ifdef _DEBUG
-#define ID_ASSERT_VALID(id, cache, desc)		\
-	MAD_ASSERT_DESC((id).IsValid(), desc);		\
-	MAD_ASSERT_DESC(cache.count(id) == 1, desc)
-
-#define ID_GET_SAFE(outVar, id, cache, desc)	\
-	ID_ASSERT_VALID(id, cache, desc);			\
-	auto outVar = cache[id]
-#else
-#define ID_ASSERT_VALID(id, cache, desc) (void)0
-#define ID_GET_SAFE(outVar, id, cache, desc) auto outVar = cache[id]
-#endif
-
-#define ID_TRY_GET(outVar, id, cache, desc)		\
-	eastl::remove_reference<decltype(cache[id])>::type outVar = nullptr;	\
-	if ((id).IsValid())							\
-	{											\
-		ID_ASSERT_VALID(id, cache, desc);		\
-		outVar = cache[id];						\
-	}
-
-#define ID_DESTROY(id, cache)					\
-	if (id.IsValid())							\
-	{											\
-		auto iter = cache.find(id);				\
-		if (iter != cache.end())				\
-		{										\
-			cache.erase(iter);					\
-		}										\
-	}											\
-	id.Invalidate()
-
 #define MEM_ZERO(s) memset(&s, 0, sizeof(s))
 
 	namespace
@@ -71,24 +39,6 @@ namespace MAD
 
 		// Constant configuration
 		const UINT g_swapChainBufferCount = 3;
-
-		// Graphics driver object stores
-#define DECLARE_OBJECT_STORE(IdType, D3DType, storeName) eastl::hash_map<IdType, ComPtr<D3DType>> storeName;
-
-		//DECLARE_OBJECT_STORE(SVertexShaderId, ID3D11VertexShader, g_vertexShaderStore);
-		//DECLARE_OBJECT_STORE(PixelShaderPtr_t, ID3D11PixelShader, g_pixelShaderStore);
-		//DECLARE_OBJECT_STORE(InputLayoutPtr_t, ID3D11InputLayout, g_inputLayoutStore);
-		//DECLARE_OBJECT_STORE(RenderTargetPtr_t, ID3D11RenderTargetView, g_renderTargetStore);
-		//DECLARE_OBJECT_STORE(DepthStencilPtr_t, ID3D11DepthStencilView, g_depthStencilStore);
-		//DECLARE_OBJECT_STORE(DepthStencilStatePtr_t, ID3D11DepthStencilState, g_depthStencilStateStore);
-		//DECLARE_OBJECT_STORE(BlendStatePtr_t, ID3D11BlendState, g_blendStateStore);
-		//DECLARE_OBJECT_STORE(SamplerStatePtr_t, ID3D11SamplerState, g_samplerStateStore);
-		//DECLARE_OBJECT_STORE(RasterizerStatePtr_t, ID3D11RasterizerState1, g_rasterizerStateStore);
-		DECLARE_OBJECT_STORE(SShaderResourceId, ID3D11ShaderResourceView, g_shaderResourceViewStore);
-		DECLARE_OBJECT_STORE(SBufferId, ID3D11Buffer, g_bufferStore);
-
-#undef DECLARE_OBJECT_STORE
-
 		void CreateDevice()
 		{
 			UINT createDeviceFlags = D3D11_CREATE_DEVICE_SINGLETHREADED;
@@ -246,16 +196,16 @@ namespace MAD
 		}
 
 #ifdef _DEBUG
-		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerScene");
-		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerFrame");
-		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 13, "PerPointLight");
-		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 19, "PerDirectionalLight");
-		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 11, "PerMaterial");
-		g_bufferStore[m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)]]->SetPrivateData(WKPDID_D3DDebugObjectName, 7, "PerDraw");
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerScene)]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerScene");
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerFrame)]->SetPrivateData(WKPDID_D3DDebugObjectName, 8, "PerFrame");
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerPointLight)]->SetPrivateData(WKPDID_D3DDebugObjectName, 13, "PerPointLight");
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDirectionalLight)]->SetPrivateData(WKPDID_D3DDebugObjectName, 19, "PerDirectionalLight");
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerMaterial)]->SetPrivateData(WKPDID_D3DDebugObjectName, 11, "PerMaterial");
+		m_constantBuffers[AsIntegral(EConstantBufferSlot::PerDraw)]->SetPrivateData(WKPDID_D3DDebugObjectName, 7, "PerDraw");
 #endif
 
 		// Initialize our samplers
-		//m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
+		m_samplers.resize(AsIntegral(ESamplerSlot::MAX));
 		m_samplers[AsIntegral(ESamplerSlot::Point)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_POINT);
 		m_samplers[AsIntegral(ESamplerSlot::Linear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 		m_samplers[AsIntegral(ESamplerSlot::Trilinear)] = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR);
@@ -298,13 +248,13 @@ namespace MAD
 		CreateBackBufferRenderTargetView();
 	}
 
-	SShaderResourceId UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const
+	ShaderResourcePtr_t UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const
 	{
 		auto widePath = utf8util::UTF16FromUTF8(inPath);
 		auto extension = inPath.substr(inPath.find_last_of('.'));
 		extension.make_lower();
 
-		ComPtr<ID3D11ShaderResourceView> srv;
+		ShaderResourcePtr_t srv;
 		ComPtr<ID3D11Resource> texture;
 
 		HRESULT hr;
@@ -334,7 +284,7 @@ namespace MAD
 		else
 		{
 			LOG(LogTextureImport, Error, "Can only load textures of type DDS, PNG, JPG (JPEG), or BMP\n");
-			return SShaderResourceId::Invalid;
+			return nullptr;
 		}
 
 		if (FAILED(hr))
@@ -349,12 +299,12 @@ namespace MAD
 								nullptr))
 			{
 				LOG(LogTextureImport, Error, "Unknown error creating texture from file: [0x%08x]\n", hr);
-				return SShaderResourceId::Invalid;
+				return nullptr;
 			}
 
 			LOG(LogTextureImport, Error, "Error creating texture from file: [0x%08x] %ls\n", hr, err);
 			LocalFree(err);
-			return SShaderResourceId::Invalid;
+			return nullptr;
 		}
 
 		CD3D11_TEXTURE2D_DESC textureDesc;
@@ -363,9 +313,7 @@ namespace MAD
 		outWidth = textureDesc.Width;
 		outHeight = textureDesc.Height;
 
-		auto shaderResourceViewId = SShaderResourceId::Next();
-		g_shaderResourceViewStore.insert({ shaderResourceViewId, srv });
-		return shaderResourceViewId;
+		return srv;
 	}
 
 	bool UGraphicsDriver::CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines)
@@ -448,7 +396,7 @@ namespace MAD
 		return pixelShaderPtr;
 	}
 
-	RenderTargetPtr_t UGraphicsDriver::CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, SShaderResourceId* outOptionalShaderResource) const
+	RenderTargetPtr_t UGraphicsDriver::CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, ShaderResourcePtr_t* outOptionalShaderResource) const
 	{
 		D3D11_TEXTURE2D_DESC backingTexDesc;
 		MEM_ZERO(backingTexDesc);
@@ -478,7 +426,7 @@ namespace MAD
 		renderTargetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		renderTargetDesc.Texture2D.MipSlice = 0;
 
-		RenderTargetPtr_t renderTarget = nullptr;
+		RenderTargetPtr_t renderTarget;
 		HR_CHECK(g_d3dDevice->CreateRenderTargetView(backingTex.Get(), &renderTargetDesc, renderTarget.GetAddressOf()), "Failed to create render target from backing texture");
 
 		if (outOptionalShaderResource)
@@ -490,12 +438,10 @@ namespace MAD
 			shaderResourceDesc.Texture2D.MostDetailedMip = 0;
 			shaderResourceDesc.Texture2D.MipLevels = 1;
 
-			ComPtr<ID3D11ShaderResourceView> shaderResource;
-			HR_CHECK(g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf()), "Failed to create shader resource view from backing texture");
+			ShaderResourcePtr_t shaderResourcePtr;
+			HR_CHECK(g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResourcePtr.GetAddressOf()), "Failed to create shader resource view from backing texture");
 
-			auto shaderResourceId = SShaderResourceId::Next();
-			g_shaderResourceViewStore.insert({ shaderResourceId, shaderResource });
-			*outOptionalShaderResource = shaderResourceId;
+			*outOptionalShaderResource = shaderResourcePtr;
 		}
 
 		return renderTarget;
@@ -542,13 +488,13 @@ namespace MAD
 			samplerDesc.BorderColor[3] = inBorderColor.w;
 		}
 		
-		SamplerStatePtr_t samplerStatePtr = nullptr;
+		SamplerStatePtr_t samplerStatePtr;
 		HR_CHECK(g_d3dDevice->CreateSamplerState(&samplerDesc, samplerStatePtr.GetAddressOf()), "Failed to create sampler state");
 
 		return samplerStatePtr;
 	}
 
-	DepthStencilPtr_t UGraphicsDriver::CreateDepthStencil(int inWidth, int inHeight, SShaderResourceId* outOptionalShaderResource) const
+	DepthStencilPtr_t UGraphicsDriver::CreateDepthStencil(int inWidth, int inHeight, ShaderResourcePtr_t* outOptionalShaderResource) const
 	{
 		D3D11_TEXTURE2D_DESC backingTexDesc;
 		MEM_ZERO(backingTexDesc);
@@ -578,7 +524,7 @@ namespace MAD
 		depthStencilDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		depthStencilDesc.Texture2D.MipSlice = 0;
 
-		DepthStencilPtr_t depthStencil = nullptr;
+		DepthStencilPtr_t depthStencil;
 		HR_CHECK(g_d3dDevice->CreateDepthStencilView(backingTex.Get(), &depthStencilDesc, depthStencil.GetAddressOf()), "Failed to create depth stencil view from backing texture");
 
 		if (outOptionalShaderResource)
@@ -590,12 +536,10 @@ namespace MAD
 			shaderResourceDesc.Texture2D.MostDetailedMip = 0;
 			shaderResourceDesc.Texture2D.MipLevels = 1;
 
-			ComPtr<ID3D11ShaderResourceView> shaderResource;
-			HR_CHECK(g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResource.GetAddressOf()), "Failed to create shader resource view from backing texture");
+			ShaderResourcePtr_t shaderResourcePtr;
+			HR_CHECK(g_d3dDevice->CreateShaderResourceView(backingTex.Get(), &shaderResourceDesc, shaderResourcePtr.GetAddressOf()), "Failed to create shader resource view from backing texture");
 
-			auto shaderResourceId = SShaderResourceId::Next();
-			g_shaderResourceViewStore.insert({ shaderResourceId, shaderResource });
-			*outOptionalShaderResource = shaderResourceId;
+			*outOptionalShaderResource = shaderResourcePtr;
 		}
 
 		return depthStencil;
@@ -628,7 +572,7 @@ namespace MAD
 		stateDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 		stateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-		DepthStencilStatePtr_t depthStencilStatePtr = nullptr;
+		DepthStencilStatePtr_t depthStencilStatePtr;
 		HR_CHECK(g_d3dDevice->CreateDepthStencilState(&stateDesc, depthStencilStatePtr.GetAddressOf()), "Failed to create depth stencil state");
 
 		return depthStencilStatePtr;
@@ -643,7 +587,7 @@ namespace MAD
 		rasterDesc.FrontCounterClockwise = true;
 		rasterDesc.DepthClipEnable = true;
 
-		RasterizerStatePtr_t rasterizerStatePtr = nullptr;
+		RasterizerStatePtr_t rasterizerStatePtr;
 		HR_CHECK(g_d3dDevice->CreateRasterizerState1(&rasterDesc, rasterizerStatePtr.GetAddressOf()), "Failed to create rasterizer state");
 
 		return rasterizerStatePtr;
@@ -661,7 +605,7 @@ namespace MAD
 		rasterDesc.DepthBiasClamp = 0.0f;
 		rasterDesc.SlopeScaledDepthBias = 1.5f;
 
-		RasterizerStatePtr_t depthRasterizerStatePtr = nullptr;
+		RasterizerStatePtr_t depthRasterizerStatePtr;
 		HR_CHECK(g_d3dDevice->CreateRasterizerState1(&rasterDesc, depthRasterizerStatePtr.GetAddressOf()), "Failed to create rasterizer state");
 
 		return depthRasterizerStatePtr;
@@ -684,13 +628,13 @@ namespace MAD
 		blendDesc.RenderTarget[0].LogicOp = D3D11_LOGIC_OP_NOOP;
 		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-		BlendStatePtr_t blendStatePtr = nullptr;
+		BlendStatePtr_t blendStatePtr;
 		HR_CHECK(g_d3dDevice->CreateBlendState1(&blendDesc, blendStatePtr.GetAddressOf()), "Failed to create blend state");
 
 		return blendStatePtr;
 	}
 
-	SBufferId UGraphicsDriver::CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const
+	BufferPtr_t UGraphicsDriver::CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const
 	{
 		D3D11_BUFFER_DESC bufferDesc;
 		MEM_ZERO(bufferDesc);
@@ -707,48 +651,46 @@ namespace MAD
 		initialData.SysMemPitch = 0;
 		initialData.SysMemSlicePitch = 0;
 
-		ComPtr<ID3D11Buffer> buffer;
-		HR_CHECK(g_d3dDevice->CreateBuffer(&bufferDesc, inData ? &initialData : nullptr, buffer.GetAddressOf()), "Failed to create graphics buffer");
+		BufferPtr_t bufferPtr;
+		HR_CHECK(g_d3dDevice->CreateBuffer(&bufferDesc, inData ? &initialData : nullptr, bufferPtr.GetAddressOf()), "Failed to create graphics buffer");
 
-		auto bufferId = SBufferId::Next();
-		g_bufferStore.insert({ bufferId, buffer });
-		return bufferId;
+		return bufferPtr;
 	}
 
-	SBufferId UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags, UINT inCPUAccessFlags) const
+	BufferPtr_t UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags, UINT inCPUAccessFlags) const
 	{
 		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial vertex data");
 		return CreateBuffer(inData, inDataSize, inUsageFlags, D3D11_BIND_VERTEX_BUFFER, inCPUAccessFlags);
 	}
 
-	SBufferId UGraphicsDriver::CreateIndexBuffer(const void* inData, UINT inDataSize) const
+	BufferPtr_t UGraphicsDriver::CreateIndexBuffer(const void* inData, UINT inDataSize) const
 	{
 		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial index data");
 		return CreateBuffer(inData, inDataSize, D3D11_USAGE_IMMUTABLE, D3D11_BIND_INDEX_BUFFER, 0);
 	}
 
-	SBufferId UGraphicsDriver::CreateConstantBuffer(const void* inData, UINT inDataSize) const
+	BufferPtr_t UGraphicsDriver::CreateConstantBuffer(const void* inData, UINT inDataSize) const
 	{
 		MAD_ASSERT_DESC(inDataSize % 16 == 0, "Constant buffer size must be evenly divisible by 16");
 		return CreateBuffer(inData, inDataSize, D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE);
 	}
 
-	void* UGraphicsDriver::MapBuffer(SBufferId inBuffer) const
+	void* UGraphicsDriver::MapBuffer(BufferPtr_t inBuffer) const
 	{
-		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid buffer");
+		MAD_ASSERT_DESC(inBuffer, "Invalid buffer");
 
 		D3D11_MAPPED_SUBRESOURCE subResource;
-		g_d3dDeviceContext->Map(buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
+		g_d3dDeviceContext->Map(inBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
 		return subResource.pData;
 	}
 
-	void UGraphicsDriver::UnmapBuffer(SBufferId inBuffer) const
+	void UGraphicsDriver::UnmapBuffer(BufferPtr_t inBuffer) const
 	{
-		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid buffer");
-		g_d3dDeviceContext->Unmap(buffer.Get(), 0);
+		MAD_ASSERT_DESC(inBuffer, "Invalid buffer");
+		g_d3dDeviceContext->Unmap(inBuffer.Get(), 0);
 	}
 
-	void UGraphicsDriver::UpdateBuffer(SBufferId inBuffer, const void* inData, size_t inDataSize) const
+	void UGraphicsDriver::UpdateBuffer(BufferPtr_t inBuffer, const void* inData, size_t inDataSize) const
 	{
 		auto data = MapBuffer(inBuffer);
 		memcpy(data, inData, inDataSize);
@@ -792,18 +734,13 @@ namespace MAD
 
 		for (int i = 0 ; i < inNumRenderTargets; ++i)
 		{
-			/*const auto& renderTargetId = inRenderTargets[i];
-
-
-			ID_GET_SAFE(renderTarget, renderTargetId, g_renderTargetStore, "Invalid render target");
-			renderTargets[i] = renderTarget.Get();*/
-			renderTargets[i] = inRenderTargets[i].Get();
+			renderTargets[i] = inRenderTargets[i].p.Get(); // can't call Get() directly because of const issues (can't assign a const pointer to a non-const pointer)
 		}
 
 		ID3D11DepthStencilView* depthStencil = nullptr;
 		if (inOptionalDepthStencil)
 		{
-			depthStencil = inOptionalDepthStencil.Get();
+			depthStencil = inOptionalDepthStencil.p.Get(); // can't call Get() directly because of const issues (can't assign a const pointer to a non-const pointer)
 		}
 
 		g_d3dDeviceContext->OMSetRenderTargets(inNumRenderTargets, renderTargets, depthStencil);
@@ -826,33 +763,30 @@ namespace MAD
 		g_d3dDeviceContext->IASetPrimitiveTopology(inPrimitiveTopology);
 	}
 
-	void UGraphicsDriver::SetVertexBuffer(SBufferId inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
+	void UGraphicsDriver::SetVertexBuffer(BufferPtr_t inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
 	{
-		ID_TRY_GET(buffer, inVertexBuffer, g_bufferStore, "Invalid vertex buffer");
 		UINT byteOffset = inVertexOffset * inVertexSize;
-		g_d3dDeviceContext->IASetVertexBuffers(AsIntegral(inVertexSlot), 1, buffer.GetAddressOf(), &inVertexSize, &byteOffset);
+		g_d3dDeviceContext->IASetVertexBuffers(AsIntegral(inVertexSlot), 1, inVertexBuffer.GetAddressOf(), &inVertexSize, &byteOffset);
 	}
 
-	void UGraphicsDriver::SetIndexBuffer(SBufferId inIndexBuffer, UINT inIndexOffset) const
+	void UGraphicsDriver::SetIndexBuffer(BufferPtr_t inIndexBuffer, UINT inIndexOffset) const
 	{
-		ID_TRY_GET(buffer, inIndexBuffer, g_bufferStore, "Invalid index buffer");
-		g_d3dDeviceContext->IASetIndexBuffer(buffer.Get(), DXGI_FORMAT_R16_UINT, 2 * inIndexOffset);
+		g_d3dDeviceContext->IASetIndexBuffer(inIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 2 * inIndexOffset);
 	}
 
 	void UGraphicsDriver::SetVertexShader(VertexShaderPtr_t inVertexShader) const
 	{
-		MAD_ASSERT_DESC(inVertexShader != nullptr, "Invalid vertex shader");
+		MAD_ASSERT_DESC(inVertexShader, "Invalid vertex shader");
 
 		g_d3dDeviceContext->VSSetShader(inVertexShader.Get(), nullptr, 0);
 	}
 
-	void UGraphicsDriver::SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot) const
+	void UGraphicsDriver::SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const
 	{
-		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
-		g_d3dDeviceContext->VSSetConstantBuffers(inSlot, 1, buffer.GetAddressOf());
+		g_d3dDeviceContext->VSSetConstantBuffers(inSlot, 1, inBuffer.GetAddressOf());
 	}
 
-	void UGraphicsDriver::SetVertexConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
+	void UGraphicsDriver::SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
 	{
 		MAD_ASSERT_DESC(inOffset % 16 == 0, "Offset into constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
 		MAD_ASSERT_DESC(inLength % 16 == 0, "Length of used constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
@@ -860,8 +794,7 @@ namespace MAD
 		inOffset /= 16;
 		inLength /= 16;
 
-		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
-		g_d3dDeviceContext->VSSetConstantBuffers1(inSlot, 1, buffer.GetAddressOf(), &inOffset, &inLength);
+		g_d3dDeviceContext->VSSetConstantBuffers1(inSlot, 1, inBuffer.GetAddressOf(), &inOffset, &inLength);
 	}
 
 	void UGraphicsDriver::SetPixelShader(PixelShaderPtr_t inPixelShader) const
@@ -870,13 +803,12 @@ namespace MAD
 		g_d3dDeviceContext->PSSetShader(inPixelShader.Get(), nullptr, 0);
 	}
 
-	void UGraphicsDriver::SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot) const
+	void UGraphicsDriver::SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const
 	{
-		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
-		g_d3dDeviceContext->PSSetConstantBuffers(inSlot, 1, buffer.GetAddressOf());
+		g_d3dDeviceContext->PSSetConstantBuffers(inSlot, 1, inBuffer.GetAddressOf());
 	}
 
-	void UGraphicsDriver::SetPixelConstantBuffer(SBufferId inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
+	void UGraphicsDriver::SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
 	{
 		MAD_ASSERT_DESC(inOffset % 16 == 0, "Offset into constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
 		MAD_ASSERT_DESC(inLength % 16 == 0, "Length of used constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
@@ -884,8 +816,7 @@ namespace MAD
 		inOffset /= 16;
 		inLength /= 16;
 
-		ID_GET_SAFE(buffer, inBuffer, g_bufferStore, "Invalid constant buffer");
-		g_d3dDeviceContext->PSSetConstantBuffers1(inSlot, 1, buffer.GetAddressOf(), &inOffset, &inLength);
+		g_d3dDeviceContext->PSSetConstantBuffers1(inSlot, 1, inBuffer.GetAddressOf(), &inOffset, &inLength);
 	}
 
 	void UGraphicsDriver::SetPixelSamplerState(SamplerStatePtr_t inSamplerState, UINT inSlot) const
@@ -894,13 +825,13 @@ namespace MAD
 		g_d3dDeviceContext->PSSetSamplers(inSlot, 1, inSamplerState.GetAddressOf());
 	}
 
-	void UGraphicsDriver::SetPixelShaderResource(SShaderResourceId inShaderResource, UINT inSlot) const
+	void UGraphicsDriver::SetPixelShaderResource(ShaderResourcePtr_t inShaderResource, UINT inSlot) const
 	{
-		ID_TRY_GET(shaderResource, inShaderResource, g_shaderResourceViewStore, "Invalid shader resource");
-		g_d3dDeviceContext->PSSetShaderResources(inSlot, 1, shaderResource.GetAddressOf());
+		// No need for nullptr check because setting a null shader resource at a certain slot just unbinds the slot
+		g_d3dDeviceContext->PSSetShaderResources(inSlot, 1, inShaderResource.GetAddressOf());
 	}
 
-	void UGraphicsDriver::SetPixelShaderResource(SShaderResourceId inShaderResource, ETextureSlot inSlot) const
+	void UGraphicsDriver::SetPixelShaderResource(ShaderResourcePtr_t inShaderResource, ETextureSlot inSlot) const
 	{
 		MAD_ASSERT_DESC(AsIntegral(inSlot) < AsIntegral(ETextureSlot::MAX), "Invalid ETextureSlot");
 		SetPixelShaderResource(inShaderResource, AsIntegral(inSlot));
@@ -921,18 +852,16 @@ namespace MAD
 	void UGraphicsDriver::DestroyDepthStencil(DepthStencilPtr_t& inOutDepthStencil) const
 	{
 		inOutDepthStencil.Reset();
-		//ID_DESTROY(inOutDepthStencil, g_depthStencilStore);
 	}
 
-	void UGraphicsDriver::DestroyShaderResource(SShaderResourceId& inOutShaderResource) const
+	void UGraphicsDriver::DestroyShaderResource(ShaderResourcePtr_t& inOutShaderResource) const
 	{
-		ID_DESTROY(inOutShaderResource, g_shaderResourceViewStore);
+		inOutShaderResource.Reset();
 	}
 
 	void UGraphicsDriver::DestroyRenderTarget(RenderTargetPtr_t& inOutRenderTarget) const
 	{
 		inOutRenderTarget.Reset();
-		//ID_DESTROY(inOutRenderTarget, g_renderTargetStore);
 	}
 
 	void UGraphicsDriver::SetFullScreen(bool inIsFullscreen) const
@@ -1005,8 +934,8 @@ namespace MAD
 
 		static eastl::vector<Vector3> SubscreenQuadVerts = { { -1.0f, 1.0f, 0.0f },{ 1.0f, 1.0f, 0.0f },{ 1.0f, -1.0f, 0.0f },{ -1.0f, -1.0f, 0.0f } };
 		static const eastl::vector<uint16_t> SubscreenQuadIndices = { 0, 3, 1, 1, 3, 2 };
-		static SBufferId SubscreenVertexBuffer = CreateVertexBuffer(SubscreenQuadVerts.data(), static_cast<UINT>(SubscreenQuadVerts.size() * sizeof(Vector3)), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		static SBufferId SubscreenIndexBuffer = CreateIndexBuffer(SubscreenQuadIndices.data(), static_cast<UINT>(SubscreenQuadIndices.size() * sizeof(uint16_t)));
+		static BufferPtr_t SubscreenVertexBuffer = CreateVertexBuffer(SubscreenQuadVerts.data(), static_cast<UINT>(SubscreenQuadVerts.size() * sizeof(Vector3)), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		static BufferPtr_t SubscreenIndexBuffer = CreateIndexBuffer(SubscreenQuadIndices.data(), static_cast<UINT>(SubscreenQuadIndices.size() * sizeof(uint16_t)));
 
 		static InputLayoutPtr_t PosInputLayout = UInputLayoutCache::GetInputLayout(UInputLayoutCache::GetFlagForSemanticName("POSITION"));
 		static RasterizerStatePtr_t SubscreenRasterState = CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);

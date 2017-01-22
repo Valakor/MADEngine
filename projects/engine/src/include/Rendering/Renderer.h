@@ -123,10 +123,9 @@ namespace MAD
 		SRenderPassDescriptor m_pointShadowMappingPassDescriptor;
 		SRenderPassDescriptor m_debugPassDescriptor;
 
-		SShaderResourceId m_shadowMapSRV;
+		ShaderResourcePtr_t m_shadowMapSRV;
 
-		eastl::vector<SShaderResourceId> m_gBufferShaderResources;
-
+		eastl::vector<ShaderResourcePtr_t> m_gBufferShaderResources;
 		eastl::unique_ptr<UDepthTextureCube> m_depthTextureCube;
 
 		EVisualizeOptions m_visualizeOption;

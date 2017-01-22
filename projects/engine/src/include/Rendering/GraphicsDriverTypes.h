@@ -11,109 +11,76 @@ using Microsoft::WRL::ComPtr;
 
 namespace MAD
 {
-	template <class DerivedType, typename IdType>
-	struct SGraphicsObjectId
+	/*
+		UGraphicsObject - Wrapper around the ComPtr<T> for a generic ID3D11DeviceChild type. Currently being used as a wrapper around
+		ComPtr<T>s for common render pipeline resources.
+
+		**NECESSARY** because eastl::vector will try to take the address of it's type, which is overloaded to return a reference in the ComPtr implementation.
+		This wrapper allows us to have eastl::vector<ComPtr<T>> because the UGraphicsObject class doesn't overload the operator& function to return a reference
+		like ComPtr does
+	*/
+	template <typename T>
+	struct UGraphicsObject
 	{
-	public:
-		static const DerivedType Invalid;
+		static_assert(eastl::is_base_of<ID3D11DeviceChild, T>::value, "Must be derived from a D3D11 interface");
 
-		inline bool IsValid() const { return m_Id != INVALID_ID; }
+		ComPtr<T> p;
 
-		inline explicit operator bool() const
+		UGraphicsObject(T* inObjectPtr = nullptr) { *p.GetAddressOf() = inObjectPtr; }
+
+		void Debug_SetName(const eastl::string& inName)
 		{
-			return IsValid();
+			auto obj = static_cast<ID3D11DeviceChild*>(p.Get());
+
+			obj->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(inName.size()), inName.data());
 		}
 
-		inline void Invalidate() { m_Id = INVALID_ID; }
+		// Utility wrapper functions around the ComPtr (most used)
+		T* Get() { return p.Get(); }
+		T** GetAddressOf() { return p.GetAddressOf(); }
+		void Reset() { p.Reset(); }
 
-		inline friend bool operator==(SGraphicsObjectId<DerivedType, IdType> lhs, SGraphicsObjectId<DerivedType, IdType> rhs)
+		// Utility operator overloads around the ComPtr for standardized use of pointer syntax
+		ComPtr<T> operator->() { return p; }
+		ComPtr<const T> operator->() const { return p; }
+
+		bool operator==(const UGraphicsObject<T>& inOtherObj) const
 		{
-			return lhs.m_Id == rhs.m_Id;
+			return p == inOtherObj.p;
 		}
 
-		inline friend bool operator!=(SGraphicsObjectId<DerivedType, IdType> lhs, SGraphicsObjectId<DerivedType, IdType> rhs)
+		bool operator==(const T* inOtherObjectPtr) const
 		{
-			return !(lhs == rhs);
+			return p.Get() == inOtherObjectPtr;
 		}
 
-	protected:
-		friend class UGraphicsDriver;
-		static_assert(eastl::is_unsigned<IdType>::value, "IdType must be an unsigned integral type");
-
-		SGraphicsObjectId() : m_Id(INVALID_ID) { }
-		explicit SGraphicsObjectId(IdType inId) : m_Id(inId) { }
-
-		inline static DerivedType Next()
+		bool operator!=(const UGraphicsObject<T>& inOtherObj) const
 		{
-			DerivedType id(s_counter++);
-			MAD_ASSERT_DESC(id.IsValid(), "Newly-created GraphicsObjectId must have a valid ID. Likely invalid because you've hit max ID #.");
-			return id;
+			return !(*this == inOtherObj);
 		}
 
-		static const IdType INVALID_ID = eastl::numeric_limits<IdType>::max();
-		static IdType s_counter;
-		IdType m_Id;
+		bool operator!=(const T* inOtherObjectPtr) const
+		{
+			return !(*this == inOtherObjectPtr);
+		}
+
+		operator bool() const
+		{
+			return p != nullptr;
+		}
 	};
 
-	template <class DerivedType, typename IdType>
-	IdType SGraphicsObjectId<DerivedType, IdType>::s_counter = 0;
 
-	template <class DerivedType, typename IdType>
-	const DerivedType SGraphicsObjectId<DerivedType, IdType>::Invalid(INVALID_ID);
+	using VertexShaderPtr_t = UGraphicsObject<ID3D11VertexShader>;
+	using GeometryShaderPtr_t = UGraphicsObject<ID3D11GeometryShader>;
+	using PixelShaderPtr_t = UGraphicsObject<ID3D11PixelShader>;
+	using InputLayoutPtr_t = UGraphicsObject<ID3D11InputLayout>;
+	using RenderTargetPtr_t = UGraphicsObject<ID3D11RenderTargetView>;
+	using DepthStencilPtr_t = UGraphicsObject<ID3D11DepthStencilView>;
+	using DepthStencilStatePtr_t = UGraphicsObject<ID3D11DepthStencilState>;
+	using BlendStatePtr_t = UGraphicsObject<ID3D11BlendState1>;
+	using SamplerStatePtr_t = UGraphicsObject<ID3D11SamplerState>;
+	using RasterizerStatePtr_t = UGraphicsObject<ID3D11RasterizerState1>;
+	using ShaderResourcePtr_t = UGraphicsObject<ID3D11ShaderResourceView>;
+	using BufferPtr_t = UGraphicsObject<ID3D11Buffer>;
 }
-
-#define DECLARE_GRAPHICS_OBJ_ID(name, type)				\
-namespace MAD											\
-{														\
-	struct name: public SGraphicsObjectId<name, type>	\
-	{													\
-	public:												\
-		name(): Super_t() { }								\
-	private:											\
-		using Super_t = SGraphicsObjectId<name, type>;	\
-		friend struct SGraphicsObjectId<name, type>;	\
-		friend struct eastl::hash<name>;				\
-		friend class UGraphicsDriver;					\
-		name(type inId) : Super_t(inId) { }				\
-	};													\
-	static_assert(sizeof(name) == sizeof(type), "");	\
-}														\
-namespace eastl											\
-{														\
-	using namespace MAD;								\
-	template <> struct hash<name>						\
-	{													\
-		size_t operator()(name val) const				\
-		{												\
-			return static_cast<size_t>(val.m_Id);		\
-		}												\
-	};													\
-}						
-
-//DECLARE_GRAPHICS_OBJ_ID(SVertexShaderId, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(SGeometryShaderId, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(PixelShaderPtr_t, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(InputLayoutPtr_t, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(RenderTargetPtr_t, uint16_t)
-//DECLARE_GRAPHICS_OBJ_ID(DepthStencilPtr_t, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(DepthStencilStatePtr_t, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(BlendStatePtr_t, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(SamplerStatePtr_t, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(RasterizerStatePtr_t, uint8_t)
-//DECLARE_GRAPHICS_OBJ_ID(Texture2DPtr_t, uint16_t)
-DECLARE_GRAPHICS_OBJ_ID(SShaderResourceId, uint16_t)
-DECLARE_GRAPHICS_OBJ_ID(SBufferId, uint16_t)
-
-using VertexShaderPtr_t = ComPtr<ID3D11VertexShader>;
-using GeometryShaderPtr_t = ComPtr<ID3D11GeometryShader>;
-using PixelShaderPtr_t = ComPtr<ID3D11PixelShader>;
-using InputLayoutPtr_t = ComPtr<ID3D11InputLayout>;
-using RenderTargetPtr_t = ComPtr<ID3D11RenderTargetView>;
-using DepthStencilPtr_t = ComPtr<ID3D11DepthStencilView>;
-using DepthStencilStatePtr_t = ComPtr<ID3D11DepthStencilState>;
-using BlendStatePtr_t = ComPtr<ID3D11BlendState1>;
-using SamplerStatePtr_t = ComPtr<ID3D11SamplerState>;
-using RasterizerStatePtr_t = ComPtr<ID3D11RasterizerState1>;
-//using ShaderResourcePtr_t = ComPtr<ID3D11ShaderResourceView>;
-
-#undef DECLARE_GRAPHICS_OBJ_ID

@@ -17,7 +17,7 @@ namespace MAD
 		EInputLayoutSemantic::Type GetSemantic() const { return m_arraySemantic; }
 
 	private:
-		SBufferId m_buffer;
+		BufferPtr_t m_buffer;
 		uint32_t m_vertexSize;
 		uint32_t m_bufferSize;
 		EVertexBufferSlot m_arrayUsage;

@@ -28,7 +28,7 @@ namespace MAD
 		}
 		inGraphicsDriver.SetInputLayout(UInputLayoutCache::GetInputLayout(inputLayout));
 
-		if (m_indexBuffer.IsValid())
+		if (m_indexBuffer)
 		{
 			inGraphicsDriver.SetIndexBuffer(m_indexBuffer, m_indexOffset);
 		}

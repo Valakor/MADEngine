@@ -55,6 +55,6 @@ namespace MAD
 		UVertexArray m_gpuTexCoords;
 
 		eastl::vector<Index_t> m_indexBuffer;
-		SBufferId m_gpuIndexBuffer;
+		BufferPtr_t m_gpuIndexBuffer;
 	};
 }

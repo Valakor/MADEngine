@@ -130,8 +130,6 @@ namespace MAD
 	{
 		m_currentStateIndex = 1 - m_currentStateIndex;
 
-		// TODO Currently doesn't effectively support dynamic debug line drawing because we need to setup a way of batching up debug line draws
-
 		// Clear out the expired debug draw items
 		ClearExpiredDebugDrawItems();
 
@@ -182,18 +180,18 @@ namespace MAD
 		auto clientSize = m_window->GetClientSize();
 
 		m_gBufferShaderResources.resize(AsIntegral(ETextureSlot::MAX) - AsIntegral(ETextureSlot::LightingBuffer));
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::LightingBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DiffuseBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::NormalBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::SpecularBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DepthBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
 		for (unsigned i = 0; i < m_gBufferShaderResources.size(); ++i)
 		{
 			g_graphicsDriver.DestroyShaderResource(m_gBufferShaderResources[i]);
 		}
 
 		g_graphicsDriver.DestroyDepthStencil(m_gBufferPassDescriptor.m_depthStencilView);
-		SShaderResourceId& depthBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		ShaderResourcePtr_t& depthBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 		m_gBufferPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(clientSize.x, clientSize.y, &depthBufferSRV);
 		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
 
@@ -202,10 +200,10 @@ namespace MAD
 			g_graphicsDriver.DestroyRenderTarget(m_gBufferPassDescriptor.m_renderTargets[i]);
 		}
 		
-		SShaderResourceId& lightBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
-		SShaderResourceId& diffuseBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
-		SShaderResourceId& normalBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
-		SShaderResourceId& specularBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		ShaderResourcePtr_t& lightBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		ShaderResourcePtr_t& diffuseBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		ShaderResourcePtr_t& normalBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
+		ShaderResourcePtr_t& specularBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 
 		//m_gBufferPassDescriptor.m_renderTargets.resize(AsIntegral(ERenderTargetSlot::MAX));
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16B16A16_FLOAT, &lightBufferSRV);
@@ -399,11 +397,11 @@ namespace MAD
 		CalculateCameraConstants(inFramePercent);
 		BindPerFrameConstants();
 
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::LightingBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DiffuseBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::NormalBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::SpecularBuffer);
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DepthBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
 
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
@@ -451,8 +449,7 @@ namespace MAD
 
 		// Copy the finalized linear lighting buffer to the back buffer
 		// This (will) perform HDR lighting corrections and already performs gamma correction
-		GetGraphicsDriver().TEMPGetDeviceContext()->OMSetRenderTargets(1, m_backBuffer.GetAddressOf(), nullptr);
-		//g_graphicsDriver.SetRenderTargets(backBufferRT, 1, nullptr);
+		g_graphicsDriver.SetRenderTargets(&m_backBuffer, 1, nullptr);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::LightingBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::LightingBuffer);
 		g_graphicsDriver.SetBlendState(nullptr);
 		backBufferProgram->SetProgramActive(g_graphicsDriver, 0);
@@ -477,7 +474,8 @@ namespace MAD
 	{
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred directional lighting");
 
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowMap);
+
 		m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::NormalBuffer);
@@ -508,7 +506,7 @@ namespace MAD
 
 			// Render shadow map
 			g_graphicsDriver.StartEventGroup(L"Draw scene to shadow map");
-			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowMap);
+			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
 
@@ -565,7 +563,7 @@ namespace MAD
 			memcpy(pointLightConstants.m_pointLightVPMatrices, shadowMapVPMatrices.data(), shadowMapVPMatrices.size() * sizeof(Matrix));
 
 			// Clear the resource slot for the texture cube
-			g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::ShadowCube);
+			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowCube);
 
 			m_pointShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_pointShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
@@ -650,7 +648,7 @@ namespace MAD
 		g_graphicsDriver.StartEventGroup(L"Debug Pass Layer");
 
 		// Make sure the g buffer depth stencil shader resource view is not bound because we're using it as our depth stencil view here
-		g_graphicsDriver.SetPixelShaderResource(SShaderResourceId::Invalid, ETextureSlot::DepthBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
 
 		m_debugPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_debugPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
@@ -682,7 +680,7 @@ namespace MAD
 			loadedDepthProgram = true;
 		}
 
-		SShaderResourceId target;
+		ShaderResourcePtr_t target;
 		switch(m_visualizeOption)
 		{
 		case EVisualizeOptions::LightAccumulation:

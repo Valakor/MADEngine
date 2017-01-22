@@ -33,10 +33,10 @@ namespace MAD
 		}
 
 		layoutPtr = CreateInputLayout(inGraphicsDriver, inFlags, inCompiledVSByteCode, inByteCodeSize);
-		MAD_ASSERT_DESC(layoutPtr != nullptr, "Failed to create input layout from given flags");
+		MAD_ASSERT_DESC(layoutPtr, "Failed to create input layout from given flags");
 
 		s_inputLayoutCache[inFlags] = layoutPtr;
-		return layoutPtr != nullptr;
+		return layoutPtr;
 	}
 
 	InputLayoutPtr_t UInputLayoutCache::CreateInputLayout(UGraphicsDriver& inGraphicsDriver, InputLayoutFlags_t inFlags, const void* inCompiledVSByteCode, size_t inByteCodeSize)

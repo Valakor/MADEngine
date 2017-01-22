@@ -23,7 +23,7 @@ namespace MAD
 	{
 		SDrawItem();
 
-		void Draw(class UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), RasterizerStatePtr_t inRasterStateOverride = RasterizerStatePtr_t());
+		void Draw(class UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), RasterizerStatePtr_t inRasterStateOverride = nullptr);
 
 		// Used for renderer state ping-ponging for interpolating state
 		size_t m_uniqueID;
@@ -33,14 +33,14 @@ namespace MAD
 		UINT m_vertexCount;
 		UINT m_vertexBufferOffset;
 
-		SBufferId m_indexBuffer;
+		BufferPtr_t m_indexBuffer;
 		UINT m_indexOffset;
 		UINT m_indexCount;
 
 		ULinearTransform m_transform;
 
 		eastl::vector<eastl::pair<EConstantBufferSlot, eastl::pair<const void*, UINT>>> m_constantBufferData;
-		eastl::vector<eastl::pair<ETextureSlot, SShaderResourceId>> m_shaderResources;
+		eastl::vector<eastl::pair<ETextureSlot, ShaderResourcePtr_t>> m_shaderResources;
 
 		InputLayoutPtr_t m_inputLayout;
 
