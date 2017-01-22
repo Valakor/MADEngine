@@ -70,9 +70,15 @@ namespace MAD
 		}
 	}
 
-	void URenderer::QueueDebugDrawItem(const SDrawItem& inDebugDrawItem)
+	void URenderer::QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration /*= 0.0f*/)
 	{
-		m_debugDrawItems.push_back(inDebugDrawItem);
+		SDebugHandle debugHandle;
+
+		debugHandle.m_initialGameTime = gEngine->GetGameTimeDouble();
+		debugHandle.m_duration = inDuration;
+		debugHandle.m_debugDrawItem = inDebugDrawItem;
+
+		m_debugDrawItems.emplace_back(debugHandle);
 	}
 
 	void URenderer::QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight)
@@ -98,12 +104,12 @@ namespace MAD
 
 	void URenderer::DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor /*= Color(0.0, 0.0, 0.0)*/)
 	{
-		UNREFERENCED_PARAMETER(inDuration);
-
 		const Vector3 inMSStart(Vector3::Zero);
 		const Vector3 inMSEnd(inWSEnd - inWSStart);
 
 		// Construct draw item for line
+		SDebugHandle lineDebugHandle;
+
 		SDrawItem lineDrawItem;
 
 		lineDrawItem.m_transform = ULinearTransform(); // Start with identity
@@ -117,7 +123,7 @@ namespace MAD
 
 		lineDrawItem.m_transform.SetTranslation(inWSStart);
 
-		m_debugDrawItems.push_back(lineDrawItem);
+		QueueDebugDrawItem(lineDrawItem, inDuration);
 	}
 
 	void URenderer::ClearRenderItems()
@@ -125,7 +131,10 @@ namespace MAD
 		m_currentStateIndex = 1 - m_currentStateIndex;
 
 		// TODO Currently doesn't effectively support dynamic debug line drawing because we need to setup a way of batching up debug line draws
-		m_debugDrawItems.clear();
+
+		// Clear out the expired debug draw items
+		ClearExpiredDebugDrawItems();
+
 		m_queuedDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
 		m_queuedPointLights[m_currentStateIndex].clear();
@@ -450,6 +459,16 @@ namespace MAD
 		g_graphicsDriver.Present();
 	}
 
+	void URenderer::ClearExpiredDebugDrawItems()
+	{
+		const float currentGameTime = gEngine->GetGameTimeDouble();
+
+		m_debugDrawItems.erase(eastl::remove_if(m_debugDrawItems.begin(), m_debugDrawItems.end(), [currentGameTime](const SDebugHandle& inDebugHandle)
+		{
+			return (currentGameTime - inDebugHandle.m_initialGameTime) > inDebugHandle.m_duration;
+		}), m_debugDrawItems.end());
+	}
+
 	void URenderer::DrawDirectionalLighting(float inFramePercent)
 	{
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred directional lighting");
@@ -635,7 +654,7 @@ namespace MAD
 		// Process the debug draw items
 		for (auto& currentDebugDrawItem : m_debugDrawItems)
 		{
-			currentDebugDrawItem.Draw(g_graphicsDriver, inFramePerecent, m_perFrameConstants, false);
+			currentDebugDrawItem.m_debugDrawItem.Draw(g_graphicsDriver, inFramePerecent, m_perFrameConstants, false);
 		}
 
 		g_graphicsDriver.EndEventGroup();

@@ -6,6 +6,7 @@
 #include "Core/PointLightComponent.h"
 #include "Core/MoveComponent.h"
 #include "Core/GameWorldLoader.h"
+#include "Rendering/Renderer.h"
 
 #define MAD_DEFINE_TEST_COMPONENT(TestComponentName)							\
 	DECLARE_LOG_CATEGORY(Log##TestComponentName);											\
@@ -93,6 +94,8 @@ namespace MAD
 					demoCharacterScheme.BindAxis<CDemoCharacterController, &CDemoCharacterController::LookUp>("LookY", this);
 
 					demoCharacterScheme.BindEvent<CDemoCharacterController, &CDemoCharacterController::OnShoot>("Shoot", EInputEvent::IE_KeyDown, this);
+					demoCharacterScheme.BindEvent<CDemoCharacterController, &CDemoCharacterController::OnLineShoot>("DebugLine", EInputEvent::IE_KeyDown, this);
+
 					demoCharacterScheme.BindEvent<CDemoCharacterController, &CDemoCharacterController::ToggleMouseLock>("MouseMode", EInputEvent::IE_KeyDown, this);
 				}
 			}
@@ -172,6 +175,14 @@ namespace MAD
 			{
 				// Send event to spawn point light
 				gEngine->GetNetworkManager().SendNetworkEvent(EEventTarget::Server, SHOOT_BULLET, GetOwningEntity(), nullptr, 0);
+			}
+
+			void OnLineShoot()
+			{
+				const Vector3 lineStart = GetOwningEntity().GetWorldTranslation() + GetOwningEntity().GetForward() * 50.0f;
+				const Vector3 lineEnd = lineStart + GetOwningEntity().GetForward() * 350.0f;
+
+				gEngine->GetRenderer().DrawDebugLine(lineStart, lineEnd, 10.0f, Color(0.0f, 1.0f, 1.0f, 1.0f));
 			}
 
 			void ToggleMouseLock() const
