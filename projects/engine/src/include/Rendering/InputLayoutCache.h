@@ -29,15 +29,15 @@ namespace MAD
 		static bool RegisterInputLayout(class UGraphicsDriver& inGraphicsDriver, InputLayoutFlags_t inFlags, const eastl::vector<char>& inCompiledVertexShader);
 		static bool RegisterInputLayout(class UGraphicsDriver& inGraphicsDriver, InputLayoutFlags_t inFlags, const void* inCompiledVSByteCode, size_t inByteCodeSize);
 
-		static SInputLayoutId GetInputLayout(InputLayoutFlags_t inFlags);
+		static InputLayoutPtr_t GetInputLayout(InputLayoutFlags_t inFlags);
 
 		static InputLayoutFlags_t GetFlagForSemanticName(const eastl::string& inSemanticName);
 
 	private:
 		static const eastl::hash_map<eastl::string, InputLayoutFlags_t> s_semanticNameToFlagMap;
-		static eastl::hash_map<InputLayoutFlags_t, SInputLayoutId> s_inputLayoutCache;
+		static eastl::hash_map<InputLayoutFlags_t, InputLayoutPtr_t> s_inputLayoutCache;
 
-		static SInputLayoutId TryGetInputLayout(InputLayoutFlags_t inFlags);
-		static SInputLayoutId CreateInputLayout(class UGraphicsDriver& inGraphicsDriver, InputLayoutFlags_t inFlags, const void* inCompiledVSByteCode, size_t inByteCodeSize);
+		static InputLayoutPtr_t TryGetInputLayout(InputLayoutFlags_t inFlags);
+		static InputLayoutPtr_t CreateInputLayout(class UGraphicsDriver& inGraphicsDriver, InputLayoutFlags_t inFlags, const void* inCompiledVSByteCode, size_t inByteCodeSize);
 	};
 }

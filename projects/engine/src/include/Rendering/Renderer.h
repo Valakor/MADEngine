@@ -63,7 +63,7 @@ namespace MAD
 		void SetBackBufferClearColor(Color inColor);
 
 		class UGraphicsDriver& GetGraphicsDriver();
-		SRasterizerStateId GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		RasterizerStatePtr_t GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
@@ -100,7 +100,7 @@ namespace MAD
 		uint32_t m_frame;
 
 		UGameWindow* m_window;
-		SRenderTargetId m_backBuffer;
+		RenderTargetPtr_t m_backBuffer;
 		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
 		Color m_clearColor;

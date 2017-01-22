@@ -15,7 +15,7 @@ namespace MAD
 	    , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED)
 	    , m_drawCommand(EDrawCommand::IndexedDraw) { } // TODO Rethink the default draw command later
 
-	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, SRasterizerStateId inRasterStateOverride)
+	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, RasterizerStatePtr_t inRasterStateOverride)
 	{
 		InputLayoutFlags_t inputLayout = 0;
 		for (const auto& vertexBuffer : m_vertexBuffers)
@@ -64,7 +64,7 @@ namespace MAD
 			}
 		}
 
-		if (inRasterStateOverride.IsValid())
+		if (inRasterStateOverride)
 		{
 			inGraphicsDriver.SetRasterizerState(inRasterStateOverride);
 		}

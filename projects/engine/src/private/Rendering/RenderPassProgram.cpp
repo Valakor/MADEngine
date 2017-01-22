@@ -33,17 +33,17 @@ namespace MAD
 			const ProgramShaderTuple_t& programShaderTuple = programSetFindIter->second;
 			
 			// Vertex Shader
-			const SVertexShaderId& vertexShaderId = GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(programShaderTuple);
-			if (vertexShaderId.IsValid())
+			const VertexShaderPtr_t vertexShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(programShaderTuple);
+			if (vertexShaderPtr)
 			{
-				inGraphicsDriver.SetVertexShader(vertexShaderId);
+				inGraphicsDriver.SetVertexShader(vertexShaderPtr);
 			}
 
 			// Geometry Shader (in the future, do similar for geometry shader when we are using geometry shaders)
 			
 			// Pixel Shader
-			const SPixelShaderId& pixelShaderId = GetIdFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple);
-			inGraphicsDriver.SetPixelShader(pixelShaderId);
+			const PixelShaderPtr_t pixelShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple);
+			inGraphicsDriver.SetPixelShader(pixelShaderPtr);
 
 			return true;
 		}

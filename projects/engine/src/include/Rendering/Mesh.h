@@ -42,7 +42,7 @@ namespace MAD
 		eastl::vector<SSubMesh> m_subMeshes;
 		eastl::vector<UMaterial> m_materials;
 
-		SInputLayoutId m_inputLayout;
+		InputLayoutPtr_t m_inputLayout;
 
 		eastl::vector<Vector3> m_positions;
 		eastl::vector<Vector3> m_normals;

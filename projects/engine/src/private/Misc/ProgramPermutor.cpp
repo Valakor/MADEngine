@@ -172,13 +172,13 @@ namespace MAD
 							switch (usageShaderType)
 							{
 							case EProgramShaderType::EProgramShaderType_VS:
-								SetIdToShaderTuple<EProgramShaderType::EProgramShaderType_VS>(currentProgramIDTuple, graphicsDriver.CreateVertexShader(compiledProgramByteCode));
+								SetPtrToShaderTuple<EProgramShaderType::EProgramShaderType_VS>(currentProgramIDTuple, graphicsDriver.CreateVertexShader(compiledProgramByteCode));
 								break;
 							case EProgramShaderType::EProgramShaderType_GS:
 								//SetIdToShaderTuple<EProgramShaderType::EProgramShaderType_GS>(currentProgramIDTuple, /* create geometry shader here eventually */
 								break;
 							case EProgramShaderType::EProgramShaderType_PS:
-								SetIdToShaderTuple<EProgramShaderType::EProgramShaderType_PS>(currentProgramIDTuple, graphicsDriver.CreatePixelShader(compiledProgramByteCode));
+								SetPtrToShaderTuple<EProgramShaderType::EProgramShaderType_PS>(currentProgramIDTuple, graphicsDriver.CreatePixelShader(compiledProgramByteCode));
 								break;
 							}
 

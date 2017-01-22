@@ -5,6 +5,10 @@
 
 #include "Misc/Assert.h"
 
+#include <wrl/client.h>
+
+using Microsoft::WRL::ComPtr;
+
 namespace MAD
 {
 	template <class DerivedType, typename IdType>
@@ -86,18 +90,30 @@ namespace eastl											\
 	};													\
 }						
 
-DECLARE_GRAPHICS_OBJ_ID(SVertexShaderId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SGeometryShaderId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SPixelShaderId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SInputLayoutId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SRenderTargetId, uint16_t)
-DECLARE_GRAPHICS_OBJ_ID(SDepthStencilId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SDepthStencilStateId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SBlendStateId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SSamplerStateId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(SRasterizerStateId, uint8_t)
-DECLARE_GRAPHICS_OBJ_ID(STexture2DId, uint16_t)
+//DECLARE_GRAPHICS_OBJ_ID(SVertexShaderId, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(SGeometryShaderId, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(PixelShaderPtr_t, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(InputLayoutPtr_t, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(RenderTargetPtr_t, uint16_t)
+//DECLARE_GRAPHICS_OBJ_ID(DepthStencilPtr_t, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(DepthStencilStatePtr_t, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(BlendStatePtr_t, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(SamplerStatePtr_t, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(RasterizerStatePtr_t, uint8_t)
+//DECLARE_GRAPHICS_OBJ_ID(Texture2DPtr_t, uint16_t)
 DECLARE_GRAPHICS_OBJ_ID(SShaderResourceId, uint16_t)
 DECLARE_GRAPHICS_OBJ_ID(SBufferId, uint16_t)
+
+using VertexShaderPtr_t = ComPtr<ID3D11VertexShader>;
+using GeometryShaderPtr_t = ComPtr<ID3D11GeometryShader>;
+using PixelShaderPtr_t = ComPtr<ID3D11PixelShader>;
+using InputLayoutPtr_t = ComPtr<ID3D11InputLayout>;
+using RenderTargetPtr_t = ComPtr<ID3D11RenderTargetView>;
+using DepthStencilPtr_t = ComPtr<ID3D11DepthStencilView>;
+using DepthStencilStatePtr_t = ComPtr<ID3D11DepthStencilState>;
+using BlendStatePtr_t = ComPtr<ID3D11BlendState1>;
+using SamplerStatePtr_t = ComPtr<ID3D11SamplerState>;
+using RasterizerStatePtr_t = ComPtr<ID3D11RasterizerState1>;
+//using ShaderResourcePtr_t = ComPtr<ID3D11ShaderResourceView>;
 
 #undef DECLARE_GRAPHICS_OBJ_ID

@@ -22,15 +22,15 @@ namespace MAD
 	};
 
 	using ProgramId_t = uint64_t;
-	using ProgramShaderTuple_t = eastl::tuple<SVertexShaderId, SGeometryShaderId, SPixelShaderId>;
+	using ProgramShaderTuple_t = eastl::tuple<VertexShaderPtr_t, GeometryShaderPtr_t, PixelShaderPtr_t>;
 	using ProgramPermutations_t = eastl::hash_map<ProgramId_t, ProgramShaderTuple_t>;
 
 	// Utility template getter function for shader tuple
 	template <EProgramShaderType ShaderType>
-	auto GetIdFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple));
+	auto GetPtrFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple));
 
 	template <EProgramShaderType ShaderType, typename ShaderIdType>
-	void SetIdToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId);
+	void SetPtrToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId);
 
 	class URenderPassProgram
 	{
@@ -54,13 +54,13 @@ namespace MAD
 	};
 
 	template <EProgramShaderType ShaderType>
-	auto GetIdFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple))
+	auto GetPtrFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple))
 	{
 		return eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple);
 	}
 
 	template <EProgramShaderType ShaderType, typename ShaderIdType>
-	void SetIdToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId)
+	void SetPtrToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId)
 	{
 		eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple) = inShaderId;
 	}

@@ -23,7 +23,7 @@ namespace MAD
 	{
 		SDrawItem();
 
-		void Draw(class UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), SRasterizerStateId inRasterStateOverride = SRasterizerStateId());
+		void Draw(class UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), RasterizerStatePtr_t inRasterStateOverride = RasterizerStatePtr_t());
 
 		// Used for renderer state ping-ponging for interpolating state
 		size_t m_uniqueID;
@@ -42,11 +42,11 @@ namespace MAD
 		eastl::vector<eastl::pair<EConstantBufferSlot, eastl::pair<const void*, UINT>>> m_constantBufferData;
 		eastl::vector<eastl::pair<ETextureSlot, SShaderResourceId>> m_shaderResources;
 
-		SInputLayoutId m_inputLayout;
+		InputLayoutPtr_t m_inputLayout;
 
 		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology;
 
-		SRasterizerStateId m_rasterizerState;
+		RasterizerStatePtr_t m_rasterizerState;
 
 		EDrawCommand m_drawCommand;
 	};
