@@ -26,7 +26,7 @@ namespace MAD
 
 		ComPtr<T> p;
 
-		UGraphicsObject(T* inObjectPtr = nullptr) { *p.GetAddressOf() = inObjectPtr; }
+		UGraphicsObject(T* inObjectPtr = nullptr) { p = inObjectPtr; }
 
 		void Debug_SetName(const eastl::string& inName)
 		{
