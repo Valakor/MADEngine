@@ -12,7 +12,7 @@
 					"newComponents": [
 						{
 							"type": "CDebugTransformComponent",
-							"position": [0.0, 0.25, 0.0],
+							"position": [0.0, 0.35, 0.0],
 							"properties": {
 								"debug_scale": 100.0
 							}

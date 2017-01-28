@@ -47,7 +47,7 @@ namespace MAD
 		void QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight);
 		void QueuePointLight(size_t inID, const SGPUPointLight& inPointLight);
 
-		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(0.0, 0.0, 0.0));
+		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(1.0, 1.0, 1.0, 1.0));
 
 		void ClearRenderItems();
 
@@ -76,6 +76,8 @@ namespace MAD
 
 		void InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath);
 		void InitializePointLightShadowMappingPass(const eastl::string& inProgramPath);
+
+		void InitializeDebugGrid(uint8_t inGridDimension);
 
 		void PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray);
 		void PopulateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);

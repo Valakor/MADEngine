@@ -47,6 +47,8 @@ namespace MAD
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
+		InitializeDebugGrid(6);
+
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
 	}
@@ -102,7 +104,7 @@ namespace MAD
 		(void)result;
 	}
 
-	void URenderer::DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor /*= Color(0.0, 0.0, 0.0)*/)
+	void URenderer::DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor /*= Color(1.0, 1.0, 1.0, 1.0)*/)
 	{
 		const Vector3 inMSStart(Vector3::Zero);
 		const Vector3 inMSEnd(inWSEnd - inWSStart);
@@ -308,10 +310,40 @@ namespace MAD
 		m_pointShadowMappingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
 	}
 
+	void URenderer::InitializeDebugGrid(uint8_t inGridDimension)
+	{
+		// Draw all of the debug lines required for the grid
+		const float coordinateScale = 100.0f;
+		const float gridYLiftThreshold = 0.25f;
+		Vector3 currentLineBegin = { -coordinateScale * ceilf(inGridDimension / 2.0f), gridYLiftThreshold, -coordinateScale * ceilf(inGridDimension / 2.0f) };
+		Vector3 currentLineEnd = { -coordinateScale * ceilf(inGridDimension / 2.0f), gridYLiftThreshold, coordinateScale * ceilf(inGridDimension / 2.0f) };
+
+		// Vertical lines
+		for (uint8_t i = 0; i <= inGridDimension; ++i)
+		{
+			DrawDebugLine(currentLineBegin, currentLineEnd, -1.0f);
+
+			currentLineBegin.x += coordinateScale;
+			currentLineEnd.x += coordinateScale;
+		}
+
+		// Horizontal lines
+		currentLineBegin = Vector3({ -coordinateScale * ceilf(inGridDimension / 2.0f), gridYLiftThreshold, -coordinateScale * ceilf(inGridDimension / 2.0f) });
+		currentLineEnd = Vector3({ coordinateScale * ceilf(inGridDimension / 2.0f), gridYLiftThreshold, -coordinateScale * ceilf(inGridDimension / 2.0f) });
+
+		for (uint8_t i = 0; i <= inGridDimension; ++i)
+		{
+			DrawDebugLine(currentLineBegin, currentLineEnd, -1.0f);
+
+			currentLineBegin.z += coordinateScale;
+			currentLineEnd.z += coordinateScale;
+		}
+	}
+
 	void URenderer::PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
-		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 3.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
+		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
 
 		// Calculate the points to look at for each direction
 		const Vector3 wsDirectionTargets[UDepthTextureCube::s_numTextureCubeSides] =
@@ -466,6 +498,11 @@ namespace MAD
 
 		m_debugDrawItems.erase(eastl::remove_if(m_debugDrawItems.begin(), m_debugDrawItems.end(), [currentGameTime](const SDebugHandle& inDebugHandle)
 		{
+			if (inDebugHandle.m_duration < 0.0f)
+			{
+				return false;
+			}
+
 			return (currentGameTime - inDebugHandle.m_initialGameTime) > inDebugHandle.m_duration;
 		}), m_debugDrawItems.end());
 	}
