@@ -12,7 +12,7 @@ namespace MAD
 	{
 		void ApplyPassState(class UGraphicsDriver& inGraphicsDriver) const;
 
-		eastl::array<RenderTargetPtr_t, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT> m_renderTargets;
+		eastl::vector<RenderTargetPtr_t> m_renderTargets;
 		DepthStencilStatePtr_t m_depthStencilState;
 		DepthStencilPtr_t m_depthStencilView;
 		BlendStatePtr_t m_blendState;

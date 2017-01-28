@@ -207,7 +207,7 @@ namespace MAD
 		ShaderResourcePtr_t& normalBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 		ShaderResourcePtr_t& specularBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 
-		//m_gBufferPassDescriptor.m_renderTargets.resize(AsIntegral(ERenderTargetSlot::MAX));
+		m_gBufferPassDescriptor.m_renderTargets.resize(AsIntegral(ERenderTargetSlot::MAX));
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16B16A16_FLOAT, &lightBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::DiffuseBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM, &diffuseBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16_UNORM, &normalBufferSRV);
@@ -230,8 +230,8 @@ namespace MAD
 		m_dirLightingPassDescriptor.m_depthStencilView = nullptr;
 		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
 
-		//m_dirLightingPassDescriptor.m_renderTargets.clear();
-		//m_dirLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+		m_dirLightingPassDescriptor.m_renderTargets.clear();
+		m_dirLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 		m_dirLightingPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 
 		m_dirLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
@@ -246,8 +246,8 @@ namespace MAD
 		m_pointLightingPassDescriptor.m_depthStencilView = nullptr;
 		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
 
-		//m_pointLightingPassDescriptor.m_renderTargets.clear();
-		//m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+		m_pointLightingPassDescriptor.m_renderTargets.clear();
+		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 		m_pointLightingPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 
 		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
@@ -260,8 +260,8 @@ namespace MAD
 	void URenderer::InitializeDebugPass(const eastl::string& inProgramPath)
 	{
 		// For the render target, we want to render directly into the light accumulation buffer
-		//m_debugPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
-		m_debugPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
+		m_debugPassDescriptor.m_renderTargets.clear();
+		m_debugPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
 		// The debug pass will use the same depth stencil view of the g-buffer pass since
 		// we don't want debug lines to draw over pre-existing objects in the scene (unless they're non-occluded of course)
