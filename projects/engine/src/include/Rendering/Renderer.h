@@ -12,6 +12,7 @@
 #include "Rendering/DrawItem.h"
 #include "Rendering/CameraInstance.h"
 #include "Rendering/DepthTextureCube.h"
+#include "Rendering/TextBatchRenderer.h"
 
 namespace MAD
 {
@@ -48,6 +49,7 @@ namespace MAD
 		void QueuePointLight(size_t inID, const SGPUPointLight& inPointLight);
 
 		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(1.0, 1.0, 1.0, 1.0));
+		void DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY);
 
 		void ClearRenderItems();
 
@@ -67,12 +69,15 @@ namespace MAD
 
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
+
+		POINT GetScreenSize() const;
 	private:
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializeDebugPass(const eastl::string& inProgramPath);
+		void InitializeTextRenderPass(const eastl::string& inProgramPath);
 
 		void InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath);
 		void InitializePointLightShadowMappingPass(const eastl::string& inProgramPath);
@@ -124,11 +129,14 @@ namespace MAD
 		SRenderPassDescriptor m_dirShadowMappingPassDescriptor;
 		SRenderPassDescriptor m_pointShadowMappingPassDescriptor;
 		SRenderPassDescriptor m_debugPassDescriptor;
+		SRenderPassDescriptor m_textRenderPassDescriptor;
 
 		ShaderResourcePtr_t m_shadowMapSRV;
 
 		eastl::vector<ShaderResourcePtr_t> m_gBufferShaderResources;
 		eastl::unique_ptr<UDepthTextureCube> m_depthTextureCube;
+
+		UTextBatchRenderer m_textBatchRenderer;
 
 		EVisualizeOptions m_visualizeOption;
 	};

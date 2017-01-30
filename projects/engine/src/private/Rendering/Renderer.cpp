@@ -43,11 +43,14 @@ namespace MAD
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
+		InitializeTextRenderPass("engine\\shaders\\RenderDebugText.hlsl");
 
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 
 		InitializeDebugGrid(6);
+
+		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
 
 		LOG(LogRenderer, Log, "Renderer initialization successful\n");
 		return true;
@@ -128,6 +131,11 @@ namespace MAD
 		QueueDebugDrawItem(lineDrawItem, inDuration);
 	}
 
+	void URenderer::DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY)
+	{
+		m_textBatchRenderer.BatchTextInstance(inSourceString, inScreenX, inScreenY);
+	}
+
 	void URenderer::ClearRenderItems()
 	{
 		m_currentStateIndex = 1 - m_currentStateIndex;
@@ -151,6 +159,7 @@ namespace MAD
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
+		InitializeTextRenderPass("engine\\shaders\\RenderDebugText.hlsl");
 
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
@@ -276,6 +285,24 @@ namespace MAD
 
 		m_debugPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
 		m_debugPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+	}
+
+	void URenderer::InitializeTextRenderPass(const eastl::string& inProgramPath)
+	{
+		m_textRenderPassDescriptor.m_renderTargets.clear();
+		m_textRenderPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+
+		// The text render pass will not use a depth stencil view because there is no concept of depth with text (we always want text to be on top of everything (potentially not in the future?))
+		m_textRenderPassDescriptor.m_depthStencilView = nullptr;
+		m_textRenderPassDescriptor.m_depthStencilState = nullptr;
+
+		if (!m_textRenderPassDescriptor.m_rasterizerState)
+		{
+			m_textRenderPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_NONE);
+		}
+
+		m_textRenderPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
+		m_textRenderPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(true);
 	}
 
 	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
@@ -465,6 +492,15 @@ namespace MAD
 
 		// Always perform the forward debug pass after the main deferred pass
 		DrawDebugPrimitives(inFramePercent);
+
+		// Always draw text as the last pass (WARNING, if we ever get to post processing effects, need to move this after the post processing)
+		m_textRenderPassDescriptor.ApplyPassState(g_graphicsDriver);
+		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+
+		DrawOnScreenText("-------------------------------", 25, 125);
+		DrawOnScreenText(eastl::string("Text Batch Size: ").append(eastl::to_string(m_textBatchRenderer.GetBatchSize())), 25, 150);
+
+		m_textBatchRenderer.FlushBatch();
 	}
 
 	void URenderer::EndFrame()
@@ -854,4 +890,12 @@ namespace MAD
 		s_stateCache.insert({ hash, state });
 		return state;
 	}
+
+	POINT URenderer::GetScreenSize() const
+	{
+		auto screenSize = m_window->GetClientSize();
+
+		return { screenSize.x, screenSize.y };
+	}
+
 }

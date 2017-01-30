@@ -25,6 +25,7 @@ namespace MAD
 		inline void SetWorldLayerName(const eastl::string& inLayerName) { m_layerName = inLayerName; }
 
 		inline const eastl::string& GetLayerName() const { return m_layerName; }
+		inline size_t GetEntityCount() const { return m_layerEntities.size(); }
 	private:
 		eastl::string m_layerName;
 		eastl::vector<eastl::shared_ptr<AEntity>> m_layerEntities;

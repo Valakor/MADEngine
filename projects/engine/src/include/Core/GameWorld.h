@@ -46,6 +46,8 @@ namespace MAD
 		const eastl::string& GetWorldName() const { return m_worldName; }
 		const eastl::string& GetWorldRelativePath() const { return m_worldRelativePath; }
 		const eastl::string& GetDefaultLayerName() const { return m_defaultLayerName; }
+		size_t GetEntityCount() const;
+
 		void SetWorldName(const eastl::string& inWorldName) { if (!inWorldName.empty()) m_worldName = inWorldName; }
 		void SetWorldRelativePath(const eastl::string& inWorldRelativePath) { if (!inWorldRelativePath.empty()) m_worldRelativePath = inWorldRelativePath; }
 		void SetDefaultLayerName(const eastl::string& inDefaultLayerName) { m_defaultLayerName = inDefaultLayerName; }

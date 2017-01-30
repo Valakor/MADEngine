@@ -108,7 +108,7 @@ namespace MAD
 				currentDrawItem.m_vertexBuffers.push_back(m_gpuNormals);
 			}
 
-			if (!m_gpuTangents.Empty() && currentMaterial.m_normalMap.GetTexureResourceId())
+			if (!m_gpuTangents.Empty() && currentMaterial.m_normalMap.GetTexureResource())
 			{
 				currentDrawItem.m_vertexBuffers.push_back(m_gpuTangents);
 			}
@@ -129,11 +129,11 @@ namespace MAD
 			currentDrawItem.m_constantBufferData.push_back({ EConstantBufferSlot::PerMaterial, { &currentGPUMaterial, static_cast<UINT>(sizeof(SGPUMaterial)) } });
 
 			// Textures
-			const ShaderResourcePtr_t& diffuseTextureResource = currentMaterial.m_diffuseTex.GetTexureResourceId();
-			const ShaderResourcePtr_t& specularTextureResource = currentMaterial.m_specularTex.GetTexureResourceId();
-			const ShaderResourcePtr_t& emissiveTextureResource = currentMaterial.m_emissiveTex.GetTexureResourceId();
-			const ShaderResourcePtr_t& opacityMaskTextureResource = currentMaterial.m_opacityMask.GetTexureResourceId();
-			const ShaderResourcePtr_t& normalMapTextureResource = currentMaterial.m_normalMap.GetTexureResourceId();
+			const ShaderResourcePtr_t& diffuseTextureResource = currentMaterial.m_diffuseTex.GetTexureResource();
+			const ShaderResourcePtr_t& specularTextureResource = currentMaterial.m_specularTex.GetTexureResource();
+			const ShaderResourcePtr_t& emissiveTextureResource = currentMaterial.m_emissiveTex.GetTexureResource();
+			const ShaderResourcePtr_t& opacityMaskTextureResource = currentMaterial.m_opacityMask.GetTexureResource();
+			const ShaderResourcePtr_t& normalMapTextureResource = currentMaterial.m_normalMap.GetTexureResource();
 
 			if (diffuseTextureResource)
 			{
@@ -322,7 +322,7 @@ namespace MAD
 
 				int two_sided = 0;
 				aiMaterial->Get(AI_MATKEY_TWOSIDED, two_sided);
-				if (opacity < 1.0f || two_sided != 0 || madMaterial.m_opacityMask.GetTexureResourceId())
+				if (opacity < 1.0f || two_sided != 0 || madMaterial.m_opacityMask.GetTexureResource())
 				{
 					madMaterial.m_isTwoSided = true;
 				}

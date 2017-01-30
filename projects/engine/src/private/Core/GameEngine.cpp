@@ -27,6 +27,8 @@
 #include "Testing/TestComponents.h"
 #include "Testing/EntityTestingModule.h"
 
+#include "Rendering/FontFamily.h"
+
 using eastl::string;
 
 namespace MAD
@@ -389,11 +391,28 @@ namespace MAD
 		}
 	}
 
+	void UGameEngine::TEMPDrawOnScreenDebugText(double inFrameTime)
+	{
+		m_renderer->DrawOnScreenText(eastl::string("FPS: ").append(eastl::to_string(1.0 / inFrameTime)), 25, 25);
+		m_renderer->DrawOnScreenText(eastl::string("Num Worlds: ").append(eastl::to_string(m_worlds.size())), 25, 50);
+
+		for (const auto& currentWorld : m_worlds)
+		{
+			eastl::string worldInfoString;
+
+			worldInfoString.sprintf("------%s: %d entities", currentWorld->GetWorldName().c_str(), currentWorld->GetEntityCount());
+
+			m_renderer->DrawOnScreenText(worldInfoString, 25, 75);
+		}
+	}
+
 	void UGameEngine::Tick()
 	{
 		auto now = m_frameTimer->TimeSinceStart();
 		auto frameTime = now - m_gameTime;
 		m_gameTime = now;
+
+		TEMPDrawOnScreenDebugText(frameTime);
 
 		m_frameAccumulator += frameTime;
 

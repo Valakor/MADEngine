@@ -84,6 +84,7 @@ namespace MAD
 		void DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax);
 		void DrawFullscreenQuad();
 
+		void UpdateBuffer(BufferPtr_t inBuffer, const void* inData, size_t inDataSize) const;
 
 		// EVENTUALLY RIP OUT AND REFACTOR ENTIRE GRAPHICS DRIVER
 		//=================TESTING PURPOSES=========================
@@ -102,7 +103,6 @@ namespace MAD
 
 		void* MapBuffer(BufferPtr_t inBuffer) const;
 		void UnmapBuffer(BufferPtr_t inBuffer) const;
-		void UpdateBuffer(BufferPtr_t inBuffer, const void* inData, size_t inDataSize) const;
 
 		void SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const;
 		void SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;

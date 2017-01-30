@@ -58,6 +58,8 @@ namespace MAD
 		ShadowMap,
 		ShadowCube,
 
+		FontMap,
+
 		MAX
 	};
 	DECLARE_SLOT_TO_INTEGRAL(ETextureSlot)

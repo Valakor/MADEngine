@@ -33,6 +33,18 @@ namespace MAD
 		inEntity->BeginPlay();
 	}
 
+	size_t OGameWorld::GetEntityCount() const
+	{
+		size_t resultEntityCount = 0;
+
+		for (const auto& currentWorldLayer : m_worldLayers)
+		{
+			resultEntityCount += currentWorldLayer.second.GetEntityCount();
+		}
+
+		return resultEntityCount;
+	}
+
 	void OGameWorld::CleanupEntities()
 	{
 		//LOG(LogDefault, Log, "Cleaning up entites from %s\n", m_worldName.c_str());

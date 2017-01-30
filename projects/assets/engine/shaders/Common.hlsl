@@ -92,3 +92,5 @@ Texture2D g_specularBuffer	: register(t8);
 Texture2D g_depthBuffer		: register(t9);
 Texture2D g_shadowMap		: register(t10);
 TextureCube g_shadowCube	: register(t11);
+
+Texture2D g_fontMap		: register(t12);

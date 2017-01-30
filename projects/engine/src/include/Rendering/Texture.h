@@ -20,8 +20,10 @@ namespace MAD
 		// Load textures using UTexture::Load(...)
 		UTexture();
 		
-		ShaderResourcePtr_t GetTexureResourceId() const { return m_textureSRV; }
+		ShaderResourcePtr_t GetTexureResource() const { return m_textureSRV; }
 
+		uint64_t GetWidth() const { return m_width; }
+		uint64_t GetHeight() const { return m_height; }
 	private:
 		uint64_t m_width;
 		uint64_t m_height;

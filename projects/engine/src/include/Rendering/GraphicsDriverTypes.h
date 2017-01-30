@@ -41,6 +41,13 @@ namespace MAD
 		void Reset() { p.Reset(); }
 
 		// Utility operator overloads around the ComPtr for standardized use of pointer syntax
+		UGraphicsObject<T>& operator=(const UGraphicsObject<T>& inOtherObject)
+		{
+			p = inOtherObject.p;
+
+			return *this;
+		}
+
 		ComPtr<T> operator->() { return p; }
 		ComPtr<const T> operator->() const { return p; }
 
