@@ -26,6 +26,9 @@ namespace MAD
 
 		void FlushBatch();
 
+		bool GetTextBatchingEnabled() const { return m_isBatchRendererEnabled; }
+		void SetTextBatchingEnabled(bool inIsEnabled) { m_isBatchRendererEnabled = inIsEnabled; }
+
 		size_t GetBatchSize() const { return m_queuedTextInstances.size(); }
 	private:
 		void InitializeTextVertexBuffers(uint16_t inInitialNumChars);
@@ -34,6 +37,8 @@ namespace MAD
 		void GenerateQuadVertices(const struct SFontChar& inCharInfo, float inLocalCoordX, float inLocalCoordY);
 	private:
 		static const uint8_t s_numVertsPerQuad = 6;
+		bool m_isBatchRendererEnabled;
+
 		eastl::shared_ptr<class UFontFamily> m_textFontFamily;
 		
 		eastl::vector<STextInstance> m_queuedTextInstances;

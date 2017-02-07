@@ -74,6 +74,11 @@ namespace MAD
 		{
 			gEngine->GetRenderer().ToggleDebugLayerEnabled();
 		}
+
+		void OnToggleHUD()
+		{
+			gEngine->GetRenderer().ToggleTextBatching();
+		}
 	}
 
 	namespace
@@ -314,6 +319,7 @@ namespace MAD
 			.RegisterEvent("NormalsView", '4')
 			.RegisterEvent("DepthView", '5')
 			.RegisterEvent("DebugView", '6')
+			.RegisterEvent("ToggleHUD", '7')
 			.Finalize(true);
 
 		SControlScheme("CameraDebug")
@@ -348,6 +354,7 @@ namespace MAD
 		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
 		renderScheme.BindEvent<&OnEnableDebugPrimitives>("DebugView", EInputEvent::IE_KeyDown);
+		renderScheme.BindEvent<&OnToggleHUD>("ToggleHUD", EInputEvent::IE_KeyDown);
 
 		debugScheme.BindEvent<UGameEngine, &UGameEngine::ReloadAllWorlds>("ReloadWorld", EInputEvent::IE_KeyDown, this);
 

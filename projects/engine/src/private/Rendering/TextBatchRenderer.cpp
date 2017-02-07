@@ -17,6 +17,8 @@ namespace MAD
 		m_textProjectionMatrix = Matrix::CreateOrthographic(clientScreenSize.x, clientScreenSize.y, -0.1f, 1.0f); // Negative near plane because text will have a 0.0f z value
 
 		InitializeTextVertexBuffers(inInitialNumChars);
+
+		m_isBatchRendererEnabled = true;
 	}
 
 	void UTextBatchRenderer::InitializeTextVertexBuffers(uint16_t inInitialNumChars)
@@ -43,6 +45,11 @@ namespace MAD
 
 	void UTextBatchRenderer::BatchTextInstance(const eastl::string& inSourceString, float inScreenX, float inScreenY)
 	{
+		if (!m_isBatchRendererEnabled)
+		{
+			return;
+		}
+
 		const POINT clientScreenSize = URenderContext::GetRenderer().GetScreenSize();
 		auto& queuedInstance = m_queuedTextInstances.push_back();
 	
@@ -57,6 +64,11 @@ namespace MAD
 
 	void UTextBatchRenderer::FlushBatch()
 	{
+		if (!m_isBatchRendererEnabled)
+		{
+			return;
+		}
+
 		// Flushes all of the batched text instances
 		size_t totalVertexCount = 0;
 

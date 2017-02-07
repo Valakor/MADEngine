@@ -69,6 +69,7 @@ namespace MAD
 
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
+		void ToggleTextBatching();
 
 		POINT GetScreenSize() const;
 	private:

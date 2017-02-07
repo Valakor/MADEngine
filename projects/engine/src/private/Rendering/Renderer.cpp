@@ -891,6 +891,11 @@ namespace MAD
 		return state;
 	}
 
+	void URenderer::ToggleTextBatching()
+	{
+		m_textBatchRenderer.SetTextBatchingEnabled(!m_textBatchRenderer.GetTextBatchingEnabled());
+	}
+
 	POINT URenderer::GetScreenSize() const
 	{
 		auto screenSize = m_window->GetClientSize();
