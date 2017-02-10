@@ -42,10 +42,12 @@ namespace MAD
 		eastl::shared_ptr<class UFontFamily> m_textFontFamily;
 		
 		eastl::vector<STextInstance> m_queuedTextInstances;
-		eastl::vector<Vector3> m_runningVBPosData;
-		eastl::vector<Vector2> m_runningVBUVData;
 
 		Matrix m_textProjectionMatrix;
+
+		// Individual vertex buffer attribute vectors needed because the IA stage is setup so that each attribute has their own vertex buffer slot
+		eastl::vector<Vector3> m_runningVBPosData;
+		eastl::vector<Vector2> m_runningVBUVData;
 		BufferPtr_t m_textBatchPosVB;
 		BufferPtr_t m_textBatchTexVB;
 	};
