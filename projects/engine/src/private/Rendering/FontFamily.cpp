@@ -166,9 +166,7 @@ namespace MAD
 			++spacingArrayIter;
 		}
 
-		size_t finalNumChars = m_fontCharInfo.size();
-
-		LOG(LogFontFamily, Log, "Finished parsing the font family and detected %d characters\n", finalNumChars);
+		LOG(LogFontFamily, Log, "Finished parsing the font family and detected %d characters\n", m_fontCharInfo.size());
 
 		// Reset back to the global doc value
 		m_currentValue = &m_fontFamilyDoc;

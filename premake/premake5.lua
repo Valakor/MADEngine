@@ -1,8 +1,13 @@
+require("premake-qt/qt")
+
+local qt = premake.extensions.qt;
+
 workspace "MAD"
 	location "../projects"
 	language "C++"
 	architecture "x86_64"
 	configurations { "Debug", "Release" }
+	startproject "AngerManagement"
 	flags { "FloatFast", "EnableSSE2", "StaticRuntime", "MultiProcessorCompile" }
 	
 	filter { "configurations:Debug" }
@@ -107,6 +112,17 @@ function useDirectXTK()
 	filter { }
 end
 
+function useQT()
+	qt.enable();
+	qtpath "$(QTDIR)"
+	qtgenerateddir "../projects/AngerManagement/GeneratedFiles"
+	qtprefix "Qt5"
+	qtmodules { "core", "gui", "widgets" }
+	filter { "configurations:Debug"}
+		qtsuffix "d"
+	filter {}
+end
+
 function commonSetup()
 	rtti "Off"
 	warnings "Extra"
@@ -120,25 +136,41 @@ function commonSetup()
 	useYojimbo()
 end
 
-project "engine"
-	location "../projects/engine"
+project "Engine"
+	location "../projects/Engine"
 	kind "StaticLib"
-	files "../projects/engine/src/**"
-	includedirs { "../projects/engine/src/include" }
+	files "../projects/Engine/src/**"
+	includedirs { "../projects/Engine/src/include" }
 	pchheader "stdafx.h"
-	pchsource "../projects/engine/src/private/stdafx.cpp"
+	pchsource "../projects/Engine/src/private/stdafx.cpp"
 	forceincludes { "stdafx.h" }
 	commonSetup()
 
 function useEngine()
-	includedirs "../projects/engine/src/include"
-	links "engine"
+	includedirs "../projects/Engine/src/include"
+	links "Engine"
 end
 
-project "game"
-	location "../projects/game"
+project "AngerManagement"
+	location "../projects/AngerManagement"
 	kind "WindowedApp"
-	files "../projects/game/src/**"
+	files "../projects/AngerManagement/src/**"
+	useQT()
+	useEngine()
+
+	-- Figure if there is a way of specifying the AngerManagement project to inherit include directories from the Engine project (?)
+	defines { "NOMINMAX" }
+	includedirs { "../projects/ThirdParty/eastl/src/include" }
+	includedirs { "../ThirdParty/assimp/include" }
+	includedirs { "../ThirdParty/DirectXTK/include" }
+	includedirs { "../ThirdParty/rapidjson/include" }
+	includedirs { "../projects/ThirdParty/yojimbo/src/include" }
+
+
+project "Game"
+	location "../projects/Game"
+	kind "WindowedApp"
+	files "../projects/Game/src/**"
 	commonSetup()
 	useEngine()
 	entrypoint "mainCRTStartup"
