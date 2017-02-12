@@ -17,8 +17,14 @@ namespace MAD
 	bool UGameWindow::s_bWasResized = false;
 	bool UGameWindow::s_bIsMinimized = false;
 
-	bool UGameWindow::CreateGameWindow(const string& inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow)
+	bool UGameWindow::CreateGameWindow(const string& inWindowTitle, int inWidth, int inHeight, HWND inWindowOverride, UGameWindow& outGameWindow)
 	{
+		if (inWindowOverride != 0)
+		{
+			outGameWindow.hWnd = inWindowOverride;
+			return true;
+		}
+
 		auto hInst = GetModuleHandleW(nullptr);
 
 		if (!UGameWindow::RegisterWindowClass(hInst, c_windowClassName))

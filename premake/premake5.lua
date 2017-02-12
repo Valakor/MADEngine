@@ -157,15 +157,10 @@ project "AngerManagement"
 	files "../projects/AngerManagement/src/**"
 	useQT()
 	useEngine()
-
 	-- Figure if there is a way of specifying the AngerManagement project to inherit include directories from the Engine project (?)
-	defines { "NOMINMAX" }
-	includedirs { "../projects/ThirdParty/eastl/src/include" }
-	includedirs { "../ThirdParty/assimp/include" }
-	includedirs { "../ThirdParty/DirectXTK/include" }
-	includedirs { "../ThirdParty/rapidjson/include" }
-	includedirs { "../projects/ThirdParty/yojimbo/src/include" }
+	commonSetup()
 
+	postbuildcommands { "if not exist $(TargetDir)assets mklink /J $(TargetDir)assets $(SolutionDir)assets" }
 
 project "Game"
 	location "../projects/Game"

@@ -11,7 +11,7 @@ namespace MAD
 	class UGameWindow
 	{
 	public:
-		static bool CreateGameWindow(const eastl::string& inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow);
+		static bool CreateGameWindow(const eastl::string& inWindowTitle, int inWidth, int inHeight, HWND inWindowOverride, UGameWindow& outGameWindow);
 		static eastl::string GetNativeCommandline();
 
 		static void PumpMessageQueue();

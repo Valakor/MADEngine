@@ -116,7 +116,7 @@ namespace MAD
 		, m_frameTime(0.0)
 		, m_frameAccumulator(0.0) { }
 
-	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight)
+	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight, HWND inTargetWindow)
 	{
 		RegisterAllTypeInfos();
 		TTypeInfo::DumpTypeInfo();
@@ -132,7 +132,8 @@ namespace MAD
 
 		// Create a window
 		m_gameWindow = eastl::make_shared<UGameWindow>();
-		if (!UGameWindow::CreateGameWindow(inGameName, inWindowWidth, inWindowHeight, *m_gameWindow))
+
+		if (!UGameWindow::CreateGameWindow(inGameName, inWindowWidth, inWindowHeight, inTargetWindow, *m_gameWindow))
 		{
 			return false;
 		}
