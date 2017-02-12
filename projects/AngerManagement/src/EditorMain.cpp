@@ -1,10 +1,11 @@
-#include "MainEditorWindow.h"
-#include <QtWidgets/QApplication>
+#include "EditorApplication.h"
+#include "EditorMainWindow.h"
 
 int main(int argc, char *argv[])
 {
-	QApplication a(argc, argv);
-	AngerManagementWindow w;
+	AM::EditorApplication a(argc, argv);
+	AM::EditorMainWindow w;
+
 	w.show();
 	w.InitEditor();
 	return a.exec();

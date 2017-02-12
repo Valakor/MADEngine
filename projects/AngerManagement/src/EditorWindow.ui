@@ -199,7 +199,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="MainEditorWindow.qrc"/>
+  <include location="EditorWindow.qrc"/>
  </resources>
  <connections/>
 </ui>
