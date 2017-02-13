@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include <EASTL/shared_ptr.h>
 #include <EASTL/weak_ptr.h>
 #include <EASTL/string.h>
@@ -66,7 +68,7 @@ namespace MAD
 
 		void ExecuteEngineTests();
 
-		void TEMPInitializeGameContext();
+		void InitializeGameContext();
 		void TEMPSerializeObject();
 		void TEMPDrawOnScreenDebugText(double inFrameTime);
 	private:
@@ -76,7 +78,7 @@ namespace MAD
 
 		void Tick();
 
-		bool m_bContinue;
+		std::atomic<bool> m_bContinue; // atomic bool to sychronize the stopping of the engine from another thread (performance implications?)
 		bool m_isSimulating;
 
 		uint32_t m_gameTick; // Enough bits for 19,884 hours of gameplay @ 60Hz simulation

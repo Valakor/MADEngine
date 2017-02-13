@@ -169,7 +169,7 @@ namespace MAD
 		m_gameInstance = eastl::make_shared<UGameInstance>();
 		m_gameInstance->OnStartup();
 
-		TEMPInitializeGameContext();
+		InitializeGameContext();
 
 		LOG(LogGameEngine, Log, "Engine initialization successful\n");
 		return true;
@@ -312,7 +312,7 @@ namespace MAD
 	}
 
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
-	void UGameEngine::TEMPInitializeGameContext()
+	void UGameEngine::InitializeGameContext()
 	{
 		SControlScheme& renderScheme = SControlScheme("RenderDebug")
 			.RegisterEvent("NormalView", '0')

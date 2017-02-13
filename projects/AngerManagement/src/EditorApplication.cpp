@@ -1,6 +1,7 @@
 ﻿#include "EditorApplication.h"
 #include "EditorMainWindow.h"
 
+#include <QThread>
 #include <Core/GameWindow.h>
 #include <thread>
 
@@ -34,9 +35,8 @@ namespace AM
 
 		// Get the HWND of the panel
 		HWND editorWindowHandle = reinterpret_cast<HWND>(mainWindow->GetSceneWindowId());
-		eastl::shared_ptr<MAD::UGameWindow> editorWindow = eastl::make_shared<MAD::UGameWindow>(editorWindowHandle);
 
-		if (!m_nativeGameEngine.Init(editorWindow))
+		if (!m_nativeGameEngine.Init(eastl::make_shared<MAD::UGameWindow>(editorWindowHandle)))
 		{
 			return;
 		}
