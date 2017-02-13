@@ -116,7 +116,7 @@ namespace MAD
 		, m_frameTime(0.0)
 		, m_frameAccumulator(0.0) { }
 
-	bool UGameEngine::Init(const string& inGameName, int inWindowWidth, int inWindowHeight, HWND inTargetWindow)
+	bool UGameEngine::Init(eastl::shared_ptr<UGameWindow> inGameWindow)
 	{
 		RegisterAllTypeInfos();
 		TTypeInfo::DumpTypeInfo();
@@ -131,12 +131,12 @@ namespace MAD
 		LOG(LogGameEngine, Log, "Commandline: %s\n", SCmdLine::Get().c_str());
 
 		// Create a window
-		m_gameWindow = eastl::make_shared<UGameWindow>();
-
-		if (!UGameWindow::CreateGameWindow(inGameName, inWindowWidth, inWindowHeight, inTargetWindow, *m_gameWindow))
+		if (!inGameWindow || (inGameWindow && !inGameWindow->GetHWnd()))
 		{
 			return false;
 		}
+
+		m_gameWindow = inGameWindow;
 
 		// Set global engine ptr
 		gEngine = this;
@@ -169,6 +169,8 @@ namespace MAD
 		m_gameInstance = eastl::make_shared<UGameInstance>();
 		m_gameInstance->OnStartup();
 
+		TEMPInitializeGameContext();
+
 		LOG(LogGameEngine, Log, "Engine initialization successful\n");
 		return true;
 	}
@@ -176,7 +178,7 @@ namespace MAD
 	void UGameEngine::Run()
 	{
 		// In the future, update defaults by configuration file
-		TEMPInitializeGameContext();
+		//TEMPInitializeGameContext();
 
 		ExecuteEngineTests();
 

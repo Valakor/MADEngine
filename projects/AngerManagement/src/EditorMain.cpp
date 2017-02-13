@@ -7,6 +7,8 @@ int main(int argc, char *argv[])
 	AM::EditorMainWindow w;
 
 	w.show();
-	w.InitEditor();
+
+	a.InitApplication();
+
 	return a.exec();
 }

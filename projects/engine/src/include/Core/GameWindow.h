@@ -11,7 +11,7 @@ namespace MAD
 	class UGameWindow
 	{
 	public:
-		static bool CreateGameWindow(const eastl::string& inWindowTitle, int inWidth, int inHeight, HWND inWindowOverride, UGameWindow& outGameWindow);
+		static bool CreateGameWindow(const eastl::string& inWindowTitle, int inWidth, int inHeight, UGameWindow& outGameWindow);
 		static eastl::string GetNativeCommandline();
 
 		static void PumpMessageQueue();
@@ -28,9 +28,9 @@ namespace MAD
 		static HWND CreateNativeWindow(HINSTANCE inHInstance, const wchar_t* inWindowTitle, int inWidth, int inHeight);
 
 	public:
-		UGameWindow() : hWnd(nullptr) { }
+		explicit UGameWindow(HWND inTargetWindow = nullptr) : m_hWnd(inTargetWindow) {}
 
-		HWND GetHWnd() const { return hWnd; }
+		HWND GetHWnd() const { return m_hWnd; }
 
 		bool HasFocus() const;
 
@@ -56,6 +56,6 @@ namespace MAD
 		static bool s_bWasResized;
 		static bool s_bIsMinimized;
 
-		HWND hWnd;
+		HWND m_hWnd;
 	};
 }

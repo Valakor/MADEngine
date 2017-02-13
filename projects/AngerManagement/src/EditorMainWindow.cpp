@@ -1,4 +1,5 @@
 #include "EditorMainWindow.h"
+#include "EditorApplication.h"
 #include <QKeyEvent>
 
 // Test includes to make sure that we can include files from other projects
@@ -32,7 +33,7 @@ namespace AM
 	{
 		if (event->key() == Qt::Key_Escape)
 		{
-			m_nativeGameEngine.Stop();
+			//static_cast<EditorApplication*>(QCoreApplication::instance())->StopApplication();
 			qApp->quit();
 		}
 		else
@@ -46,16 +47,8 @@ namespace AM
 		MAD::UGameInput::Get().OnKeyUp(event->key());
 	}
 
-	void EditorMainWindow::InitEditor()
+	WId EditorMainWindow::GetSceneWindowId() const
 	{
-		// Get the HWND of the panel
-		HWND editorWindowHandle = reinterpret_cast<HWND>(ui.sceneWindow->winId());
-
-		if (!m_nativeGameEngine.Init("Anger Management", 1080, 900, editorWindowHandle))
-		{
-		
-		}
-
-		m_nativeGameEngine.Run();
+		return ui.sceneWindow->winId();
 	}
 }

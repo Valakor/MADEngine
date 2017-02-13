@@ -30,7 +30,7 @@ namespace MAD
 		UGameEngine();
 		~UGameEngine();
 
-		bool Init(const eastl::string& inGameName, int inWindowWidth, int inWindowHeight, HWND inTargetWindow = 0);
+		bool Init(eastl::shared_ptr<class UGameWindow> inGameWindow);
 		void Run();
 		void Stop();
 

@@ -19,9 +19,8 @@ namespace AM
 		virtual void keyPressEvent(QKeyEvent* event) override;
 		virtual void keyReleaseEvent(QKeyEvent* event) override;
 
-		void InitEditor();
+		WId GetSceneWindowId() const;
 	private:
 		Ui::AngerManagementClass ui;
-		MAD::UGameEngine m_nativeGameEngine;
 	};
 }

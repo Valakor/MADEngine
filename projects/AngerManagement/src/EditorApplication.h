@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <QApplication>
+#include <Core/GameEngine.h>
 
 namespace AM
 {
@@ -12,7 +13,8 @@ namespace AM
 		EditorApplication(int& argc, char** argv);
 		~EditorApplication();
 
+		void InitApplication();
 	private:
-		
+		MAD::UGameEngine m_nativeGameEngine;
 	};
 }
