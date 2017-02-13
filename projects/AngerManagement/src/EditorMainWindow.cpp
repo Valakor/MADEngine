@@ -33,8 +33,7 @@ namespace AM
 	{
 		if (event->key() == Qt::Key_Escape)
 		{
-			//static_cast<EditorApplication*>(QCoreApplication::instance())->StopApplication();
-			qApp->quit();
+			qEditorApp->StopApplication();
 		}
 		else
 		{

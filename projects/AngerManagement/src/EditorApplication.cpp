@@ -9,12 +9,10 @@ namespace AM
 {
 	EditorApplication::EditorApplication(int& argc, char** argv) : QApplication(argc, argv)
 	{
-	
 	}
 
 	EditorApplication::~EditorApplication()
 	{
-		m_nativeGameEngine.Stop();
 	}
 
 	void EditorApplication::InitApplication()
@@ -34,17 +32,23 @@ namespace AM
 		Q_ASSERT(mainWindow != nullptr);
 
 		// Get the HWND of the panel
-		HWND editorWindowHandle = reinterpret_cast<HWND>(mainWindow->GetSceneWindowId());
-
-		if (!m_nativeGameEngine.Init(eastl::make_shared<MAD::UGameWindow>(editorWindowHandle)))
+		if (!m_editorEngine.InitializeEngine(mainWindow->GetSceneWindowId()))
 		{
 			return;
 		}
 
-		MAD::UGameEngine* localEngine = &m_nativeGameEngine;
-		auto engineThreadLambda = [localEngine]() {localEngine->Run(); };
-		std::thread engineThread(engineThreadLambda);
+		QThread* engineThread = new QThread();
+		m_editorEngine.moveToThread(engineThread);
 
-		engineThread.detach();
+		connect(engineThread, SIGNAL(started()), &m_editorEngine, SLOT(RunEngine()));
+		connect(engineThread, SIGNAL(finished()), engineThread, SLOT(deleteLater()));
+
+		engineThread->start();
 	}
+
+	void EditorApplication::StopApplication()
+	{
+		m_editorEngine.StopEngine(); // Tells the engine to stop, but the application only exits when the engine is finished 
+	}
+
 }

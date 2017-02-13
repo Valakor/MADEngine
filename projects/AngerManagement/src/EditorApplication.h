@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <QApplication>
-#include <Core/GameEngine.h>
+#include "EditorEngine.h"
 
 namespace AM
 {
@@ -14,7 +14,10 @@ namespace AM
 		~EditorApplication();
 
 		void InitApplication();
+		void StopApplication();
 	private:
-		MAD::UGameEngine m_nativeGameEngine;
+		EditorEngine m_editorEngine;
 	};
+
+#define qEditorApp static_cast<EditorApplication*>(QCoreApplication::instance())
 }

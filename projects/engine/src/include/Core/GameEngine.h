@@ -78,7 +78,7 @@ namespace MAD
 
 		void Tick();
 
-		std::atomic<bool> m_bContinue; // atomic bool to sychronize the stopping of the engine from another thread (performance implications?)
+		bool m_bContinue; // atomic bool to synchronize the stopping of the engine from another thread (performance implications?)
 		bool m_isSimulating;
 
 		uint32_t m_gameTick; // Enough bits for 19,884 hours of gameplay @ 60Hz simulation
