@@ -156,6 +156,7 @@ project "AngerManagement"
 	kind "WindowedApp"
 	files "../projects/AngerManagement/src/**"
 	useQT()
+	includedirs { "../projects/AngerManagement/src" } -- self inclusion so that the auto-gen Qt files can refer to custom widget headers
 	useEngine()
 	-- Figure if there is a way of specifying the AngerManagement project to inherit include directories from the Engine project (?)
 	commonSetup()

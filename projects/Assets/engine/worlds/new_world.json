@@ -1,0 +1,105 @@
+{
+	"worldName": "new_world",
+	"ambientColor": [0.2, 0.2, 0.2, 1.0],
+	"backBufferColor": [0.529, 0.808, 0.922, 1.0],
+	"layers": [
+		{
+			"name": "default",
+			"entities": [
+				{
+					"type": "AEntity",
+					"name": "Cardinal Axis",
+					"newComponents": [
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.35, 0.0],
+							"properties": {
+								"debug_scale": 100.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Directional Lights",
+					"newComponents": [
+						{
+							"type": "CDirectionalLightComponent",
+							"properties": {
+								"enabled": false,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"direction": [0.0, -0.86602540378, -0.17],
+								"intensity": 3.0
+							}
+						},
+						{
+							"type": "CDirectionalLightComponent",
+							"properties": {
+								"enabled": false,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"direction": [0.0, -0.707107, -0.707107],
+								"intensity": 1.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Center Point Light",
+					"newComponents": [
+						{
+							"type": "CPointLightComponent",
+							"position": [0.0, 175.0, 0.0],
+							"properties": {
+								"enabled": true,
+								"color": [1.0, 1.0, 1.0, 1.0],
+								"intensity": 15.0,
+								"innerRadius": 50.0,
+								"outerRadius": 600.0
+							}
+						},
+						{
+							"type": "CMeshComponent",
+							"scale": 5.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CCircularMoveComponent",
+							"properties": {
+								"enabled": false,
+								"angular_speed": 65.0,
+								"radius": 150.0
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.0, 0.0],
+							"properties": {
+								"enabled": false,
+								"debug_scale": 10.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Wooden Floor",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, 0.0],
+							"scale": 100.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\wooden_floor\\floor.obj"
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

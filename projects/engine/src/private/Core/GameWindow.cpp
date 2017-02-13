@@ -36,6 +36,7 @@ namespace MAD
 		UpdateWindow(hWnd);
 
 		outGameWindow.m_hWnd = hWnd;
+
 		return true;
 	}
 

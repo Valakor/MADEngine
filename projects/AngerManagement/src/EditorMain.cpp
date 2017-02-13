@@ -3,8 +3,8 @@
 
 int main(int argc, char *argv[])
 {
-	AM::EditorApplication a(argc, argv);
-	AM::EditorMainWindow w;
+	EditorApplication a(argc, argv);
+	EditorMainWindow w;
 
 	w.show();
 

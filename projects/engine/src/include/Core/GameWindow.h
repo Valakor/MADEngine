@@ -20,7 +20,6 @@ namespace MAD
 
 		static bool SetWorkingDirectory();
 		static eastl::string GetWorkingDirectory();
-
 	private:
 		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 

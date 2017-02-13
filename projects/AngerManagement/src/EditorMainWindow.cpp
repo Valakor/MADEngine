@@ -1,5 +1,6 @@
 #include "EditorMainWindow.h"
 #include "EditorApplication.h"
+#include "EditorSceneViewFrame.h"
 #include <QKeyEvent>
 
 // Test includes to make sure that we can include files from other projects
@@ -11,43 +12,42 @@
 #include <rapidjson/document.h>
 #include <assimp/scene.h>
 
-namespace AM
+EditorMainWindow::EditorMainWindow(QWidget* parent)
+	: QMainWindow(parent)
 {
-	EditorMainWindow::EditorMainWindow(QWidget* parent)
-		: QMainWindow(parent)
-	{
-		ui.setupUi(this);
-		setFocus();
-	}
+	ui.setupUi(this);
+	setFocus();
+	setFocusPolicy(Qt::FocusPolicy::ClickFocus);
+	connect(qEditorApp, SIGNAL(EngineInitFinished()), this, SLOT(OnEngineInitialize()));
+}
 
-	EditorMainWindow::~EditorMainWindow()
-	{
-	}
+EditorMainWindow::~EditorMainWindow()
+{
+}
 
-	void EditorMainWindow::mousePressEvent(QMouseEvent* event)
+void EditorMainWindow::keyPressEvent(QKeyEvent* event)
+{
+	switch (event->key())
 	{
-		MAD::UGameInput::Get().OnKeyDown(event->button(), false);
-	}
-
-	void EditorMainWindow::keyPressEvent(QKeyEvent* event)
-	{
-		if (event->key() == Qt::Key_Escape)
+	case Qt::Key_Escape:
+		if (hasFocus())
 		{
 			qEditorApp->StopApplication();
 		}
-		else
-		{
-			MAD::UGameInput::Get().OnKeyDown(event->key(), false);
-		}
+		break;
+	default:
+		QWidget::keyPressEvent(event);
 	}
+}
 
-	void EditorMainWindow::keyReleaseEvent(QKeyEvent* event)
-	{
-		MAD::UGameInput::Get().OnKeyUp(event->key());
-	}
+WId EditorMainWindow::GetSceneViewWindowHandle() const
+{
+	return ui.sceneWindow->winId();
+}
 
-	WId EditorMainWindow::GetSceneWindowId() const
-	{
-		return ui.sceneWindow->winId();
-	}
+void EditorMainWindow::OnEngineInitialize()
+{
+	// Perform engine specific initialization here because we know the engine has been initialized to a valid state
+	MAD::UGameInput::Get().SetMouseMode(MAD::EMouseMode::MM_Game);
+	MAD::UGameInput::Get().OnFocusChanged(false);
 }

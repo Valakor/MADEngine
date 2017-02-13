@@ -695,15 +695,20 @@ namespace MAD
 			lightMinPosHS = Vector4::Transform(lightMinPosHS, m_perFrameConstants.m_cameraProjectionMatrix);
 			lightMaxPosHS = Vector4::Transform(lightMaxPosHS, m_perFrameConstants.m_cameraProjectionMatrix);
 
-			// Perspective divide from clip into NDC space
-			lightMinPosHS /= lightMinPosHS.w;
-			lightMaxPosHS /= lightMaxPosHS.w;
+			// Check for zero w value because for points that at the same z-position as the camera, they will
+			// lead to a 0 w-value (in viewspace) since the projection value produces a w value equal to -z
+			if (lightMinPosHS.w != 0.0f && lightMaxPosHS.w != 0.0f)
+			{
+				// Perspective divide from clip into NDC space
+				lightMinPosHS /= lightMinPosHS.w;
+				lightMaxPosHS /= lightMaxPosHS.w;
 
-			MAD_ASSERT_DESC(FloatEqual(lightMinPosHS.w, 1.0f), "Light min extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
-			MAD_ASSERT_DESC(FloatEqual(lightMaxPosHS.w, 1.0f), "Light max extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
+				MAD_ASSERT_DESC(FloatEqual(lightMinPosHS.w, 1.0f), "Light min extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
+				MAD_ASSERT_DESC(FloatEqual(lightMaxPosHS.w, 1.0f), "Light max extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
 
-			// Light quad extents are in NDC
-			g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
+				// Light quad extents are in NDC
+				g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
+			}
 
 			g_graphicsDriver.EndEventGroup();
 		}

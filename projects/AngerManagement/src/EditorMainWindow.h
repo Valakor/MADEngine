@@ -1,26 +1,25 @@
 #pragma once
 
-#include <QtWidgets/QMainWindow>
+#include <QMainWindow>
+#include <QFocusEvent>
+#include <QKeyEvent>
 
 #include <Core/GameEngine.h>
-#include "ui_EditorWindow.h"
+#include "ui_EditorMainWindow.h"
 
-namespace AM
+class EditorMainWindow : public QMainWindow
 {
-	class EditorMainWindow : public QMainWindow
-	{
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		EditorMainWindow(QWidget *parent = 0);
-		~EditorMainWindow();
-	
-		virtual void mousePressEvent(QMouseEvent* event) override;
-		virtual void keyPressEvent(QKeyEvent* event) override;
-		virtual void keyReleaseEvent(QKeyEvent* event) override;
+public:
+	EditorMainWindow(QWidget *parent = 0);
+	~EditorMainWindow();
 
-		WId GetSceneWindowId() const;
-	private:
-		Ui::AngerManagementClass ui;
-	};
-}
+	virtual void keyPressEvent(QKeyEvent* event) override;
+
+	WId GetSceneViewWindowHandle() const;
+	private slots:
+	void OnEngineInitialize();
+private:
+	Ui::EditorMainWindow ui;
+};
