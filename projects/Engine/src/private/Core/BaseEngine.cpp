@@ -116,24 +116,6 @@ namespace MAD
 		, m_frameTime(0.0)
 		, m_frameAccumulator(0.0) { }
 
-	UBaseEngine::~UBaseEngine()
-	{
-		m_networkManager.Shutdown();
-
-		m_worlds.clear();
-
-		m_gameInstance->OnShutdown();
-		m_gameInstance = nullptr;
-
-		m_renderer->Shutdown();
-		m_renderer = nullptr;
-
-		m_gameWindow = nullptr;
-
-		LOG(LogBaseEngine, Log, "Engine shutdown complete\n");
-		ULog::Get().Shutdown();
-	}
-
 	bool UBaseEngine::Init(eastl::shared_ptr<UGameWindow> inGameWindow)
 	{
 		RegisterAllTypeInfos();

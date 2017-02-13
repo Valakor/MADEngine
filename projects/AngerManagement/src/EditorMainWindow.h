@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <QFocusEvent>
 #include <QKeyEvent>
+#include <QCloseEvent>
 
 #include <Core/GameEngine.h>
 #include "ui_EditorMainWindow.h"
@@ -16,9 +17,10 @@ public:
 	~EditorMainWindow();
 
 	virtual void keyPressEvent(QKeyEvent* event) override;
+	virtual void closeEvent(QCloseEvent* event) override;
 
 	WId GetSceneViewWindowHandle() const;
-	private slots:
+private slots:
 	void OnEngineInitialize();
 private:
 	Ui::EditorMainWindow ui;

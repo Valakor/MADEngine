@@ -33,6 +33,22 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogEditorEngine);
 
+	UEditorEngine::~UEditorEngine()
+	{
+		m_worlds.clear();
+
+		m_gameInstance->OnShutdown();
+		m_gameInstance = nullptr;
+
+		m_renderer->Shutdown();
+		m_renderer = nullptr;
+
+		m_gameWindow = nullptr;
+
+		LOG(LogEditorEngine, Log, "Engine shutdown complete\n");
+		ULog::Get().Shutdown();
+	}
+
 	bool UEditorEngine::Init_Internal(eastl::shared_ptr<class UGameWindow> inGameWindow)
 	{
 		if (!inGameWindow || (inGameWindow && !inGameWindow->GetHWnd()))
@@ -58,10 +74,10 @@ namespace MAD
 		}
 
 		// Init networking manager
-		if (!m_networkManager.Init())
+		/*if (!m_networkManager.Init())
 		{
 			return false;
-		}
+		}*/
 
 		// Start the FrameTimer
 		m_frameTimer = eastl::make_shared<UFrameTimer>();

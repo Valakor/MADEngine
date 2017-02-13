@@ -97,7 +97,7 @@
            <item>
             <widget class="QGroupBox" name="entityPrefabGroup">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -110,7 +110,7 @@
              </property>
              <property name="maximumSize">
               <size>
-               <width>16777215</width>
+               <width>500</width>
                <height>300</height>
               </size>
              </property>
@@ -229,6 +229,48 @@
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
              </property>
+             <widget class="QWidget" name="formLayoutWidget">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>20</y>
+                <width>311</width>
+                <height>721</height>
+               </rect>
+              </property>
+              <layout class="QFormLayout" name="formLayout">
+               <item row="0" column="0">
+                <widget class="QLabel" name="positionLabel">
+                 <property name="text">
+                  <string>Position</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="positionLineEdit"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="rotationLabel">
+                 <property name="text">
+                  <string>Rotation</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="rotationLineEdit"/>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="scaleLabel">
+                 <property name="text">
+                  <string>Scale</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="scaleLineEdit"/>
+               </item>
+              </layout>
+             </widget>
             </widget>
            </item>
           </layout>

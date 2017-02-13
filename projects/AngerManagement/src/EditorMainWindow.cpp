@@ -40,6 +40,14 @@ void EditorMainWindow::keyPressEvent(QKeyEvent* event)
 	}
 }
 
+void EditorMainWindow::closeEvent(QCloseEvent* event)
+{
+	// The user pressed the X button, stop the engine
+	qEditorApp->StopApplication();
+
+	event->accept();
+}
+
 WId EditorMainWindow::GetSceneViewWindowHandle() const
 {
 	return ui.sceneWindow->winId();

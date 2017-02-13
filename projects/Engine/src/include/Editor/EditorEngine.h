@@ -6,6 +6,8 @@ namespace MAD
 {
 	class UEditorEngine : public UBaseEngine
 	{
+	public:
+		virtual ~UEditorEngine();
 	protected:
 		virtual bool Init_Internal(eastl::shared_ptr<class UGameWindow> inGameWindow) override;
 		virtual void InitializeEngineContext() override;

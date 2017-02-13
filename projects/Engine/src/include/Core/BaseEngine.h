@@ -31,7 +31,7 @@ namespace MAD
 	{
 	public:
 		UBaseEngine();
-		virtual ~UBaseEngine();
+		virtual ~UBaseEngine() {}
 
 		bool Init(eastl::shared_ptr<class UGameWindow> inGameWindow);
 		

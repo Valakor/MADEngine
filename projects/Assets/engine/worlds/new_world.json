@@ -21,6 +21,25 @@
 				},
 				{
 					"type": "AEntity",
+					"name": "EditorCharacter",
+					"newComponents": [
+						{
+							"type": "CCameraComponent",
+							"position": [0.0, 150.0, -35.0],
+							"rotation": [0.0, -90.0, 0.0],
+							"properties": {
+								"fov": 60.0,
+								"near": 3.0,
+								"far": 100000.0,
+								"exposure": 1.0,
+								"moveSpeed": 500.0,
+								"lookSpeed": 1.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
 					"name": "Directional Lights",
 					"newComponents": [
 						{

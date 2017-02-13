@@ -79,6 +79,24 @@ namespace MAD
 		}
 	}
 
+	UGameEngine::~UGameEngine()
+	{
+		m_networkManager.Shutdown();
+
+		m_worlds.clear();
+
+		m_gameInstance->OnShutdown();
+		m_gameInstance = nullptr;
+
+		m_renderer->Shutdown();
+		m_renderer = nullptr;
+
+		m_gameWindow = nullptr;
+
+		LOG(LogGameEngine, Log, "Engine shutdown complete\n");
+		ULog::Get().Shutdown();
+	}
+
 	bool UGameEngine::Init_Internal(eastl::shared_ptr<UGameWindow> inGameWindow)
 	{
 		m_gameWindow = inGameWindow;
