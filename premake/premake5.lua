@@ -7,7 +7,6 @@ workspace "MAD"
 	language "C++"
 	architecture "x86_64"
 	configurations { "Debug", "Release" }
-	startproject "AngerManagement"
 	flags { "FloatFast", "EnableSSE2", "StaticRuntime", "MultiProcessorCompile" }
 	
 	filter { "configurations:Debug" }
