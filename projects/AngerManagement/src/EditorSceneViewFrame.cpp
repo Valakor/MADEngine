@@ -54,5 +54,6 @@ void EditorSceneViewFrame::focusInEvent(QFocusEvent* event)
 			MAD::UGameInput::Get().OnFocusChanged(false);
 		}
 	}
-	//QWidget::focusInEvent(event);
+
+	QWidget::focusInEvent(event);
 }
