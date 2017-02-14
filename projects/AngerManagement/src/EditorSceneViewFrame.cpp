@@ -22,17 +22,37 @@ void EditorSceneViewFrame::keyPressEvent(QKeyEvent* event)
 {
 	switch (event->key())
 	{
-	case Qt::Key_M:
+	case Qt::Key_Escape:
 	{
-		MAD::UGameInput::Get().OnKeyDown(event->key(), false);
+		MAD::UGameInput::Get().OnFocusChanged(false);
+		setCursor(Qt::ArrowCursor);
 		clearFocus();
+		qEditorApp->GetMainWindow()->setFocus();
+		break;
 	}
 	default:
-		QWidget::keyPressEvent(event);
+		MAD::UGameInput::Get().OnKeyDown(event->key(), false);
 	}
 }
 
 void EditorSceneViewFrame::keyReleaseEvent(QKeyEvent* event)
 {
 	MAD::UGameInput::Get().OnKeyUp(event->key());
+}
+
+void EditorSceneViewFrame::focusInEvent(QFocusEvent* event)
+{
+	if (event->reason() == Qt::FocusReason::MouseFocusReason)
+	{
+		if (event->gotFocus())
+		{
+			setCursor(Qt::BlankCursor);
+			MAD::UGameInput::Get().OnFocusChanged(true);
+		}
+		else
+		{
+			MAD::UGameInput::Get().OnFocusChanged(false);
+		}
+	}
+	//QWidget::focusInEvent(event);
 }

@@ -497,8 +497,8 @@ namespace MAD
 		m_textRenderPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 
-		DrawOnScreenText("-------------------------------", 25, 125);
-		DrawOnScreenText(eastl::string("Text Batch Size: ").append(eastl::to_string(m_textBatchRenderer.GetBatchSize())), 25, 150);
+		//DrawOnScreenText("-------------------------------", 25, 125);
+		//DrawOnScreenText(eastl::string("Text Batch Size: ").append(eastl::to_string(m_textBatchRenderer.GetBatchSize())), 25, 150);
 
 		m_textBatchRenderer.FlushBatch();
 	}

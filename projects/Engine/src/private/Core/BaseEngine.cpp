@@ -20,6 +20,8 @@
 #include "Core/PointLightComponent.h"
 #include "Core/DebugTransformComponent.h"
 
+#include "Editor/SceneCameraCharacter.h"
+
 #include "Networking/NetworkState.h"
 
 // TESTING
@@ -91,6 +93,7 @@ namespace MAD
 
 			AEntity::StaticClass();
 			ACharacter::StaticClass();
+			ASceneCameraCharacter::StaticClass();
 
 			UComponent::StaticClass();
 			CCameraComponent::StaticClass();
@@ -261,64 +264,6 @@ namespace MAD
 		}
 	}
 
-	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
-	void UBaseEngine::InitializeEngineContext()
-	{
-		SControlScheme& renderScheme = SControlScheme("RenderDebug")
-			.RegisterEvent("NormalView", '0')
-			.RegisterEvent("LightAccumulationView", '1')
-			.RegisterEvent("DiffuseView", '2')
-			.RegisterEvent("SpecularView", '3')
-			.RegisterEvent("NormalsView", '4')
-			.RegisterEvent("DepthView", '5')
-			.RegisterEvent("DebugView", '6')
-			.RegisterEvent("ToggleHUD", '7')
-			.Finalize(true);
-
-		SControlScheme("CameraDebug")
-			.RegisterAxis("Vertical", VK_SPACE, VK_SHIFT)
-			.RegisterAxis("Horizontal", 'D', 'A')
-			.RegisterAxis("Forward", 'W', 'S')
-			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
-			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
-			.RegisterEvent("RightClick", VK_RBUTTON)
-			.RegisterEvent("Reset", 'R')
-			.Finalize(false);
-
-		SControlScheme("DemoCharacter")
-			.RegisterAxis("Vertical", VK_SPACE, VK_SHIFT)
-			.RegisterAxis("Horizontal", 'D', 'A')
-			.RegisterAxis("Forward", 'W', 'S')
-			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
-			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
-			.RegisterEvent("Shoot", VK_LBUTTON)
-			.RegisterEvent("DebugLine", VK_RBUTTON)
-			.RegisterEvent("MouseMode", 'M')
-			.Finalize(true);
-
-		SControlScheme& debugScheme = SControlScheme("Debug")
-			.RegisterEvent("ReloadWorld", 'T')
-			.Finalize(true);
-
-		renderScheme.BindEvent<&OnDisableGBufferVisualization>("NormalView", EInputEvent::IE_KeyDown);
-		renderScheme.BindEvent<&OnEnableLightAccumulation>("LightAccumulationView", EInputEvent::IE_KeyDown);
-		renderScheme.BindEvent<&OnEnableDiffuse>("DiffuseView", EInputEvent::IE_KeyDown);
-		renderScheme.BindEvent<&OnEnableSpecular>("SpecularView", EInputEvent::IE_KeyDown);
-		renderScheme.BindEvent<&OnEnableNormals>("NormalsView", EInputEvent::IE_KeyDown);
-		renderScheme.BindEvent<&OnEnableDepth>("DepthView", EInputEvent::IE_KeyDown);
-		renderScheme.BindEvent<&OnEnableDebugPrimitives>("DebugView", EInputEvent::IE_KeyDown);
-		renderScheme.BindEvent<&OnToggleHUD>("ToggleHUD", EInputEvent::IE_KeyDown);
-
-		debugScheme.BindEvent<UBaseEngine, &UBaseEngine::ReloadAllWorlds>("ReloadWorld", EInputEvent::IE_KeyDown, this);
-
-		// Load the world _after_ setting up control schemes. (We could probably define those in the world file or something as well)
-		UGameWorldLoader loader;
-
-		loader.LoadWorld("engine\\worlds\\new_world.json");
-		//loader.LoadWorld("engine\\worlds\\default_world.json");
-		//loader.LoadWorld("engine\\worlds\\sponza_world.json");
-	}
-
 	void UBaseEngine::TEMPSerializeObject()
 	{
 		eastl::shared_ptr<OGameWorld> defaultWorld = m_worlds[0];
@@ -352,28 +297,13 @@ namespace MAD
 		}
 	}
 
-	void UBaseEngine::TEMPDrawOnScreenDebugText(double inFrameTime)
-	{
-		m_renderer->DrawOnScreenText(eastl::string("FPS: ").append(eastl::to_string(1.0 / inFrameTime)), 25, 25);
-		m_renderer->DrawOnScreenText(eastl::string("Num Worlds: ").append(eastl::to_string(m_worlds.size())), 25, 50);
-
-		for (const auto& currentWorld : m_worlds)
-		{
-			eastl::string worldInfoString;
-
-			worldInfoString.sprintf("------%s: %d entities", currentWorld->GetWorldName().c_str(), currentWorld->GetEntityCount());
-
-			m_renderer->DrawOnScreenText(worldInfoString, 25, 75);
-		}
-	}
-
 	void UBaseEngine::Tick()
 	{
 		auto now = m_frameTimer->TimeSinceStart();
 		auto frameTime = now - m_gameTime;
 		m_gameTime = now;
 
-		TEMPDrawOnScreenDebugText(frameTime);
+		PreTick_Internal(frameTime);
 
 		m_frameAccumulator += frameTime;
 
@@ -436,5 +366,7 @@ namespace MAD
 
 		// Tick renderer
 		m_renderer->Frame(framePercent);
+
+		PostTick_Internal(frameTime);
 	}
 }

@@ -100,17 +100,6 @@ namespace MAD
 			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
 			.RegisterEvent("RightClick", VK_RBUTTON)
 			.RegisterEvent("Reset", 'R')
-			.Finalize(false);
-
-		SControlScheme("DemoCharacter")
-			.RegisterAxis("Vertical", VK_SPACE, VK_SHIFT)
-			.RegisterAxis("Horizontal", 'D', 'A')
-			.RegisterAxis("Forward", 'W', 'S')
-			.RegisterAxis("LookX", EInputAxis::IA_MouseX)
-			.RegisterAxis("LookY", EInputAxis::IA_MouseY)
-			.RegisterEvent("Shoot", VK_LBUTTON)
-			.RegisterEvent("DebugLine", VK_RBUTTON)
-			.RegisterEvent("MouseMode", 'M')
 			.Finalize(true);
 
 		UGameWorldLoader loader;

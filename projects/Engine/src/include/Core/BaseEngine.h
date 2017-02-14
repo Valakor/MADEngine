@@ -64,6 +64,8 @@ namespace MAD
 		UNetworkManager& GetNetworkManager() { return m_networkManager; }
 	protected:
 		virtual bool Init_Internal(eastl::shared_ptr<class UGameWindow> inGameWindow) = 0;
+		virtual void PreTick_Internal(float) {};
+		virtual void PostTick_Internal(float) {};
 		virtual void InitializeEngineContext() = 0;
 
 		// TODO Reloading world doesn't totally work with the network because we don't respawn the player again
@@ -95,7 +97,6 @@ namespace MAD
 		void ExecuteEngineTests();
 
 		void TEMPSerializeObject();
-		void TEMPDrawOnScreenDebugText(double inFrameTime);
 		void Tick();
 	};
 

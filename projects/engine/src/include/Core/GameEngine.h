@@ -11,6 +11,9 @@ namespace MAD
 		virtual ~UGameEngine();
 	protected:
 		virtual bool Init_Internal(eastl::shared_ptr<class UGameWindow> inGameWindow) override;
+		virtual void PreTick_Internal(float inDeltaTime) override;;
 		virtual void InitializeEngineContext() override;
+	private:
+		void DrawOnScreeDebugText(float inFrameTime);
 	};
 }

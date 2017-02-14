@@ -132,6 +132,11 @@ namespace MAD
 		return true;
 	}
 
+	void UGameEngine::PreTick_Internal(float inDeltaTime)
+	{
+		DrawOnScreeDebugText(inDeltaTime);
+	}
+
 	// TEMP: Remove once we have proper loading system. For now, creates one GameWorld with 2 Layers, Default_Layer and Geometry_Layer, to test
 	void UGameEngine::InitializeEngineContext()
 	{
@@ -187,4 +192,20 @@ namespace MAD
 
 		loader.LoadWorld("engine\\worlds\\default_world.json");
 	}
+
+	void UGameEngine::DrawOnScreeDebugText(float inFrameTime)
+	{
+		m_renderer->DrawOnScreenText(eastl::string("FPS: ").append(eastl::to_string(1.0f / inFrameTime)), 25, 25);
+		m_renderer->DrawOnScreenText(eastl::string("Num Worlds: ").append(eastl::to_string(m_worlds.size())), 25, 50);
+
+		for (const auto& currentWorld : m_worlds)
+		{
+			eastl::string worldInfoString;
+
+			worldInfoString.sprintf("------%s: %d entities", currentWorld->GetWorldName().c_str(), currentWorld->GetEntityCount());
+
+			m_renderer->DrawOnScreenText(worldInfoString, 25, 75);
+		}
+	}
+
 }
