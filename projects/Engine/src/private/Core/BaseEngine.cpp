@@ -147,6 +147,12 @@ namespace MAD
 		return true;
 	}
 
+	void UBaseEngine::Stop()
+	{
+		LOG(LogBaseEngine, Log, "Engine stopping...\n");
+		m_bContinue = false;
+	}
+
 	void UBaseEngine::Run()
 	{
 		ExecuteEngineTests();
@@ -158,14 +164,6 @@ namespace MAD
 
 		m_gameWindow->CaptureCursor(false);
 	}
-
-	void UBaseEngine::Stop()
-	{
-		LOG(LogBaseEngine, Log, "Engine stopping...\n");
-		m_bContinue = false;
-	}
-
-	
 
 	eastl::shared_ptr<OGameWorld> UBaseEngine::GetWorld(const string& inWorldName)
 	{

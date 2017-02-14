@@ -1,5 +1,7 @@
 #include "Editor/EditorEngine.h"
 
+#include <mutex>
+
 #include <EASTL/algorithm.h>
 
 #include "Core/FrameTimer.h"
@@ -107,4 +109,28 @@ namespace MAD
 		loader.LoadWorld("engine\\worlds\\new_world.json");
 	}
 
+	void UEditorEngine::PreTick_Internal(float inDeltaTime)
+	{
+		eastl::string fpsString;
+
+		fpsString.sprintf("FPS: %.2f", 1.0f / inDeltaTime);
+
+		m_renderer->DrawOnScreenText(fpsString, 10, 5);
+	}
+
+	void UEditorEngine::Run()
+	{
+		// The editor engine will need to lock the engine tick mutex each tick so that the editor and engine are synchronized in terms of resource access and modification (i.e. Entities)
+		ExecuteEngineTests();
+
+		while (m_bContinue)
+		{
+			// Lock guard the engine tick mutex in case the Tick() causes an exception
+			std::lock_guard<std::mutex> lockGuard(m_engineTickMutex);
+
+			Tick();
+		}
+
+		m_gameWindow->CaptureCursor(false);
+	}
 }

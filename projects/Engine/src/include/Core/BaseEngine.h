@@ -34,9 +34,10 @@ namespace MAD
 		virtual ~UBaseEngine() {}
 
 		bool Init(eastl::shared_ptr<class UGameWindow> inGameWindow);
-		
-		void Run();
 		void Stop();
+
+		// Default engine run functionality provided. Specialized engine types can override to change functionality
+		virtual void Run();
 
 		template <typename WorldType>
 		eastl::weak_ptr<WorldType> SpawnGameWorld(const eastl::string& inWorldName, const eastl::string& inWorldRelativePath);
@@ -71,6 +72,8 @@ namespace MAD
 		// TODO Reloading world doesn't totally work with the network because we don't respawn the player again
 		bool ReloadWorld(size_t inWorldIndex);
 		bool ReloadWorld(const eastl::string& inWorldName);
+		void ExecuteEngineTests();
+		void Tick();
 	protected:
 		const int MAX_SIMULATION_STEPS = 10;
 		//const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
@@ -93,11 +96,7 @@ namespace MAD
 		UNetworkManager m_networkManager;
 	private:
 		int32_t GetWorldIndex(const eastl::string& inWorldName) const;
-
-		void ExecuteEngineTests();
-
 		void TEMPSerializeObject();
-		void Tick();
 	};
 
 	template <typename WorldType>
