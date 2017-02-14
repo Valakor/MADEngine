@@ -303,13 +303,13 @@ namespace MAD
 		auto frameTime = now - m_gameTime;
 		m_gameTime = now;
 
-		PreTick_Internal(frameTime);
-
 		m_frameAccumulator += frameTime;
 
 		int steps = eastl::min(static_cast<int>(m_frameAccumulator / TARGET_DELTA_TIME), MAX_SIMULATION_STEPS);
 		m_frameAccumulator -= steps * TARGET_DELTA_TIME;
 
+		PreTick_Internal(frameTime);
+		
 		while (steps > 0)
 		{
 			// Update current game tick
