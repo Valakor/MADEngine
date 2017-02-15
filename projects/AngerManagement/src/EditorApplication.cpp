@@ -21,7 +21,7 @@ void EditorApplication::InitApplication()
 	Q_ASSERT(mainWindow != nullptr);
 
 	// Get the HWND of the panel
-	if (!m_editorEngine.InitializeEngine(mainWindow->GetSceneViewWindowHandle()))
+	if (!m_editorEngineProxy.InitializeEngine(mainWindow->GetSceneViewWindowHandle()))
 	{
 		return;
 	}
@@ -29,9 +29,9 @@ void EditorApplication::InitApplication()
 	emit EngineInitFinished();
 
 	QThread* engineThread = new QThread();
-	m_editorEngine.moveToThread(engineThread);
+	m_editorEngineProxy.moveToThread(engineThread);
 
-	connect(engineThread, SIGNAL(started()), &m_editorEngine, SLOT(RunEngine()));
+	connect(engineThread, SIGNAL(started()), &m_editorEngineProxy, SLOT(RunEngine()));
 	connect(engineThread, SIGNAL(finished()), engineThread, SLOT(deleteLater()));
 
 	engineThread->start();
@@ -39,7 +39,7 @@ void EditorApplication::InitApplication()
 
 void EditorApplication::StopApplication()
 {
-	m_editorEngine.StopEngine(); // Tells the engine to stop, but the application only exits when the engine is finished cleaning up (?)
+	m_editorEngineProxy.StopEngine(); // Tells the engine to stop, but the application only exits when the engine is finished cleaning up (?)
 }
 
 EditorMainWindow* EditorApplication::GetMainWindow()

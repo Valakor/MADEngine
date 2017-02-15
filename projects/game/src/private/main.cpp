@@ -16,6 +16,15 @@ int main()
 		return 1;
 	}
 
-	gameEngine.Run();
+	// ================= Game Engine Main Loop ========================
+	gameEngine.ExecuteEngineTests();
+
+	while (gameEngine.IsRunning())
+	{
+		gameEngine.Tick();
+	}
+
+	gameEngine.GetWindow().CaptureCursor(false);
+
 	return 0;
 }

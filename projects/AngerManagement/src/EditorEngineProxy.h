@@ -1,20 +1,24 @@
 ﻿#pragma once
+
+#include <mutex>
+
 #include <QObject>
 #include <QWindow>
 
 #include <Editor/EditorEngine.h>
 
-class EditorEngineThread : public QObject
+class EditorEngineProxy : public QObject
 {
 	Q_OBJECT
 public:
-	EditorEngineThread(QObject* parent = Q_NULLPTR);
-	~EditorEngineThread();
+	EditorEngineProxy(QObject* parent = Q_NULLPTR);
+	~EditorEngineProxy();
 
 	bool InitializeEngine(WId inWindowHandleId);
 public slots:
 	void RunEngine();
 	void StopEngine();
 private:
-	MAD::UEditorEngine m_nativeGameEngine;
+	MAD::UEditorEngine m_editorEngine;
+	std::mutex m_nativeEngineMutex;
 };

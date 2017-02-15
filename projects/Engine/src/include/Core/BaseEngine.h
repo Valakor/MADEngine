@@ -36,8 +36,8 @@ namespace MAD
 		bool Init(eastl::shared_ptr<class UGameWindow> inGameWindow);
 		void Stop();
 
-		// Default engine run functionality provided. Specialized engine types can override to change functionality
-		virtual void Run();
+		// Engine specializations are in charge of execute the main loop
+		void Tick();
 
 		template <typename WorldType>
 		eastl::weak_ptr<WorldType> SpawnGameWorld(const eastl::string& inWorldName, const eastl::string& inWorldRelativePath);
@@ -50,6 +50,7 @@ namespace MAD
 		void ReloadAllWorlds();
 		
 		bool IsSimulating() const { return m_isSimulating; }
+		bool IsRunning() const { return m_bContinue; }
 		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
 		float GetFrameTime() const { return static_cast<float>(m_frameTime); }
 		float GetGameTime() const { return static_cast<float>(m_gameTime); }
@@ -63,6 +64,8 @@ namespace MAD
 		class UGameWindow& GetWindow() const { return *m_gameWindow; }
 		class UPhysicsWorld& GetPhysicsWorld() const { return *m_physicsWorld; }
 		UNetworkManager& GetNetworkManager() { return m_networkManager; }
+
+		void ExecuteEngineTests();
 	protected:
 		virtual bool Init_Internal(eastl::shared_ptr<class UGameWindow> inGameWindow) = 0;
 		virtual void PreTick_Internal(float) {};
@@ -72,8 +75,6 @@ namespace MAD
 		// TODO Reloading world doesn't totally work with the network because we don't respawn the player again
 		bool ReloadWorld(size_t inWorldIndex);
 		bool ReloadWorld(const eastl::string& inWorldName);
-		void ExecuteEngineTests();
-		void Tick();
 	protected:
 		const int MAX_SIMULATION_STEPS = 10;
 		//const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS

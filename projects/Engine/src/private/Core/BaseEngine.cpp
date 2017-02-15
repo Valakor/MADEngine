@@ -153,18 +153,6 @@ namespace MAD
 		m_bContinue = false;
 	}
 
-	void UBaseEngine::Run()
-	{
-		ExecuteEngineTests();
-
-		while (m_bContinue)
-		{
-			Tick();
-		}
-
-		m_gameWindow->CaptureCursor(false);
-	}
-
 	eastl::shared_ptr<OGameWorld> UBaseEngine::GetWorld(const string& inWorldName)
 	{
 		eastl::shared_ptr<OGameWorld> world;

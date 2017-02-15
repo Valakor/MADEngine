@@ -4,7 +4,7 @@
 #include <QProcess>
 #include <QTextEdit>
 
-#include "EditorEngineThread.h"
+#include "EditorEngineProxy.h"
 
 class EditorApplication : public QApplication
 {
@@ -17,11 +17,12 @@ public:
 	void InitApplication();
 	void StopApplication();
 
+	EditorEngineProxy& GetEngineProxy() { return m_editorEngineProxy; }
 	class EditorMainWindow* GetMainWindow();
 signals:
 	void EngineInitFinished();
 private:
-	EditorEngineThread m_editorEngine;
+	EditorEngineProxy m_editorEngineProxy;
 };
 
 #define qEditorApp static_cast<EditorApplication*>(QCoreApplication::instance())
