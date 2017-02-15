@@ -2,6 +2,7 @@
 #include "EditorApplication.h"
 #include "EditorSceneViewFrame.h"
 #include <QKeyEvent>
+#include <QListWidget>
 
 // Test includes to make sure that we can include files from other projects
 #include <Core/GameInput.h>
