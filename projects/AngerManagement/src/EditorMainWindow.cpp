@@ -19,7 +19,8 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
 	ui.setupUi(this);
 	setFocus();
 	setFocusPolicy(Qt::FocusPolicy::ClickFocus);
-	connect(qEditorApp, SIGNAL(EngineInitFinished()), this, SLOT(OnEngineInitialize()));
+
+	SetupEngineInitSlots();
 }
 
 EditorMainWindow::~EditorMainWindow()
@@ -59,4 +60,10 @@ void EditorMainWindow::OnEngineInitialize()
 	// Perform engine specific initialization here because we know the engine has been initialized to a valid state
 	MAD::UGameInput::Get().SetMouseMode(MAD::EMouseMode::MM_Game);
 	MAD::UGameInput::Get().OnFocusChanged(false);
+}
+
+void EditorMainWindow::SetupEngineInitSlots()
+{
+	connect(qEditorApp, SIGNAL(EngineInitFinished()), this, SLOT(OnEngineInitialize()));
+	connect(qEditorApp, SIGNAL(EngineInitFinished()), ui.entityTreeWidget, SLOT(OnEngineInitialize()));
 }

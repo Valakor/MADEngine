@@ -57,6 +57,8 @@ namespace MAD
 		double GetGameTimeDouble() const { return m_gameTime; }
 		uint32_t GetGameTick() const { return m_gameTick; }
 
+		const eastl::vector<eastl::shared_ptr<class OGameWorld>>& GetWorlds() const { return m_worlds; }
+		eastl::vector<eastl::shared_ptr<class OGameWorld>>& GetWorlds() { return m_worlds; }
 		eastl::shared_ptr<class OGameWorld> GetWorld(const eastl::string& inWorldName);
 		eastl::shared_ptr<class OGameWorld> GetWorld(size_t inIndex);
 

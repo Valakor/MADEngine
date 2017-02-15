@@ -43,6 +43,7 @@ namespace MAD
 
 		void FinalizeSpawnEntity(eastl::shared_ptr<AEntity> inEntity);
 		
+		WorldLayerContainer_t GetWorldLayers() const { return m_worldLayers; }
 		const eastl::string& GetWorldName() const { return m_worldName; }
 		const eastl::string& GetWorldRelativePath() const { return m_worldRelativePath; }
 		const eastl::string& GetDefaultLayerName() const { return m_defaultLayerName; }

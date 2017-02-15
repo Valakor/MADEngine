@@ -23,5 +23,7 @@ public:
 private slots:
 	void OnEngineInitialize();
 private:
+	void SetupEngineInitSlots();
+private:
 	Ui::EditorMainWindow ui;
 };

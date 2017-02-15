@@ -1,6 +1,7 @@
 ﻿#include "EditorEngineProxy.h"
 #include <QCoreApplication>
 #include <Core/GameWindow.h>
+#include <Core/GameWorld.h>
 
 EditorEngineProxy::EditorEngineProxy(QObject* parent) : QObject(parent)
 {
@@ -13,6 +14,13 @@ EditorEngineProxy::~EditorEngineProxy()
 bool EditorEngineProxy::InitializeEngine(WId inWindowHandleId)
 {
 	return m_editorEngine.Init(eastl::make_shared<MAD::UGameWindow>(reinterpret_cast<HWND>(inWindowHandleId)));
+}
+
+eastl::vector<eastl::shared_ptr<MAD::OGameWorld>> EditorEngineProxy::GetGameWorlds() const
+{
+	std::lock_guard<std::mutex> lockGuard(m_nativeEngineMutex);
+
+	return m_editorEngine.GetWorlds();
 }
 
 void EditorEngineProxy::RunEngine()

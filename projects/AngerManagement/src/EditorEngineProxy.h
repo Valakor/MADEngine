@@ -5,6 +5,9 @@
 #include <QObject>
 #include <QWindow>
 
+#include <EASTL/vector.h>
+#include <EASTl/shared_ptr.h>
+
 #include <Editor/EditorEngine.h>
 
 class EditorEngineProxy : public QObject
@@ -15,10 +18,12 @@ public:
 	~EditorEngineProxy();
 
 	bool InitializeEngine(WId inWindowHandleId);
+
+	eastl::vector<eastl::shared_ptr<class MAD::OGameWorld>> GetGameWorlds() const;
 public slots:
 	void RunEngine();
 	void StopEngine();
 private:
 	MAD::UEditorEngine m_editorEngine;
-	std::mutex m_nativeEngineMutex;
+	mutable std::mutex m_nativeEngineMutex;
 };

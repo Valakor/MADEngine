@@ -98,7 +98,23 @@
             </widget>
            </item>
            <item>
-            <widget class="QTreeView" name="treeView"/>
+            <widget class="QListWidget" name="entityPrefabListWidget">
+             <item>
+              <property name="text">
+               <string>Cube</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Column</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Shelf</string>
+              </property>
+             </item>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -121,7 +137,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QTreeView" name="treeView_2"/>
+            <widget class="EntityViewerTreeWidget" name="entityTreeWidget" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -223,37 +246,10 @@
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
                <layout class="QFormLayout" name="formLayout">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="positionLabel">
-                  <property name="text">
-                   <string>Position</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="positionLineEdit">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                 </widget>
-                </item>
                 <item row="1" column="0">
                  <widget class="QLabel" name="scaleLabel">
                   <property name="text">
                    <string>Scale</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QLineEdit" name="scaleLineEdit">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
                   </property>
                  </widget>
                 </item>
@@ -271,6 +267,33 @@
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="scaleLineEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="positionLineEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="positionLabel">
+                  <property name="text">
+                   <string>Position</string>
                   </property>
                  </widget>
                 </item>
@@ -326,6 +349,11 @@
    <class>EditorSceneViewFrame</class>
    <extends>QWidget</extends>
    <header>editorsceneviewframe.h</header>
+  </customwidget>
+  <customwidget>
+   <class>EntityViewerTreeWidget</class>
+   <extends>QWidget</extends>
+   <header>entityviewertreewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>
