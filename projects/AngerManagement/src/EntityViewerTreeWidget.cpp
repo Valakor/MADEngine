@@ -31,11 +31,15 @@ void EntityViewerTreeWidget::PopulateTreeData()
 	{
 		QTreeWidgetItem* worldTreeItem = new QTreeWidgetItem(QStringList(currentWorld->GetWorldName().c_str()));
 
+		worldTreeItem->setFlags(worldTreeItem->flags() & ~Qt::ItemIsSelectable);
+
 		insertTopLevelItem(0, worldTreeItem);
 
 		for (const auto& currentLayer : currentWorld->GetWorldLayers())
 		{
 			QTreeWidgetItem* worldLayerTreeItem = new QTreeWidgetItem(QStringList(currentLayer.second.GetLayerName().c_str()));
+
+			worldLayerTreeItem->setFlags(worldLayerTreeItem->flags() & ~Qt::ItemIsSelectable);
 
 			worldTreeItem->insertChild(0, worldLayerTreeItem);
 
