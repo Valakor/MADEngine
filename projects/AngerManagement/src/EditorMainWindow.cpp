@@ -21,6 +21,7 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
 	setFocusPolicy(Qt::FocusPolicy::ClickFocus);
 
 	SetupEngineInitSlots();
+	SetupEditorWidgets();
 }
 
 EditorMainWindow::~EditorMainWindow()
@@ -66,4 +67,10 @@ void EditorMainWindow::SetupEngineInitSlots()
 {
 	connect(qEditorApp, SIGNAL(EngineInitFinished()), this, SLOT(OnEngineInitialize()));
 	connect(qEditorApp, SIGNAL(EngineInitFinished()), ui.entityTreeWidget, SLOT(OnEngineInitialize()));
+}
+
+void EditorMainWindow::SetupEditorWidgets()
+{
+	connect(ui.entityTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), ui.propertyEditorWidget, SLOT(OnEntitySelected(QTreeWidgetItem*)));
+	connect(ui.propertyEditorWidget, SIGNAL(OnPositionUpdated(const MAD::Vector3&)), ui.entityTreeWidget, SLOT(UpdateEntityPosition(const MAD::Vector3&)));
 }

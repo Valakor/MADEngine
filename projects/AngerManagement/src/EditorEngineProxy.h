@@ -10,6 +10,9 @@
 
 #include <Editor/EditorEngine.h>
 
+#include <Core/Entity.h>
+#include <Core/SimpleMath.h>
+
 class EditorEngineProxy : public QObject
 {
 	Q_OBJECT
@@ -20,6 +23,8 @@ public:
 	bool InitializeEngine(WId inWindowHandleId);
 
 	eastl::vector<eastl::shared_ptr<class MAD::OGameWorld>> GetGameWorlds() const;
+
+	void UpdateEntityPosition(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Vector3& inNewPosition);
 public slots:
 	void RunEngine();
 	void StopEngine();

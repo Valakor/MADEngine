@@ -6,6 +6,7 @@
 #include <EASTL/shared_ptr.h>
 
 #include <Core/Entity.h>
+#include <Core/SimpleMath.h>
 
 // CAUTION: If we ever need to use signals and slots
 // Limitation of moc requires that QObject needs to be first base class if the class being inherited from is not a QObject
@@ -31,6 +32,9 @@ public:
 
 public slots:
 	void OnEngineInitialize();
+	void UpdateEntityPosition(const MAD::Vector3& inNewPosition);
+	void UpdateEntityRotation(const MAD::Quaternion& inNewRotation);
+	void UpdateEntityScale(float inNewScale);
 private:
 	void PopulateTreeData();
 private:

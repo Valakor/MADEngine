@@ -20,10 +20,12 @@ public:
 	virtual void closeEvent(QCloseEvent* event) override;
 
 	WId GetSceneViewWindowHandle() const;
+
 private slots:
 	void OnEngineInitialize();
 private:
 	void SetupEngineInitSlots();
+	void SetupEditorWidgets();
 private:
 	Ui::EditorMainWindow ui;
 };

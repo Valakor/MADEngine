@@ -1,5 +1,6 @@
 ﻿#include "EditorEngineProxy.h"
 #include <QCoreApplication>
+
 #include <Core/GameWindow.h>
 #include <Core/GameWorld.h>
 
@@ -21,6 +22,13 @@ eastl::vector<eastl::shared_ptr<MAD::OGameWorld>> EditorEngineProxy::GetGameWorl
 	std::lock_guard<std::mutex> lockGuard(m_nativeEngineMutex);
 
 	return m_editorEngine.GetWorlds();
+}
+
+void EditorEngineProxy::UpdateEntityPosition(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Vector3& inNewPosition)
+{
+	std::lock_guard<std::mutex> lockGuard(m_nativeEngineMutex);
+
+	inEntity->SetWorldTranslation(inNewPosition);
 }
 
 void EditorEngineProxy::RunEngine()

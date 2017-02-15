@@ -10,6 +10,7 @@ __pragma(warning(disable:4838))
 __pragma(warning(pop))
 
 #include <cmath>
+#include <EASTL/string.h>
 
 namespace MAD
 {

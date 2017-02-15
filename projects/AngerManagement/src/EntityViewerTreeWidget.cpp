@@ -31,6 +31,23 @@ void EntityViewerTreeWidget::OnEngineInitialize()
 	PopulateTreeData();
 }
 
+void EntityViewerTreeWidget::UpdateEntityPosition(const MAD::Vector3& inNewPosition)
+{
+	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
+
+	qEditorApp->GetEngineProxy().UpdateEntityPosition(currentEntityItem->GetNativeEntity(), inNewPosition);
+}
+
+void EntityViewerTreeWidget::UpdateEntityRotation(const MAD::Quaternion& inNewRotation)
+{
+	UNREFERENCED_PARAMETER(inNewRotation);
+}
+
+void EntityViewerTreeWidget::UpdateEntityScale(float inNewScale)
+{
+	UNREFERENCED_PARAMETER(inNewScale);
+}
+
 void EntityViewerTreeWidget::PopulateTreeData()
 {
 	setHeaderLabel("Worlds");
