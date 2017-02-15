@@ -186,11 +186,6 @@ namespace MAD
 		renderScheme.BindEvent<&OnToggleHUD>("ToggleHUD", EInputEvent::IE_KeyDown);
 
 		debugScheme.BindEvent<UBaseEngine, &UBaseEngine::ReloadAllWorlds>("ReloadWorld", EInputEvent::IE_KeyDown, this);
-
-		// Load the world _after_ setting up control schemes. (We could probably define those in the world file or something as well)
-		UGameWorldLoader loader;
-
-		loader.LoadWorld("engine\\worlds\\default_world.json");
 	}
 
 	void UGameEngine::DrawOnScreeDebugText(float inFrameTime)

@@ -10,6 +10,7 @@
 #include "Core/GameWorldLoader.h"
 #include "Core/PhysicsWorld.h"
 #include "Misc/AssetCache.h"
+#include "Misc/Parse.h"
 #include "Rendering/Renderer.h"
 
 #include "Core/Character.h"
@@ -109,6 +110,8 @@ namespace MAD
 		}
 	}
 
+	const eastl::string UBaseEngine::s_defaultLevelPath = "engine\\worlds\\default_world.json";
+
 	UBaseEngine* gEngine = nullptr;
 
 	UBaseEngine::UBaseEngine()
@@ -142,6 +145,15 @@ namespace MAD
 		}
 
 		InitializeEngineContext();
+
+		eastl::string levelPath = s_defaultLevelPath;
+
+		SParse::Get(SCmdLine::Get(), "-Level=", levelPath);
+
+		// Load the world after setting up control schemes. (We could probably define those in the world file or something as well)
+		UGameWorldLoader loader;
+
+		loader.LoadWorld(levelPath);
 
 		LOG(LogBaseEngine, Log, "Engine initialization successful\n");
 		return true;

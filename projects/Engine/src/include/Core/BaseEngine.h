@@ -30,6 +30,8 @@ namespace MAD
 	class UBaseEngine
 	{
 	public:
+		const static eastl::string s_defaultLevelPath;
+	public:
 		UBaseEngine();
 		virtual ~UBaseEngine() {}
 

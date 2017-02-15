@@ -101,10 +101,6 @@ namespace MAD
 			.RegisterEvent("RightClick", VK_RBUTTON)
 			.RegisterEvent("Reset", 'R')
 			.Finalize(true);
-
-		UGameWorldLoader loader;
-
-		loader.LoadWorld("engine\\worlds\\new_world.json");
 	}
 
 	void UEditorEngine::PreTick_Internal(float inDeltaTime)
