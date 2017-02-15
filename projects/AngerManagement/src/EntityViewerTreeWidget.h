@@ -7,6 +7,21 @@
 
 #include <Core/Entity.h>
 
+// CAUTION: If we ever need to use signals and slots
+// Limitation of moc requires that QObject needs to be first base class if the class being inherited from is not a QObject
+// The auto-generated moc code will use the first parent class as a reference, which will cause compiler errors if the first
+// parent class isn't inherited from QObject.
+// Solution: Put QObject as first parent class before the actual inherited class
+class EntityTreeWidgetItem : public QTreeWidgetItem
+{
+public:
+	EntityTreeWidgetItem(const QStringList& inStrings, eastl::shared_ptr<class MAD::AEntity> inNativeEntity);
+
+	eastl::shared_ptr<class MAD::AEntity> GetNativeEntity() const { return m_nativeEntity; }
+private:
+	eastl::shared_ptr<class MAD::AEntity> m_nativeEntity;
+};
+
 class EntityViewerTreeWidget : public QTreeWidget
 {
 	Q_OBJECT
