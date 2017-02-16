@@ -78,10 +78,9 @@ namespace MAD
 		const OGameWorldLayer& GetOwningWorldLayer() const { return *m_owningWorldLayer; }
 		void SetOwningWorldLayer(OGameWorldLayer& inWorldLayer) { m_owningWorldLayer = &inWorldLayer; }
 
-#if defined (_DEBUG) || defined(_EDITOR)
 		void SetDebugName(const eastl::string& inName) { m_entityDebugName = inName; }
 		eastl::string GetDebugName() const { return m_entityDebugName; }
-#endif
+
 		void PrintTranslationHierarchy() const;
 		void PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const;
 	protected:
@@ -105,9 +104,8 @@ namespace MAD
 	private:
 		friend class UGameWorldLoader;
 
-#if defined(_DEBUG) || defined(_EDITOR)
 		eastl::string m_entityDebugName;
-#endif
+
 		bool m_isPendingForKill;
 
 		AEntity* m_owningEntity;
