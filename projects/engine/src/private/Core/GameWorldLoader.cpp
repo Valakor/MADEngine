@@ -144,12 +144,10 @@ namespace MAD
 		// Spawn entity
 		eastl::shared_ptr<AEntity> entity = m_world->SpawnEntityDeferred<AEntity>(*typeInfo, inLayerName);
 
-#ifdef _DEBUG
 		eastl::string entityDebugName = "UNASSIGNED";
 		GetString("name", entityDebugName);
 
 		entity->SetDebugName(entityDebugName);
-#endif
 
 		// Load existing components
 		auto existing_iter = inRoot.FindMember("existingComponents");
