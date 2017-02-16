@@ -7,7 +7,7 @@
 
 
 EntityTreeWidgetItem::EntityTreeWidgetItem(const QStringList& inStrings, eastl::shared_ptr<MAD::AEntity> inNativeEntity)
-	: QTreeWidgetItem(inStrings, EntityWidgetType)
+	: QTreeWidgetItem(inStrings, EntityWidgetItemType)
 	, m_nativeEntity(inNativeEntity)
 {
 }

@@ -26,7 +26,7 @@ EntityPropertyEditorWidget::~EntityPropertyEditorWidget()
 
 void EntityPropertyEditorWidget::EntitySelected(QTreeWidgetItem* inSelectedEntityItem)
 {
-	if (!inSelectedEntityItem || inSelectedEntityItem->type() != EntityTreeWidgetItem::EntityWidgetType)
+	if (!inSelectedEntityItem || inSelectedEntityItem->type() != EntityTreeWidgetItem::EntityWidgetItemType)
 	{
 		return;
 	}
