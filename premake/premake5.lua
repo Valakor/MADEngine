@@ -160,6 +160,7 @@ project "AngerManagement"
 	-- Figure if there is a way of specifying the AngerManagement project to inherit include directories from the Engine project (?)
 	commonSetup()
 
+	defines { "_EDITOR" }
 	postbuildcommands { "if not exist $(TargetDir)assets mklink /J $(TargetDir)assets $(SolutionDir)assets" }
 
 project "Game"
