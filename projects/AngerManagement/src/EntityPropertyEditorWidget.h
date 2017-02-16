@@ -18,7 +18,7 @@ signals:
 	void OnRotationUpdated(const MAD::Quaternion& inNewRotation);
 	void OnScaleUpdated(float inNewScale);
 public slots:
-	void OnEntitySelected(QTreeWidgetItem* inSelectedEntityItem);
+	void EntitySelected(QTreeWidgetItem* inSelectedEntityItem);
 private slots:
 	void UpdatePosition();
 	void UpdateRotation();

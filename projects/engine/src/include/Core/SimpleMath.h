@@ -46,6 +46,10 @@ namespace MAD
 		return a + (b - a) * Saturate(t);
 	}
 
+	float ClampAxis(float inAngle);
+	float NormalizeAxis(float inAngle);
+	void GetEulerAngles(const Quaternion& inQ, float& outPitch, float& outYaw, float& outRoll);
+
 	class ULinearTransform
 	{
 	public:

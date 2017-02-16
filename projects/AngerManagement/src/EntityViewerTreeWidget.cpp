@@ -7,7 +7,7 @@
 
 
 EntityTreeWidgetItem::EntityTreeWidgetItem(const QStringList& inStrings, eastl::shared_ptr<MAD::AEntity> inNativeEntity)
-	: QTreeWidgetItem(inStrings)
+	: QTreeWidgetItem(inStrings, EntityWidgetType)
 	, m_nativeEntity(inNativeEntity)
 {
 }
@@ -40,12 +40,16 @@ void EntityViewerTreeWidget::UpdateEntityPosition(const MAD::Vector3& inNewPosit
 
 void EntityViewerTreeWidget::UpdateEntityRotation(const MAD::Quaternion& inNewRotation)
 {
-	UNREFERENCED_PARAMETER(inNewRotation);
+	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
+
+	qEditorApp->GetEngineProxy().UpdateEntityRotation(currentEntityItem->GetNativeEntity(), inNewRotation);
 }
 
 void EntityViewerTreeWidget::UpdateEntityScale(float inNewScale)
 {
-	UNREFERENCED_PARAMETER(inNewScale);
+	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
+
+	qEditorApp->GetEngineProxy().UpdateEntityScale(currentEntityItem->GetNativeEntity(), inNewScale);
 }
 
 void EntityViewerTreeWidget::PopulateTreeData()
@@ -56,7 +60,6 @@ void EntityViewerTreeWidget::PopulateTreeData()
 	{
 		QTreeWidgetItem* worldTreeItem = new QTreeWidgetItem(QStringList(currentWorld->GetWorldName().c_str()));
 
-		worldTreeItem->setFlags(worldTreeItem->flags() & ~Qt::ItemIsSelectable);
 		insertTopLevelItem(0, worldTreeItem);
 
 		worldTreeItem->setExpanded(true);
@@ -64,8 +67,6 @@ void EntityViewerTreeWidget::PopulateTreeData()
 		for (const auto& currentLayer : currentWorld->GetWorldLayers())
 		{
 			QTreeWidgetItem* worldLayerTreeItem = new QTreeWidgetItem(QStringList(currentLayer.second.GetLayerName().c_str()));
-
-			worldLayerTreeItem->setFlags(worldLayerTreeItem->flags() & ~Qt::ItemIsSelectable);
 
 			worldTreeItem->insertChild(0, worldLayerTreeItem);
 			

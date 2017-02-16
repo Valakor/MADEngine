@@ -13,9 +13,16 @@
 // The auto-generated moc code will use the first parent class as a reference, which will cause compiler errors if the first
 // parent class isn't inherited from QObject.
 // Solution: Put QObject as first parent class before the actual inherited class
+
+
 class EntityTreeWidgetItem : public QTreeWidgetItem
 {
 public:
+	enum
+	{
+		EntityWidgetItemType = QTreeWidgetItem::UserType + 1
+	};
+
 	EntityTreeWidgetItem(const QStringList& inStrings, eastl::shared_ptr<class MAD::AEntity> inNativeEntity);
 
 	eastl::shared_ptr<class MAD::AEntity> GetNativeEntity() const { return m_nativeEntity; }

@@ -24,9 +24,9 @@ EntityPropertyEditorWidget::~EntityPropertyEditorWidget()
 {
 }
 
-void EntityPropertyEditorWidget::OnEntitySelected(QTreeWidgetItem* inSelectedEntityItem)
+void EntityPropertyEditorWidget::EntitySelected(QTreeWidgetItem* inSelectedEntityItem)
 {
-	if (!inSelectedEntityItem)
+	if (!inSelectedEntityItem || inSelectedEntityItem->type() != EntityTreeWidgetItem::EntityWidgetType)
 	{
 		return;
 	}
@@ -47,7 +47,7 @@ void EntityPropertyEditorWidget::UpdatePosition()
 	newPosition.y = ui.YPosText->text().toFloat();
 	newPosition.z = ui.ZPosText->text().toFloat();
 
-	// Tell the engine proxy to update the selected entity's position
+	// Signal that the position value has changed
 	emit OnPositionUpdated(newPosition);
 }
 
@@ -59,15 +59,15 @@ void EntityPropertyEditorWidget::UpdateRotation()
 
 	MAD::Quaternion newRotation = MAD::Quaternion::CreateFromYawPitchRoll(yRotRadians, xRotRadians, zRotRadians);
 
-	newRotation;
-
-	emit OnRotationUpdated(MAD::Quaternion::Identity);
+	// Signal that the rotation value has changed
+	emit OnRotationUpdated(newRotation);
 }
 
 void EntityPropertyEditorWidget::UpdateScale()
 {
 	float newScale = ui.scaleText->text().toFloat();
 
+	// Signal that the scale value has changed
 	emit OnScaleUpdated(newScale);
 }
 
@@ -81,6 +81,23 @@ void EntityPropertyEditorWidget::UpdatePositionText(const MAD::Vector3& inPositi
 void EntityPropertyEditorWidget::UpdateRotationText(const MAD::Quaternion& inRotation)
 {
 	UNREFERENCED_PARAMETER(inRotation);
+
+	ui.XRotText->setText(QString::number(0));
+	ui.YRotText->setText(QString::number(0));
+	ui.ZRotText->setText(QString::number(0));
+	/*float newPitch = 0.0f;
+	float newYaw = 0.0f;
+	float newRoll = 0.0f;
+
+	MAD::Quaternion normalizedQuaternion;
+
+	inRotation.Normalize(normalizedQuaternion);
+
+	MAD::GetEulerAngles(normalizedQuaternion, newPitch, newYaw, newRoll);
+
+	ui.XRotText->setText(QString::number(newPitch));
+	ui.YRotText->setText(QString::number(newYaw));
+	ui.ZRotText->setText(QString::number(newRoll));*/
 }
 
 void EntityPropertyEditorWidget::UpdateScaleText(float inScale)

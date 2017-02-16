@@ -1,5 +1,6 @@
 ﻿#include "EditorEngineProxy.h"
 #include <QCoreApplication>
+#include <QMutexLocker>
 
 #include <Core/GameWindow.h>
 #include <Core/GameWorld.h>
@@ -17,18 +18,33 @@ bool EditorEngineProxy::InitializeEngine(WId inWindowHandleId)
 	return m_editorEngine.Init(eastl::make_shared<MAD::UGameWindow>(reinterpret_cast<HWND>(inWindowHandleId)));
 }
 
+// TODO: Better way of achieving this functionality without having to write all of these wrapper classes (?)
 eastl::vector<eastl::shared_ptr<MAD::OGameWorld>> EditorEngineProxy::GetGameWorlds() const
 {
-	std::lock_guard<std::mutex> lockGuard(m_nativeEngineMutex);
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
 
 	return m_editorEngine.GetWorlds();
 }
 
 void EditorEngineProxy::UpdateEntityPosition(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Vector3& inNewPosition)
 {
-	std::lock_guard<std::mutex> lockGuard(m_nativeEngineMutex);
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
 
 	inEntity->SetWorldTranslation(inNewPosition);
+}
+
+void EditorEngineProxy::UpdateEntityRotation(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Quaternion& inNewRotation)
+{
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
+
+	inEntity->SetWorldRotation(inNewRotation);
+}
+
+void EditorEngineProxy::UpdateEntityScale(eastl::shared_ptr<MAD::AEntity> inEntity, float inNewScale)
+{
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
+
+	inEntity->SetWorldScale(inNewScale);
 }
 
 void EditorEngineProxy::RunEngine()
@@ -45,7 +61,7 @@ void EditorEngineProxy::RunEngine()
 	while (m_editorEngine.IsRunning())
 	{
 		// Lock guard the engine tick mutex in case the Tick() causes an exception
-		std::lock_guard<std::mutex> lockGuard(m_nativeEngineMutex);
+		QMutexLocker lockGuard(&m_nativeEngineMutex);
 
 		m_editorEngine.Tick();
 	}

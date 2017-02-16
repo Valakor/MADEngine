@@ -116,6 +116,29 @@
 							}
 						}
 					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Skinny Shelf",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, 350.0],
+							"rotation": [0.0, -90.0, 0.0],
+							"scale": 100.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\skinny_shelf\\skinny_shelf.obj"
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": true
+							}
+						}
+					]
 				}
 			]
 		}

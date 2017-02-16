@@ -73,4 +73,6 @@ void EditorMainWindow::SetupEditorWidgets()
 {
 	connect(ui.entityTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), ui.propertyEditorWidget, SLOT(OnEntitySelected(QTreeWidgetItem*)));
 	connect(ui.propertyEditorWidget, SIGNAL(OnPositionUpdated(const MAD::Vector3&)), ui.entityTreeWidget, SLOT(UpdateEntityPosition(const MAD::Vector3&)));
+	connect(ui.propertyEditorWidget, SIGNAL(OnRotationUpdated(const MAD::Quaternion&)), ui.entityTreeWidget, SLOT(UpdateEntityRotation(const MAD::Quaternion&)));
+	connect(ui.propertyEditorWidget, SIGNAL(OnScaleUpdated(float)), ui.entityTreeWidget, SLOT(UpdateEntityScale(float)));
 }
