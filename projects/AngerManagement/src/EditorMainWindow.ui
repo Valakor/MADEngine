@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>AngerManagement</string>
+   <string>Anger Management</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
