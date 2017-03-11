@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QWindow>
 #include <QMutex>
+#include <QQueue>
 
 #include <EASTL/vector.h>
 #include <EASTl/shared_ptr.h>
@@ -30,13 +31,14 @@ public:
 
 	eastl::vector<eastl::shared_ptr<class MAD::OGameWorld>> GetGameWorlds() const;
 
-	void UpdateEntityPosition(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Vector3& inNewPosition);
-	void UpdateEntityRotation(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Quaternion& inNewRotation);
-	void UpdateEntityScale(eastl::shared_ptr<MAD::AEntity> inEntity, float inNewScale);
+	void QueueEngineEvent(class QEngineInterfaceEvent* inEvent);
 public slots:
 	void RunEngine();
 	void StopEngine();
 private:
 	MAD::UEditorEngine m_editorEngine;
+	QQueue<class QEngineInterfaceEvent*> m_engineEvents;
+
+	mutable QMutex m_engineEventMutex;
 	mutable QMutex m_nativeEngineMutex;
 };

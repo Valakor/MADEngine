@@ -1,4 +1,6 @@
 ﻿#include "EditorEngineProxy.h"
+#include "Engine/EngineInterfaceEvent.h"
+
 #include <QCoreApplication>
 #include <QMutexLocker>
 
@@ -55,44 +57,45 @@ eastl::vector<eastl::shared_ptr<MAD::OGameWorld>> EditorEngineProxy::GetGameWorl
 	return m_editorEngine.GetWorlds();
 }
 
-void EditorEngineProxy::UpdateEntityPosition(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Vector3& inNewPosition)
+void EditorEngineProxy::QueueEngineEvent(class QEngineInterfaceEvent* inEvent)
 {
-	QMutexLocker lockGuard(&m_nativeEngineMutex);
+	QMutexLocker eventLockGuard(&m_engineEventMutex);
 
-	inEntity->SetWorldTranslation(inNewPosition);
-}
-
-void EditorEngineProxy::UpdateEntityRotation(eastl::shared_ptr<MAD::AEntity> inEntity, const MAD::Quaternion& inNewRotation)
-{
-	QMutexLocker lockGuard(&m_nativeEngineMutex);
-
-	inEntity->SetWorldRotation(inNewRotation);
-}
-
-void EditorEngineProxy::UpdateEntityScale(eastl::shared_ptr<MAD::AEntity> inEntity, float inNewScale)
-{
-	QMutexLocker lockGuard(&m_nativeEngineMutex);
-
-	inEntity->SetWorldScale(inNewScale);
+	m_engineEvents.push_back(inEvent);
 }
 
 void EditorEngineProxy::RunEngine()
 {
-	if (m_editorEngine.IsSimulating())
-	{
-		return;
-	}
-
 	// ==================== Engine Thread Main Loop ===============================
 	// The editor engine will need to lock the engine tick mutex each tick so that the editor and engine are synchronized in terms of resource access and modification (i.e. Entities)
 	m_editorEngine.ExecuteEngineTests();
 
 	while (m_editorEngine.IsRunning())
 	{
-		// Lock guard the engine tick mutex in case the Tick() causes an exception
-		QMutexLocker lockGuard(&m_nativeEngineMutex);
+		// Process all the engine events before letting the engine execute so that
+		// all events are thread safe with the engine thread
+		{
+			QMutexLocker eventLockGuard(&m_engineEventMutex);
 
-		m_editorEngine.Tick();
+			// TODO Since these events aren't really used with the Qt event system, should they really derive from QEvent?
+			while (!m_engineEvents.isEmpty())
+			{
+				QEngineInterfaceEvent* currentEngineEvent = m_engineEvents.front();
+				
+				currentEngineEvent->ExecuteInterfaceEvent(m_editorEngine);
+
+				m_engineEvents.pop_front();
+
+				delete currentEngineEvent;
+			}
+		}
+
+		// Lock guard the engine tick mutex in case the Tick() causes an exception
+		{
+			QMutexLocker lockGuard(&m_nativeEngineMutex);
+
+			m_editorEngine.Tick();
+		}
 	}
 
 	m_editorEngine.GetWindow().CaptureCursor(false);

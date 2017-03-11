@@ -1,5 +1,6 @@
 ﻿#include "EntityViewerTreeWidget.h"
 #include "EditorApplication.h"
+#include "Engine/EngineCoreEvents.h"
 
 #include <Core/Entity.h>
 #include <Core/GameWorld.h>
@@ -35,21 +36,21 @@ void EntityViewerTreeWidget::UpdateEntityPosition(const MAD::Vector3& inNewPosit
 {
 	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
 
-	qNativeEngine.UpdateEntityPosition(currentEntityItem->GetNativeEntity(), inNewPosition);
+	qNativeEngine.QueueEngineEvent(new QMoveEntityEvent(currentEntityItem->GetNativeEntity(), inNewPosition));
 }
 
 void EntityViewerTreeWidget::UpdateEntityRotation(const MAD::Quaternion& inNewRotation)
 {
 	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
 
-	qNativeEngine.UpdateEntityRotation(currentEntityItem->GetNativeEntity(), inNewRotation);
+	qNativeEngine.QueueEngineEvent(new QRotateEntityEvent(currentEntityItem->GetNativeEntity(), inNewRotation));
 }
 
 void EntityViewerTreeWidget::UpdateEntityScale(float inNewScale)
 {
 	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
 
-	qNativeEngine.UpdateEntityScale(currentEntityItem->GetNativeEntity(), inNewScale);
+	qNativeEngine.QueueEngineEvent(new QScaleEntityEvent(currentEntityItem->GetNativeEntity(), inNewScale));
 }
 
 void EntityViewerTreeWidget::PopulateTreeData()

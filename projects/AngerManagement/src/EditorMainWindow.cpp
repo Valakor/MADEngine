@@ -1,6 +1,7 @@
 #include "EditorMainWindow.h"
 #include "EditorApplication.h"
 #include "EditorSceneViewFrame.h"
+#include "Engine/EngineCoreEvents.h"
 
 #include <QKeyEvent>
 #include <QListWidget>
@@ -60,7 +61,7 @@ void EditorMainWindow::resizeEvent(QResizeEvent*)
 	// Make sure initialized properly first (need valid window)
 	if (qNativeEngine.IsInitialized())
 	{
-		qNativeEngine.OnWindowSizeChanged();
+		qNativeEngine.QueueEngineEvent(new QWindowSizeChangedEvent());
 	}
 }
 

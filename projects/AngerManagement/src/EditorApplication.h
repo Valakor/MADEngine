@@ -4,7 +4,7 @@
 #include <QProcess>
 #include <QTextEdit>
 
-#include "EditorEngineProxy.h"
+#include "Engine/EditorEngineProxy.h"
 
 class EditorApplication : public QApplication
 {
