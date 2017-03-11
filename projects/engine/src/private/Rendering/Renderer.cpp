@@ -39,6 +39,35 @@ namespace MAD
 		auto clientSize = inWindow.GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
 
+		InitializeRenderPasses();
+		InitializeDebugGrid(6);
+
+		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
+
+		LOG(LogRenderer, Log, "Renderer initialization successful\n");
+		return true;
+	}
+
+	void URenderer::OnScreenSizeChanged()
+	{
+		auto newSize = m_window->GetClientSize();
+		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
+
+		SetViewport(newSize.x, newSize.y);
+
+		InitializeRenderPasses();
+
+		m_textBatchRenderer.OnScreenSizeChanged();
+
+		m_backBuffer.Reset(); // When we resize the window, we need to make sure we release all references to the back buffer (the graphics driver and renderer both have a reference)
+
+		g_graphicsDriver.OnScreenSizeChanged();
+
+		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
+	}
+
+	void URenderer::InitializeRenderPasses()
+	{
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
@@ -47,13 +76,6 @@ namespace MAD
 
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-
-		InitializeDebugGrid(6);
-
-		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
-
-		LOG(LogRenderer, Log, "Renderer initialization successful\n");
-		return true;
 	}
 
 	void URenderer::Shutdown()
@@ -146,27 +168,6 @@ namespace MAD
 		m_queuedDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
 		m_queuedPointLights[m_currentStateIndex].clear();
-	}
-
-	void URenderer::OnScreenSizeChanged()
-	{
-		auto newSize = m_window->GetClientSize();
-		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
-
-		g_graphicsDriver.OnScreenSizeChanged();
-
-		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
-		InitializeTextRenderPass("engine\\shaders\\RenderDebugText.hlsl");
-
-		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-
-		SetViewport(newSize.x, newSize.y);
-
-		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
 	}
 
 	void URenderer::Frame(float framePercent)

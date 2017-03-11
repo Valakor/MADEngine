@@ -22,6 +22,8 @@ namespace MAD
 	public:
 		void Init(const eastl::string& inFontRelativePath, uint16_t inInitialNumChars = 256);
 
+		void OnScreenSizeChanged();
+
 		void BatchTextInstance(const eastl::string& inSourceString, float inScreenX, float inScreenY);
 
 		void FlushBatch();

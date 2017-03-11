@@ -74,6 +74,8 @@ namespace MAD
 		POINT GetScreenSize() const;
 	private:
 		// TODO: Eventually be able to initiliaze/load them from file
+		void InitializeRenderPasses();
+
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);

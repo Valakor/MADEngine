@@ -73,7 +73,7 @@ namespace MAD
 			return false;
 		}
 
-		// Init networking manager
+		// Don't need network manager for the level editor
 		/*if (!m_networkManager.Init())
 		{
 			return false;
