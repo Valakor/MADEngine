@@ -61,7 +61,7 @@ void EditorMainWindow::resizeEvent(QResizeEvent*)
 	// Make sure initialized properly first (need valid window)
 	if (qNativeEngine.IsInitialized())
 	{
-		qNativeEngine.QueueEngineEvent(new QWindowSizeChangedEvent());
+		qNativeEngine.QueueEngineEvent<QWindowSizeChangedEvent>();
 	}
 }
 

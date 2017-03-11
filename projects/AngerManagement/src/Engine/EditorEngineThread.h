@@ -15,12 +15,12 @@
 #include <Core/Entity.h>
 #include <Core/SimpleMath.h>
 
-class EditorEngineProxy : public QObject
+class EditorEngineThread : public QObject
 {
 	Q_OBJECT
 public:
-	EditorEngineProxy(QObject* parent = Q_NULLPTR);
-	~EditorEngineProxy();
+	EditorEngineThread(QObject* parent = Q_NULLPTR);
+	~EditorEngineThread();
 
 	bool InitializeEngine(WId inWindowHandleId);
 	void OnWindowSizeChanged();
@@ -31,7 +31,8 @@ public:
 
 	eastl::vector<eastl::shared_ptr<class MAD::OGameWorld>> GetGameWorlds() const;
 
-	void QueueEngineEvent(class QEngineInterfaceEvent* inEvent);
+	template <typename EventType, typename... Args>
+	void QueueEngineEvent(Args&&... inConstArgs);
 public slots:
 	void RunEngine();
 	void StopEngine();
@@ -42,3 +43,12 @@ private:
 	mutable QMutex m_engineEventMutex;
 	mutable QMutex m_nativeEngineMutex;
 };
+
+template <typename EventType, typename... Args>
+void EditorEngineThread::QueueEngineEvent(Args&&... inConstArgs)
+{
+	QMutexLocker eventLockGuard(&m_engineEventMutex);
+
+	// Perfectly forward the arguments into the event type constructor
+	m_engineEvents.push_back(new EventType(std::forward<Args>(inConstArgs)...));
+}

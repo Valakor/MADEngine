@@ -1,4 +1,4 @@
-﻿#include "EditorEngineProxy.h"
+﻿#include "EditorEngineThread.h"
 #include "Engine/EngineInterfaceEvent.h"
 
 #include <QCoreApplication>
@@ -8,41 +8,41 @@
 #include <Rendering/Renderer.h>
 #include <Core/GameWorld.h>
 
-EditorEngineProxy::EditorEngineProxy(QObject* parent) : QObject(parent)
+EditorEngineThread::EditorEngineThread(QObject* parent) : QObject(parent)
 {
 }
 
-EditorEngineProxy::~EditorEngineProxy()
+EditorEngineThread::~EditorEngineThread()
 {
 }
 
-bool EditorEngineProxy::InitializeEngine(WId inWindowHandleId)
+bool EditorEngineThread::InitializeEngine(WId inWindowHandleId)
 {
 	return m_editorEngine.Init(eastl::make_shared<MAD::UGameWindow>(reinterpret_cast<HWND>(inWindowHandleId)));
 }
 
-void EditorEngineProxy::OnWindowSizeChanged()
+void EditorEngineThread::OnWindowSizeChanged()
 {
 	QMutexLocker lockGuard(&m_nativeEngineMutex);
 
 	m_editorEngine.GetRenderer().OnScreenSizeChanged();
 }
 
-bool EditorEngineProxy::IsInitialized() const
+bool EditorEngineThread::IsInitialized() const
 {
 	QMutexLocker lockGuard(&m_nativeEngineMutex);
 
 	return m_editorEngine.IsInitialized();
 }
 
-bool EditorEngineProxy::IsRunning() const
+bool EditorEngineThread::IsRunning() const
 {
 	QMutexLocker lockGuard(&m_nativeEngineMutex);
 
 	return m_editorEngine.IsRunning();
 }
 
-bool EditorEngineProxy::IsSimulating() const
+bool EditorEngineThread::IsSimulating() const
 {
 	QMutexLocker lockGuard(&m_nativeEngineMutex);
 
@@ -50,21 +50,14 @@ bool EditorEngineProxy::IsSimulating() const
 }
 
 // TODO: Better way of achieving this functionality without having to write all of these wrapper classes (?)
-eastl::vector<eastl::shared_ptr<MAD::OGameWorld>> EditorEngineProxy::GetGameWorlds() const
+eastl::vector<eastl::shared_ptr<MAD::OGameWorld>> EditorEngineThread::GetGameWorlds() const
 {
 	QMutexLocker lockGuard(&m_nativeEngineMutex);
 
 	return m_editorEngine.GetWorlds();
 }
 
-void EditorEngineProxy::QueueEngineEvent(class QEngineInterfaceEvent* inEvent)
-{
-	QMutexLocker eventLockGuard(&m_engineEventMutex);
-
-	m_engineEvents.push_back(inEvent);
-}
-
-void EditorEngineProxy::RunEngine()
+void EditorEngineThread::RunEngine()
 {
 	// ==================== Engine Thread Main Loop ===============================
 	// The editor engine will need to lock the engine tick mutex each tick so that the editor and engine are synchronized in terms of resource access and modification (i.e. Entities)
@@ -104,7 +97,7 @@ void EditorEngineProxy::RunEngine()
 	qApp->quit();
 }
 
-void EditorEngineProxy::StopEngine()
+void EditorEngineThread::StopEngine()
 {
 	m_editorEngine.Stop();
 }
