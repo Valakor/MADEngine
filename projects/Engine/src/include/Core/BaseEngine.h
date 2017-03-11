@@ -51,6 +51,7 @@ namespace MAD
 
 		void ReloadAllWorlds();
 		
+		bool IsInitialized() const { return m_bIsInitialized; }
 		bool IsSimulating() const { return m_isSimulating; }
 		bool IsRunning() const { return m_bContinue; }
 		float GetDeltaTime() const { return static_cast<float>(TARGET_DELTA_TIME); }
@@ -84,7 +85,8 @@ namespace MAD
 		//const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
 		const double TARGET_DELTA_TIME = 0.05; // 20 FPS
 
-		bool m_bContinue; // atomic bool to synchronize the stopping of the engine from another thread (performance implications?)
+		bool m_bIsInitialized;
+		bool m_bContinue;
 		bool m_isSimulating;
 
 		uint32_t m_gameTick; // Enough bits for 19,884 hours of gameplay @ 60Hz simulation

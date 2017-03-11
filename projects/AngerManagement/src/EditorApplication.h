@@ -26,3 +26,4 @@ private:
 };
 
 #define qEditorApp static_cast<EditorApplication*>(QCoreApplication::instance())
+#define qNativeEngine qEditorApp->GetEngineProxy()

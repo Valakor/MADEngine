@@ -1,8 +1,12 @@
 #include "EditorMainWindow.h"
 #include "EditorApplication.h"
 #include "EditorSceneViewFrame.h"
+
 #include <QKeyEvent>
 #include <QListWidget>
+#include <QKeyEvent>
+#include <QCloseEvent>
+#include <QResizeEvent>
 
 // Test includes to make sure that we can include files from other projects
 #include <Core/GameInput.h>
@@ -49,6 +53,15 @@ void EditorMainWindow::closeEvent(QCloseEvent* event)
 	qEditorApp->StopApplication();
 
 	event->accept();
+}
+
+void EditorMainWindow::resizeEvent(QResizeEvent*)
+{
+	// Before trying to tell the renderer that the window was resized, make sure the renderer has been initialized properly
+	if (qNativeEngine.IsInitialized())
+	{
+		qNativeEngine.OnWindowSizeChanged();
+	}
 }
 
 WId EditorMainWindow::GetSceneViewWindowHandle() const

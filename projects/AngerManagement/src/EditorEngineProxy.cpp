@@ -3,6 +3,7 @@
 #include <QMutexLocker>
 
 #include <Core/GameWindow.h>
+#include <Rendering/Renderer.h>
 #include <Core/GameWorld.h>
 
 EditorEngineProxy::EditorEngineProxy(QObject* parent) : QObject(parent)
@@ -16,6 +17,34 @@ EditorEngineProxy::~EditorEngineProxy()
 bool EditorEngineProxy::InitializeEngine(WId inWindowHandleId)
 {
 	return m_editorEngine.Init(eastl::make_shared<MAD::UGameWindow>(reinterpret_cast<HWND>(inWindowHandleId)));
+}
+
+void EditorEngineProxy::OnWindowSizeChanged()
+{
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
+
+	m_editorEngine.GetRenderer().OnScreenSizeChanged();
+}
+
+bool EditorEngineProxy::IsInitialized() const
+{
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
+
+	return m_editorEngine.IsInitialized();
+}
+
+bool EditorEngineProxy::IsRunning() const
+{
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
+
+	return m_editorEngine.IsRunning();
+}
+
+bool EditorEngineProxy::IsSimulating() const
+{
+	QMutexLocker lockGuard(&m_nativeEngineMutex);
+
+	return m_editorEngine.IsSimulating();
 }
 
 // TODO: Better way of achieving this functionality without having to write all of these wrapper classes (?)

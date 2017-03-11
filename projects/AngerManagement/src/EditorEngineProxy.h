@@ -22,6 +22,11 @@ public:
 	~EditorEngineProxy();
 
 	bool InitializeEngine(WId inWindowHandleId);
+	void OnWindowSizeChanged();
+
+	bool IsInitialized() const;
+	bool IsRunning() const;
+	bool IsSimulating() const;
 
 	eastl::vector<eastl::shared_ptr<class MAD::OGameWorld>> GetGameWorlds() const;
 

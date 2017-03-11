@@ -115,7 +115,8 @@ namespace MAD
 	UBaseEngine* gEngine = nullptr;
 
 	UBaseEngine::UBaseEngine()
-		: m_bContinue(true)
+		: m_bIsInitialized(false)
+		, m_bContinue(true)
 		, m_isSimulating(false)
 		, m_gameTick(0)
 		, m_gameTime(0.0)
@@ -154,6 +155,8 @@ namespace MAD
 		UGameWorldLoader loader;
 
 		loader.LoadWorld(levelPath);
+
+		m_bIsInitialized = true;
 
 		LOG(LogBaseEngine, Log, "Engine initialization successful\n");
 		return true;
