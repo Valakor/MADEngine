@@ -57,7 +57,7 @@ void EditorMainWindow::closeEvent(QCloseEvent* event)
 
 void EditorMainWindow::resizeEvent(QResizeEvent*)
 {
-	// Before trying to tell the renderer that the window was resized, make sure the renderer has been initialized properly
+	// Make sure initialized properly first (need valid window)
 	if (qNativeEngine.IsInitialized())
 	{
 		qNativeEngine.OnWindowSizeChanged();

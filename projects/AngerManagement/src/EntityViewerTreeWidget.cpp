@@ -26,7 +26,7 @@ void EntityViewerTreeWidget::OnEngineInitialize()
 {
 	setColumnCount(1);
 	
-	m_gameWorlds = qEditorApp->GetEngineProxy().GetGameWorlds();
+	m_gameWorlds = qNativeEngine.GetGameWorlds();
 
 	PopulateTreeData();
 }
@@ -35,21 +35,21 @@ void EntityViewerTreeWidget::UpdateEntityPosition(const MAD::Vector3& inNewPosit
 {
 	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
 
-	qEditorApp->GetEngineProxy().UpdateEntityPosition(currentEntityItem->GetNativeEntity(), inNewPosition);
+	qNativeEngine.UpdateEntityPosition(currentEntityItem->GetNativeEntity(), inNewPosition);
 }
 
 void EntityViewerTreeWidget::UpdateEntityRotation(const MAD::Quaternion& inNewRotation)
 {
 	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
 
-	qEditorApp->GetEngineProxy().UpdateEntityRotation(currentEntityItem->GetNativeEntity(), inNewRotation);
+	qNativeEngine.UpdateEntityRotation(currentEntityItem->GetNativeEntity(), inNewRotation);
 }
 
 void EntityViewerTreeWidget::UpdateEntityScale(float inNewScale)
 {
 	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
 
-	qEditorApp->GetEngineProxy().UpdateEntityScale(currentEntityItem->GetNativeEntity(), inNewScale);
+	qNativeEngine.UpdateEntityScale(currentEntityItem->GetNativeEntity(), inNewScale);
 }
 
 void EntityViewerTreeWidget::PopulateTreeData()
