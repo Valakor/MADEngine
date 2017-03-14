@@ -73,11 +73,9 @@ void EditorEngineThread::RunEngine()
 			// TODO Since these events aren't really used with the Qt event system, should they really derive from QEvent?
 			while (!m_engineEvents.isEmpty())
 			{
-				QEngineInterfaceEvent* currentEngineEvent = m_engineEvents.front();
+				QEngineInterfaceEvent* currentEngineEvent = m_engineEvents.dequeue();
 				
 				currentEngineEvent->ExecuteInterfaceEvent(m_editorEngine);
-
-				m_engineEvents.pop_front();
 
 				delete currentEngineEvent;
 			}
