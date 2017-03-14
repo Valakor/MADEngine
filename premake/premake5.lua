@@ -161,7 +161,7 @@ project "AngerManagement"
 	commonSetup()
 
 	defines { "_EDITOR" }
-	postbuildcommands { "if not exist $(TargetDir)assets mklink /J $(TargetDir)assets $(SolutionDir)assets" }
+	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" %{prj.name} $(TargetDir) $(SolutionDir)" }
 
 project "Game"
 	location "../projects/Game"
@@ -171,4 +171,5 @@ project "Game"
 	useEngine()
 	entrypoint "mainCRTStartup"
 
-	postbuildcommands { "if not exist $(TargetDir)assets mklink /J $(TargetDir)assets $(SolutionDir)assets" }
+	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" %{prj.name} $(TargetDir) $(SolutionDir)" }
+	
