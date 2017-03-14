@@ -10,9 +10,9 @@ echo Staging assets for %projectName%...
 echo Target Asset Dir=%targetAssetsDir%
 echo Source Asset Dir=%sourceAssetsDir%
 
-if NOT exist %targetAssetsDir% (
+if NOT exist "%targetAssetsDir%" (
 	echo 	Assets folder not linked, linking now...
-	mklink /J %targetAssetsDir% %sourceAssetsDir%
+	mklink /J "%targetAssetsDir%" "%sourceAssetsDir%"
 ) else (
 	echo 	Assets folder already linked.
 )
