@@ -161,7 +161,7 @@ project "AngerManagement"
 	commonSetup()
 
 	defines { "_EDITOR" }
-	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" %{prj.name} $(TargetDir) $(SolutionDir)" }
+	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" \"%{prj.name}\" \"$(TargetDir)\" \"$(SolutionDir)\"" }
 
 project "Game"
 	location "../projects/Game"
@@ -171,5 +171,4 @@ project "Game"
 	useEngine()
 	entrypoint "mainCRTStartup"
 
-	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" %{prj.name} $(TargetDir) $(SolutionDir)" }
-	
+	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" \"%{prj.name}\" \"$(TargetDir)\" \"$(SolutionDir)\"" }

@@ -1,8 +1,8 @@
 @echo off
 
-set projectName=%1
-set targetDir=%2
-set solutionDir=%3
+set projectName=%~1
+set targetDir=%~2
+set solutionDir=%~3
 set sourceAssetsDir=%solutionDir%assets
 set targetAssetsDir=%targetDir%assets
 
