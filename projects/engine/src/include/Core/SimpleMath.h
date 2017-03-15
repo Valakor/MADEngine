@@ -48,6 +48,7 @@ namespace MAD
 
 	float ClampAxis(float inAngle);
 	float NormalizeAxis(float inAngle);
+	Quaternion FromEulerAngles(float inPitch, float inYaw, float inRoll);
 	void GetEulerAngles(const Quaternion& inQ, float& outPitch, float& outYaw, float& outRoll);
 
 	class ULinearTransform

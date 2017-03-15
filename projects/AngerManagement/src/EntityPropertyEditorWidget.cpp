@@ -57,7 +57,9 @@ void EntityPropertyEditorWidget::UpdateRotation()
 	float yRotRadians = MAD::ConvertToRadians(ui.YRotText->text().toFloat());
 	float zRotRadians = MAD::ConvertToRadians(ui.ZRotText->text().toFloat());
 
-	MAD::Quaternion newRotation = MAD::Quaternion::CreateFromYawPitchRoll(yRotRadians, xRotRadians, zRotRadians);
+	MAD::Quaternion newRotation = MAD::FromEulerAngles(xRotRadians, yRotRadians, zRotRadians);
+
+	newRotation.Normalize();
 
 	// Signal that the rotation value has changed
 	emit OnRotationUpdated(newRotation);
@@ -80,12 +82,7 @@ void EntityPropertyEditorWidget::UpdatePositionText(const MAD::Vector3& inPositi
 
 void EntityPropertyEditorWidget::UpdateRotationText(const MAD::Quaternion& inRotation)
 {
-	UNREFERENCED_PARAMETER(inRotation);
-
-	ui.XRotText->setText(QString::number(0));
-	ui.YRotText->setText(QString::number(0));
-	ui.ZRotText->setText(QString::number(0));
-	/*float newPitch = 0.0f;
+	float newPitch = 0.0f;
 	float newYaw = 0.0f;
 	float newRoll = 0.0f;
 
@@ -97,7 +94,7 @@ void EntityPropertyEditorWidget::UpdateRotationText(const MAD::Quaternion& inRot
 
 	ui.XRotText->setText(QString::number(newPitch));
 	ui.YRotText->setText(QString::number(newYaw));
-	ui.ZRotText->setText(QString::number(newRoll));*/
+	ui.ZRotText->setText(QString::number(newRoll));
 }
 
 void EntityPropertyEditorWidget::UpdateScaleText(float inScale)
