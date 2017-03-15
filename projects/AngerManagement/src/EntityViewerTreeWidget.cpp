@@ -34,21 +34,21 @@ void EntityViewerTreeWidget::OnEngineInitialize()
 
 void EntityViewerTreeWidget::UpdateEntityPosition(const MAD::Vector3& inNewPosition)
 {
-	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
+	EntityTreeWidgetItem* currentEntityItem = static_cast<EntityTreeWidgetItem*>(currentItem());
 
 	qNativeEngine.QueueEngineEvent<QMoveEntityEvent>(currentEntityItem->GetNativeEntity(), inNewPosition);
 }
 
 void EntityViewerTreeWidget::UpdateEntityRotation(const MAD::Quaternion& inNewRotation)
 {
-	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
+	EntityTreeWidgetItem* currentEntityItem = static_cast<EntityTreeWidgetItem*>(currentItem());
 
 	qNativeEngine.QueueEngineEvent<QRotateEntityEvent>(currentEntityItem->GetNativeEntity(), inNewRotation);
 }
 
 void EntityViewerTreeWidget::UpdateEntityScale(float inNewScale)
 {
-	EntityTreeWidgetItem* currentEntityItem = reinterpret_cast<EntityTreeWidgetItem*>(currentItem());
+	EntityTreeWidgetItem* currentEntityItem = static_cast<EntityTreeWidgetItem*>(currentItem());
 
 	qNativeEngine.QueueEngineEvent<QScaleEntityEvent>(currentEntityItem->GetNativeEntity(), inNewScale);
 }

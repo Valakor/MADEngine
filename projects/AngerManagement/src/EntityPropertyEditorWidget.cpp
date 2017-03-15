@@ -31,7 +31,7 @@ void EntityPropertyEditorWidget::EntitySelected(QTreeWidgetItem* inSelectedEntit
 		return;
 	}
 
-	EntityTreeWidgetItem* selectedTreeItem = reinterpret_cast<EntityTreeWidgetItem*>(inSelectedEntityItem);
+	EntityTreeWidgetItem* selectedTreeItem = static_cast<EntityTreeWidgetItem*>(inSelectedEntityItem);
 	eastl::shared_ptr<MAD::AEntity> selectedEntity = selectedTreeItem->GetNativeEntity();
 
 	UpdatePositionText(selectedEntity->GetWorldTranslation());
