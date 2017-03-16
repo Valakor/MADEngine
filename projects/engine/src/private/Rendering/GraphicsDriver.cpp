@@ -781,6 +781,18 @@ namespace MAD
 		g_d3dDeviceContext->VSSetShader(inVertexShader.Get(), nullptr, 0);
 	}
 
+	void UGraphicsDriver::SetGeometryShader(GeometryShaderPtr_t inGeometryShader) const
+	{
+		// No need for nullptr check becuase you can safely set the geometry shader to null
+		g_d3dDeviceContext->GSSetShader(inGeometryShader.Get(), nullptr, 0);
+	}
+
+	void UGraphicsDriver::SetPixelShader(PixelShaderPtr_t inPixelShader) const
+	{
+		// No need for nullptr check because you can safely set the pixel shader to null
+		g_d3dDeviceContext->PSSetShader(inPixelShader.Get(), nullptr, 0);
+	}
+
 	void UGraphicsDriver::SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const
 	{
 		g_d3dDeviceContext->VSSetConstantBuffers(inSlot, 1, inBuffer.GetAddressOf());
@@ -795,12 +807,6 @@ namespace MAD
 		inLength /= 16;
 
 		g_d3dDeviceContext->VSSetConstantBuffers1(inSlot, 1, inBuffer.GetAddressOf(), &inOffset, &inLength);
-	}
-
-	void UGraphicsDriver::SetPixelShader(PixelShaderPtr_t inPixelShader) const
-	{
-		// No need for nullptr check because you can safely set the pixel shader to null
-		g_d3dDeviceContext->PSSetShader(inPixelShader.Get(), nullptr, 0);
 	}
 
 	void UGraphicsDriver::SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const

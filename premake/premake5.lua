@@ -138,7 +138,7 @@ end
 project "Engine"
 	location "../projects/Engine"
 	kind "StaticLib"
-	files "../projects/Engine/src/**"
+	files { "../projects/Engine/src/**", "../projects/Assets/engine/shaders/**", "../projects/Assets/engine/worlds/**" }
 	includedirs { "../projects/Engine/src/include" }
 	pchheader "stdafx.h"
 	pchsource "../projects/Engine/src/private/stdafx.cpp"

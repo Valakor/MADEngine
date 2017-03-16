@@ -56,6 +56,7 @@ namespace MAD
 		void SetVertexBuffer(BufferPtr_t inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexIndexOffset) const;
 		void SetIndexBuffer(BufferPtr_t inIndexBuffer, UINT inIndexOffset) const;
 		void SetVertexShader(VertexShaderPtr_t inVertexShader) const;
+		void SetGeometryShader(GeometryShaderPtr_t inGeometryShader) const;
 		void SetPixelShader(PixelShaderPtr_t inPixelShader) const;
 		void SetPixelShaderResource(ShaderResourcePtr_t inShaderResource, ETextureSlot inSlot) const;
 		void SetRasterizerState(RasterizerStatePtr_t inRasterizerState) const;
