@@ -23,12 +23,12 @@ struct ParticleVertexGSOut
 
 ParticleVSOut VS(Particle vsIn)
 {
-	const float3 gravitationalAccel = { 0.0f, 7.8f, 0.0f };
-	const float gt = g_gameTime;
-
 	ParticleVSOut vsOut;
-	
-	vsOut.PositionVS = vsIn.InitialPosVS + (vsIn.InitialVelVS * gt) + (-0.5f * gravitationalAccel * gt * gt);
+
+	const float3 gravitationalAccel = { 0.0f, 7.8f, 0.0f };
+	const float t = vsIn.Age;
+
+	vsOut.PositionVS = vsIn.InitialPosVS + (vsIn.InitialVelVS * t) + (-0.5f * gravitationalAccel * t * t);
 	vsOut.ParticleSize = vsIn.ParticleSize;
 	vsOut.ParticleColor = vsIn.ParticleColor;
 	//vsOut.Type = vsIn.Type;

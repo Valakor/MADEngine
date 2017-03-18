@@ -43,7 +43,7 @@ namespace MAD
 	SCPUParticle UParticleSystemEmitter::EmitParticle()
 	{
 		// Emit particle with random velocity and color
-		return { Vector3(), Vector3(rand() % 100, rand() % 100, rand() % 100), Vector4(0.0f, 1.0f, 0.0f, 1.0f), Vector2(1.0f, 1.0f), gEngine->GetGameTime() + 1.0f };
+		return { Vector3(), Vector3(rand() % 100 - 50, rand() % 100 - 50, rand() % 100 - 50), Vector4(1.0f, 0.8431372549f, 0.0f, 1.0f), Vector2(2.0f, 2.0f), 0.0f, 1.0f };
 	}
 }
 

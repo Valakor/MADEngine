@@ -20,7 +20,7 @@ namespace MAD
 		systemSpawnParams.SystemName = "Basic Particles";
 		systemSpawnParams.SystemRenderProgramPath = "engine\\shaders\\ParticleSystem\\ParticleSystemCPU.hlsl";
 
-		emitterSpawnParams.emplace_back(500, -1.0f); // repeat at 5 particles/second
+		emitterSpawnParams.emplace_back(500, -1.0f); // repeat at 500 particles/second
 
 		m_particleSystem = URenderContext::Get().GetRenderer().SpawnParticleSystem(systemSpawnParams, emitterSpawnParams);
 

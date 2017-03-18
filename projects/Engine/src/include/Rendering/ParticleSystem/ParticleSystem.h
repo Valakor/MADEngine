@@ -53,6 +53,7 @@ namespace MAD
 		eastl::array<Vector3, s_maxNumParticles> m_gpuInitVelData;
 		eastl::array<Vector4, s_maxNumParticles> m_gpuColorData;
 		eastl::array<Vector2, s_maxNumParticles> m_gpuSizeData;
+		eastl::array<float, s_maxNumParticles> m_gpuAgeData;
 
 		eastl::shared_ptr<class UInputLayout> m_particleInputLayout;
 
@@ -61,6 +62,7 @@ namespace MAD
 		BufferPtr_t m_initialVelVB;
 		BufferPtr_t m_particleColorVB;
 		BufferPtr_t m_particleSizeVB;
+		BufferPtr_t m_particleAgeVB;
 
 		SRenderPassDescriptor m_renderPassDescriptor;
 	};

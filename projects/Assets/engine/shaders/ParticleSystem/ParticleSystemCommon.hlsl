@@ -6,6 +6,7 @@ struct Particle
 	float3 InitialVelVS  : VELOCITY;
 	float4 ParticleColor : COLOR;
 	float2 ParticleSize  : SIZE;
+	float  Age			 : AGE;
 	//uint   Type			 : TYPE;
 };
 

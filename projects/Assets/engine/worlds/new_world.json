@@ -149,6 +149,14 @@
 							"position": [0.0, 150.0, 0.0],
 							"properties": {
 							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties":{
+								"enabled": false,
+								"speed": 2.5,
+								"distance": 100.0
+							}
 						}
 					]
 				}

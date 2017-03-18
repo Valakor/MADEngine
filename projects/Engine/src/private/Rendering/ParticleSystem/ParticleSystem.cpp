@@ -65,7 +65,6 @@ namespace MAD
 
 	void UParticleSystem::TickSystem(float inDeltaTime)
 	{
-		float currentGameTime = gEngine->GetGameTime();
 		eastl::vector<SCPUParticle> particleBuffer;
 
 		// Allow the particle emitters to emit particles if needed
@@ -86,7 +85,7 @@ namespace MAD
 		const size_t numActiveParticles = m_firstInactiveParticle;
 		for (size_t i = 0; i < numActiveParticles; ++i)
 		{
-			if (m_cpuParticlePool[i].Age <= currentGameTime)
+			if (m_cpuParticlePool[i].Age > m_cpuParticlePool[i].Duration)
 			{
 				eastl::swap(m_cpuParticlePool[i], m_cpuParticlePool[m_firstInactiveParticle - 1]);
 
@@ -96,7 +95,13 @@ namespace MAD
 			}
 		}
 
-		LOG(LogParticleSystem, Log, "Active Particles: %d\n", m_firstInactiveParticle);
+		// Tick all of the active particles
+		for (size_t i = 0; i < m_firstInactiveParticle; ++i)
+		{
+			m_cpuParticlePool[i].Age += inDeltaTime;
+		}
+
+		//LOG(LogParticleSystem, Log, "Active Particles: %d\n", m_firstInactiveParticle);
 
 		// Perform draw calls on the particles that are still alive
 		DrawParticles(inDeltaTime);
@@ -136,6 +141,7 @@ namespace MAD
 		layoutElemArray.PushElement<Vector3>("VELOCITY", 0, AsIntegral(EParticleVertexBufferSlot::InitialVel));
 		layoutElemArray.PushElement<Vector4>("COLOR", 0, AsIntegral(EParticleVertexBufferSlot::Color));
 		layoutElemArray.PushElement<Vector2>("SIZE", 0, AsIntegral(EParticleVertexBufferSlot::Size));
+		layoutElemArray.PushElement<float>("AGE", 0, AsIntegral(EParticleVertexBufferSlot::Age));
 
 		m_particleInputLayout = eastl::make_shared<UInputLayout>(layoutElemArray, compiledByteCode.data(), compiledByteCode.size());
 
@@ -144,6 +150,7 @@ namespace MAD
 		m_initialVelVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::InitialVelVS), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		m_particleColorVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::ParticleColor), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		m_particleSizeVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::ParticleSize), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_particleAgeVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::Age), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	}
 
 	void UParticleSystem::UpdatePipelineData()
@@ -156,12 +163,14 @@ namespace MAD
 			m_gpuInitVelData[i] = m_cpuParticlePool[i].InitialVelVS;
 			m_gpuColorData[i] = m_cpuParticlePool[i].ParticleColor;
 			m_gpuSizeData[i] = m_cpuParticlePool[i].ParticleSize;
+			m_gpuAgeData[i] = m_cpuParticlePool[i].Age;
 		}
 
 		graphicsDriver.UpdateBuffer(m_initialPosVB, m_gpuInitPosData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::InitialPosVS));
 		graphicsDriver.UpdateBuffer(m_initialVelVB, m_gpuInitVelData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::InitialVelVS));
 		graphicsDriver.UpdateBuffer(m_particleColorVB, m_gpuColorData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::ParticleColor));
 		graphicsDriver.UpdateBuffer(m_particleSizeVB, m_gpuSizeData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::ParticleSize));
+		graphicsDriver.UpdateBuffer(m_particleAgeVB, m_gpuAgeData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::Age));
 	}
 
 	void UParticleSystem::ActivateParticles(const eastl::vector<SCPUParticle>& inNewParticles)
@@ -196,6 +205,7 @@ namespace MAD
 		const UINT initialVelSize = GetSizeOf(SCPUParticle::InitialVelVS);
 		const UINT particleColorSize = GetSizeOf(SCPUParticle::ParticleColor);
 		const UINT particleExtentSize = GetSizeOf(SCPUParticle::ParticleSize);
+		const UINT particleAgeSize = GetSizeOf(SCPUParticle::Age);
 
 		const UINT byteOffset = 0;
 
@@ -208,11 +218,13 @@ namespace MAD
 			return;
 		}
 
-		if (m_bIsDirty)
+		/*if (m_bIsDirty)
 		{
 			// GPU particle data is dirty, update vertex buffers
-			UpdatePipelineData();
-		}
+		}*/
+
+		// Have to update the pipeline data every frame because we update the age of the particle each frame...not very satisfied with this, but will do for now
+		UpdatePipelineData();
 
 		// Set primitive topology
 		renderContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -225,6 +237,7 @@ namespace MAD
 		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::InitialVel), 1, m_initialVelVB.GetAddressOf(), &initialVelSize, &byteOffset);
 		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::Color), 1, m_particleColorVB.GetAddressOf(), &particleColorSize, &byteOffset);
 		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::Size), 1, m_particleSizeVB.GetAddressOf(), &particleExtentSize, &byteOffset);
+		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::Age), 1, m_particleAgeVB.GetAddressOf(), &particleAgeSize, &byteOffset);
 
 		// Activate the render pass descriptor
 		m_renderPassDescriptor.m_renderPassProgram->SetProgramActive(graphicsDriver, 0);

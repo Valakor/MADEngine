@@ -108,6 +108,8 @@ namespace MAD
 		InitialVel,
 		Color,
 		Size,
+		Age,
+
 		MAX
 	};
 
