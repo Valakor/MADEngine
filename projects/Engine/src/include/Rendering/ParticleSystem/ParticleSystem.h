@@ -40,7 +40,6 @@ namespace MAD
 		void UpdatePipelineData();
 		void DrawParticles(float inDeltaTime);
 	private:
-		bool m_bIsDirty;
 		float m_systemDuration;
 		size_t m_firstInactiveEmitter;
 		size_t m_firstInactiveParticle;

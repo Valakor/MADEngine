@@ -142,15 +142,38 @@
 				},
 				{
 					"type": "AEntity",
-					"name": "Particles Entity",
+					"name": "Fire Particles Entity",
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
 							"position": [0.0, 150.0, 0.0],
 							"properties": {
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\full_fire.jpg"
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties":{
+								"enabled": false,
+								"speed": 2.5,
+								"distance": 100.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Rain Particles Entity",
+					"newComponents": [
+						{
+							"type": "CParticleSystemComponent",
+							"position": [0.0, 250.0, 0.0],
+							"properties": {
+								"name": "Rain Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPURain.hlsl"
 							}
 						},
 						{

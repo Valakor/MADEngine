@@ -7,7 +7,6 @@ struct Particle
 	float4 ParticleColor : COLOR;
 	float2 ParticleSize  : SIZE;
 	float  Age			 : AGE;
-	//uint   Type			 : TYPE;
 };
 
 float3x3 CreateLookAt(float3 inEye, float3 inTarget, float3 inUpHint)

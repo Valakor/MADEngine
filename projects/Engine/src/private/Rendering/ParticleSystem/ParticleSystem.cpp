@@ -27,7 +27,6 @@ namespace MAD
 
 		InitializePipeline(inSystemParams);
 
-		m_bIsDirty = false;
 		m_firstInactiveEmitter = 0;
 		m_firstInactiveParticle = 0;
 
@@ -56,11 +55,6 @@ namespace MAD
 		for (size_t i = 0; i < m_firstInactiveParticle; ++i)
 		{
 			m_cpuParticlePool[i].InitialPosVS = newInitPos;
-		}
-
-		if (m_firstInactiveParticle > 0)
-		{
-			m_bIsDirty = true;
 		}
 	}
 
@@ -91,8 +85,6 @@ namespace MAD
 				eastl::swap(m_cpuParticlePool[i], m_cpuParticlePool[m_firstInactiveParticle - 1]);
 
 				--m_firstInactiveParticle;
-
-				m_bIsDirty = true;
 			}
 		}
 
@@ -106,8 +98,6 @@ namespace MAD
 
 		// Perform draw calls on the particles that are still alive
 		DrawParticles(inDeltaTime);
-
-		m_bIsDirty = false;
 	}
 
 	void UParticleSystem::InitializePipeline(const SParticleSystemSpawnParams& inSystemParams)
@@ -147,7 +137,10 @@ namespace MAD
 		m_particleInputLayout = eastl::make_shared<UInputLayout>(layoutElemArray, compiledByteCode.data(), compiledByteCode.size());
 
 		// Create particle system texture
-		m_particleTexture = UTexture::Load(inSystemParams.ParticleTexturePath, false, false);
+		if (!inSystemParams.ParticleTexturePath.empty())
+		{
+			m_particleTexture = UTexture::Load(inSystemParams.ParticleTexturePath, false, false);
+		}
 
 		// Initialize vertex buffers for particle data
 		m_initialPosVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::InitialPosVS), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
@@ -196,11 +189,6 @@ namespace MAD
 			m_cpuParticlePool[m_firstInactiveParticle] = inNewParticles[i];
 			++m_firstInactiveParticle;
 		}
-
-		if (numSpawnedParticles > 0)
-		{
-			m_bIsDirty = true;
-		}
 	}
 
 	void UParticleSystem::DrawParticles(float)
@@ -222,11 +210,6 @@ namespace MAD
 			return;
 		}
 
-		/*if (m_bIsDirty)
-		{
-			// GPU particle data is dirty, update vertex buffers
-		}*/
-
 		// Have to update the pipeline data every frame because we update the age of the particle each frame...not very satisfied with this, but will do for now
 		UpdatePipelineData();
 
@@ -236,8 +219,11 @@ namespace MAD
 		// Set the input layout
 		m_particleInputLayout->BindToPipeline();
 
-		// Set particle texture
-		graphicsDriver.SetPixelShaderResource(m_particleTexture->GetTexureResource(), ETextureSlot::DiffuseMap);
+		// Set particle texture (if there is one)
+		if (m_particleTexture)
+		{
+			graphicsDriver.SetPixelShaderResource(m_particleTexture->GetTexureResource(), ETextureSlot::DiffuseMap);
+		}
 
 		// Set the vertex buffers
 		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::InitialPos), 1, m_initialPosVB.GetAddressOf(), &initialPosSize, &byteOffset);

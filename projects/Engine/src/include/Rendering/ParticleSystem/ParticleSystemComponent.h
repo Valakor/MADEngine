@@ -17,6 +17,7 @@ namespace MAD
 	private:
 		Vector3 GetViewSpacePosition() const;
 	private:
+		bool m_bEnabled;
 		class UParticleSystem* m_particleSystem;
 		eastl::string m_systemName;
 		eastl::string m_systemEffectProgramPath;
