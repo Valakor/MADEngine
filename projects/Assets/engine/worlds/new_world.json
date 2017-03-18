@@ -139,6 +139,18 @@
 							}
 						}
 					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Particles Entity",
+					"newComponents": [
+						{
+							"type": "CParticleSystemComponent",
+							"position": [0.0, 150.0, 0.0],
+							"properties": {
+							}
+						}
+					]
 				}
 			]
 		}

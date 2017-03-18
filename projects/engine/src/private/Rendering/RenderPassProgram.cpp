@@ -32,23 +32,19 @@ namespace MAD
 			// and pre-build generation produces the same result
 			const ProgramShaderTuple_t& programShaderTuple = programSetFindIter->second;
 			
+			// Bind the appropriate shaders, and unbind the ones that aren't valid for the target program
+
 			// Vertex Shader
-			if (const VertexShaderPtr_t vertexShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(programShaderTuple))
-			{
-				inGraphicsDriver.SetVertexShader(vertexShaderPtr);
-			}
+			const VertexShaderPtr_t vertexShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(programShaderTuple);
+			inGraphicsDriver.SetVertexShader(vertexShaderPtr);
 
 			// Geometry Shader
-			if (const GeometryShaderPtr_t geometryShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_GS>(programShaderTuple))
-			{
-				inGraphicsDriver.SetGeometryShader(geometryShaderPtr);
-			}
+			const GeometryShaderPtr_t geometryShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_GS>(programShaderTuple);
+			inGraphicsDriver.SetGeometryShader(geometryShaderPtr);
 
 			// Pixel Shader
-			if (const PixelShaderPtr_t pixelShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple))
-			{
-				inGraphicsDriver.SetPixelShader(pixelShaderPtr);
-			}
+			const PixelShaderPtr_t pixelShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple);
+			inGraphicsDriver.SetPixelShader(pixelShaderPtr);
 
 			return true;
 		}

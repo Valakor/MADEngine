@@ -87,7 +87,10 @@ namespace MAD
 	};
 	DECLARE_SLOT_TO_INTEGRAL(ESamplerSlot)
 
-	enum class EVertexBufferSlot : uint8_t
+	using VertexBufferSlotType_t = uint8_t;
+
+	// TODO Changed back to classed enum, but added static_casts where this is used in functions (change parameter to uint8_t instead of EVertexBufferSlot)
+	enum EVertexBufferSlot : VertexBufferSlotType_t
 	{
 		Position = 0,
 		Normal,
@@ -96,7 +99,19 @@ namespace MAD
 
 		MAX
 	};
+
 	DECLARE_SLOT_TO_INTEGRAL(EVertexBufferSlot);
+
+	enum class EParticleVertexBufferSlot : VertexBufferSlotType_t
+	{
+		InitialPos = 0,
+		InitialVel,
+		Color,
+		Size,
+		MAX
+	};
+
+	DECLARE_SLOT_TO_INTEGRAL(EParticleVertexBufferSlot);
 
 #undef DECLARE_SLOT_TO_INTEGRAL
 
@@ -163,13 +178,16 @@ namespace MAD
 
 		float m_cameraNearPlane;
 		float m_cameraFarPlane;
-
 		float m_cameraExposure;
 
+		float m_gameTime;
+		float m_frameTime;
 	private:
+		float __pad1 = 0.0f;
 		float __pad2 = 0.0f;
+		float __pad3 = 0.0f;
 	};
-	static_assert(sizeof(SPerFrameConstants) == 336, "");
+	static_assert(sizeof(SPerFrameConstants) == 352, "");
 
 	struct SPerSceneConstants
 	{

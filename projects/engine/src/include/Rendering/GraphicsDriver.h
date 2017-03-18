@@ -33,6 +33,7 @@ namespace MAD
 
 		VertexShaderPtr_t CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode);
 		PixelShaderPtr_t CreatePixelShader(const eastl::vector<char>& inCompiledPSByteCode);
+		GeometryShaderPtr_t CreateGeometryShader(const eastl::vector<char>& inCompiledGSByteCode);
 
 		RenderTargetPtr_t CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
@@ -109,6 +110,8 @@ namespace MAD
 		void SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
 		void SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const;
 		void SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
+		void SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const;
+		void SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
 		void SetPixelShaderResource(ShaderResourcePtr_t inShaderResource, UINT inSlot) const;
 
 		RenderTargetPtr_t m_backBuffer;

@@ -1,0 +1,74 @@
+#include "Rendering/ParticleSystem/ParticleSystemManager.h"
+#include "Rendering/ParticleSystem/ParticleSystem.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/Renderer.h"
+#include "Rendering/GraphicsDriver.h"
+
+#include <stdlib.h>
+#include <time.h>
+
+namespace MAD
+{
+	UParticleSystemManager::UParticleSystemManager() : m_firstInactiveParticleSystem(0)
+	{
+		srand(time(nullptr));
+	}
+
+	void UParticleSystemManager::UpdateParticleSystems(float inDeltaTime)
+	{
+		for (size_t i = 0; i < m_firstInactiveParticleSystem; ++i)
+		{
+			eastl::wstring particleSystemGroupName(eastl::wstring::CtorSprintf(), L"Particle System: ");
+
+			particleSystemGroupName.append(eastl::wstring(m_particleSystemPool[i].GetSystemName().c_str()));
+
+			URenderContext::Get().GetGraphicsDriver().StartEventGroup(particleSystemGroupName);
+
+			m_particleSystemPool[i].TickSystem(inDeltaTime);
+
+			URenderContext::Get().GetGraphicsDriver().EndEventGroup();
+		}
+	}
+
+	UParticleSystem* UParticleSystemManager::ActivateParticleSystem(const SParticleSystemSpawnParams& inSystemParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams)
+	{
+		if (m_firstInactiveParticleSystem == UParticleSystemManager::s_maxParticleSystems)
+		{
+			MAD_ASSERT_DESC(false, "Max active particle systems has been met!");
+			return false;
+		}
+
+		UParticleSystem* activatedSystem = &m_particleSystemPool[m_firstInactiveParticleSystem];
+
+		activatedSystem->Initialize(inSystemParams, inEmitterParams);
+
+		++m_firstInactiveParticleSystem;
+
+		return activatedSystem;
+	}
+
+	bool UParticleSystemManager::DeactivateParticleSystem(const UParticleSystem* inTargetParticleSystem)
+	{
+		if (m_firstInactiveParticleSystem == 0 || !inTargetParticleSystem)
+		{
+			// Can't deactivate particle system if none exists
+			return false;
+		}
+
+		const size_t numActiveParticleSystems = m_firstInactiveParticleSystem;
+
+		for (size_t i = 0; i < numActiveParticleSystems; ++i)
+		{
+			if (inTargetParticleSystem == &m_particleSystemPool[i])
+			{
+				eastl::swap(m_particleSystemPool[i], m_particleSystemPool[m_firstInactiveParticleSystem - 1]);
+
+				--m_firstInactiveParticleSystem;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+}

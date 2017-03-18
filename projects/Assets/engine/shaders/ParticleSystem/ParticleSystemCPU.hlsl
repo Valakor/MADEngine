@@ -1,11 +1,16 @@
+#include "..\Common.hlsl"
 #include "ParticleSystemCommon.hlsl"
+
+//=>:(Usage, VS, vs_5_0)
+//=>:(Usage, PS, ps_5_0)
+//=>:(Usage, GS, gs_5_0)
 
 // Output of VS
 struct ParticleVSOut
 {
 	float3 PositionVS    : POSITION;
-	float2 ParticleSize  : SIZE;
 	float4 ParticleColor : COLOR;
+	float2 ParticleSize  : SIZE;
 	//uint   Type			 : TYPE;
 };
 
@@ -25,9 +30,10 @@ ParticleVSOut VS(Particle vsIn)
 	
 	vsOut.PositionVS = vsIn.InitialPosVS + (vsIn.InitialVelVS * gt) + (-0.5f * gravitationalAccel * gt * gt);
 	vsOut.ParticleSize = vsIn.ParticleSize;
-	vsOut.Type = vsIn.Type;
+	vsOut.ParticleColor = vsIn.ParticleColor;
+	//vsOut.Type = vsIn.Type;
 
-	return vsIn;
+	return vsOut;
 }
 
 [maxvertexcount(4)]
@@ -37,18 +43,18 @@ void GS(point ParticleVSOut gsIn[1], inout TriangleStream<ParticleVertexGSOut> p
 	// Particle is already in View Space so we can just add scalars to the x and y direction since its aligned to the camera already
 	ParticleVertexGSOut billboardVertices[4];
 	
-	float3x3 lookAtMatrix = CreateLookAt(gsIn[0].PositionVS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 1.0f, 0.0f));
+	float3x3 lookAtMatrix = CreateLookAt(gsIn[0].PositionVS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 1.0f, 0.0f)); //[0] Forward, [1] Left, [2] Up
 	float3 basisVectors[4] = 
 	{
 		{ -1.0f,  1.0f , 0.0f }, // Top-left
-		{ 1.0f ,  1.0f , 0.0f }, // Top-right
 		{ -1.0f, -1.0f , 0.0f }, // Bottom-left
+		{ 1.0f ,  1.0f , 0.0f }, // Top-right
 		{ 1.0f , -1.0f , 0.0f }  // Bottom-right
 	};
 
 	for (int i = 0; i < 4; ++i)
 	{
-		billboardVertHSPos[i].PositionHS = mul(float4(gsIn[0].PositionVS + basisVectors[i] * float3(gsIn[0].ParticleSize / 2.0f, 0.0f)), g_projectionMatrix);
+		billboardVertices[i].PositionHS = mul(float4(gsIn[0].PositionVS + basisVectors[i] * float3(gsIn[0].ParticleSize / 2.0f, 0.0f), 1.0f), g_cameraProjectionMatrix);
 		billboardVertices[i].ParticleColor = gsIn[0].ParticleColor;
 		pVertexOutStream.Append(billboardVertices[i]);
 	}

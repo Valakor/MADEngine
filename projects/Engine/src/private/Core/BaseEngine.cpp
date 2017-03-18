@@ -20,6 +20,7 @@
 #include "Core/DirectionalLightComponent.h"
 #include "Core/PointLightComponent.h"
 #include "Core/DebugTransformComponent.h"
+#include "Rendering/ParticleSystem/ParticleSystemComponent.h"
 
 #include "Editor/SceneCameraCharacter.h"
 
@@ -104,6 +105,7 @@ namespace MAD
 			CPointLightComponent::StaticClass();
 			CMoveComponent::StaticClass();
 			CDebugTransformComponent::StaticClass();
+			CParticleSystemComponent::StaticClass();
 
 			Test::RegisterEntityTypes();
 			Test::RegisterComponentTypes();
@@ -301,15 +303,16 @@ namespace MAD
 	void UBaseEngine::Tick()
 	{
 		auto now = m_frameTimer->TimeSinceStart();
-		auto frameTime = now - m_gameTime;
+
+		m_frameTime = now - m_gameTime;
 		m_gameTime = now;
 
-		m_frameAccumulator += frameTime;
+		m_frameAccumulator += m_frameTime;
 
 		int steps = eastl::min(static_cast<int>(m_frameAccumulator / TARGET_DELTA_TIME), MAX_SIMULATION_STEPS);
 		m_frameAccumulator -= steps * TARGET_DELTA_TIME;
 
-		PreTick_Internal(frameTime);
+		PreTick_Internal(m_frameTime);
 		
 		while (steps > 0)
 		{
@@ -366,8 +369,8 @@ namespace MAD
 		float framePercent = static_cast<float>(m_frameAccumulator / TARGET_DELTA_TIME);
 
 		// Tick renderer
-		m_renderer->Frame(framePercent);
+		m_renderer->Frame(framePercent, m_frameTime);
 
-		PostTick_Internal(frameTime);
+		PostTick_Internal(m_frameTime);
 	}
 }

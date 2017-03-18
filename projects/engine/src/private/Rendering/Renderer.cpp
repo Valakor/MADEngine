@@ -7,6 +7,7 @@
 #include "Misc/Logging.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/InputLayoutCache.h"
+#include "Rendering/ParticleSystem/ParticleSystem.h"
 
 namespace MAD
 {
@@ -158,6 +159,11 @@ namespace MAD
 		m_textBatchRenderer.BatchTextInstance(inSourceString, inScreenX, inScreenY);
 	}
 
+	UParticleSystem* URenderer::SpawnParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams)
+	{
+		return m_particleSystemManager.ActivateParticleSystem(inSpawnParams, inEmitterParams);
+	}
+
 	void URenderer::ClearRenderItems()
 	{
 		m_currentStateIndex = 1 - m_currentStateIndex;
@@ -170,7 +176,7 @@ namespace MAD
 		m_queuedPointLights[m_currentStateIndex].clear();
 	}
 
-	void URenderer::Frame(float framePercent)
+	void URenderer::Frame(float inFramePercent, float inFrameTime)
 	{
 		m_frame++;
 		MAD_ASSERT_DESC(m_frame != eastl::numeric_limits<decltype(m_frame)>::max(), "");
@@ -180,7 +186,7 @@ namespace MAD
 		if (m_frame > 0)
 		{
 			// We need at least one frame's worth of buffer for state interpolation
-			Draw(framePercent);
+			Draw(inFramePercent, inFrameTime);
 		}
 		
 		EndFrame();
@@ -451,10 +457,12 @@ namespace MAD
 		g_graphicsDriver.EndEventGroup();
 	}
 
-	void URenderer::Draw(float inFramePercent)
+	void URenderer::Draw(float inFramePercent, float inFrameTime)
 	{
 		// Bind per-frame constants
 		CalculateCameraConstants(inFramePercent);
+		m_perFrameConstants.m_gameTime = gEngine->GetGameTime();
+		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
@@ -497,11 +505,11 @@ namespace MAD
 		// Always draw text as the last pass (WARNING, if we ever get to post processing effects, need to move this after the post processing)
 		m_textRenderPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
-
-		//DrawOnScreenText("-------------------------------", 25, 125);
-		//DrawOnScreenText(eastl::string("Text Batch Size: ").append(eastl::to_string(m_textBatchRenderer.GetBatchSize())), 25, 150);
-
 		m_textBatchRenderer.FlushBatch();
+
+		BindPerFrameConstants();
+
+		m_particleSystemManager.UpdateParticleSystems(inFrameTime);
 	}
 
 	void URenderer::EndFrame()

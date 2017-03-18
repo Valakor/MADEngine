@@ -4,6 +4,24 @@
 
 namespace MAD
 {
+	struct SCPUParticle
+	{
+		SCPUParticle() {}
+
+		SCPUParticle(const Vector3& inPos, const Vector3& inVel, const Vector4& inColor, const Vector2& inSize, float inAge)
+			: InitialPosVS(inPos)
+			, InitialVelVS(inVel)
+			, ParticleColor(inColor)
+			, ParticleSize(inSize)
+			, Age(inAge) {}
+
+		Vector3 InitialPosVS;
+		Vector3 InitialVelVS;
+		Vector4 ParticleColor;
+		Vector2 ParticleSize;
+		float	Age;
+	};
+
 	struct SGPUParticle
 	{
 		Vector3 InitialPosVS;

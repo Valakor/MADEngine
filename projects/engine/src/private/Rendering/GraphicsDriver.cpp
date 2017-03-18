@@ -193,6 +193,7 @@ namespace MAD
 		{
 			SetVertexConstantBuffer(m_constantBuffers[i], i);
 			SetPixelConstantBuffer(m_constantBuffers[i], i);
+			SetGeometryConstantBuffer(m_constantBuffers[i], i);
 		}
 
 #ifdef _DEBUG
@@ -378,6 +379,7 @@ namespace MAD
 		return hr == S_OK;
 	}
 
+	// TOOD: Make Create___Shader a template function
 	VertexShaderPtr_t UGraphicsDriver::CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode)
 	{
 		VertexShaderPtr_t vertexShaderPtr;
@@ -394,6 +396,15 @@ namespace MAD
 		DX_HRESULT(g_d3dDevice->CreatePixelShader(inCompiledPSByteCode.data(), inCompiledPSByteCode.size(), nullptr, pixelShaderPtr.GetAddressOf()), "Failure Creating Pixel Shader from Compiled Shader Code");
 
 		return pixelShaderPtr;
+	}
+
+	GeometryShaderPtr_t UGraphicsDriver::CreateGeometryShader(const eastl::vector<char>& inCompiledGSByteCode)
+	{
+		GeometryShaderPtr_t geometryShaderPtr;
+
+		DX_HRESULT(g_d3dDevice->CreateGeometryShader(inCompiledGSByteCode.data(), inCompiledGSByteCode.size(), nullptr, geometryShaderPtr.GetAddressOf()), "Failure Creating Geometry Shader from Compiled Shader Code");
+
+		return geometryShaderPtr;
 	}
 
 	RenderTargetPtr_t UGraphicsDriver::CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, ShaderResourcePtr_t* outOptionalShaderResource) const
@@ -659,7 +670,8 @@ namespace MAD
 
 	BufferPtr_t UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags, UINT inCPUAccessFlags) const
 	{
-		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial vertex data");
+		MAD_ASSERT_DESC(inData || (!inData && inUsageFlags != D3D11_USAGE_IMMUTABLE) , "Must specify initial vertex data if immutable usage, optional otherwise");
+
 		return CreateBuffer(inData, inDataSize, inUsageFlags, D3D11_BIND_VERTEX_BUFFER, inCPUAccessFlags);
 	}
 
@@ -807,6 +819,22 @@ namespace MAD
 		inLength /= 16;
 
 		g_d3dDeviceContext->VSSetConstantBuffers1(inSlot, 1, inBuffer.GetAddressOf(), &inOffset, &inLength);
+	}
+
+	void UGraphicsDriver::SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const
+	{
+		g_d3dDeviceContext->GSSetConstantBuffers(inSlot, 1, inBuffer.GetAddressOf());
+	}
+
+	void UGraphicsDriver::SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
+	{
+		MAD_ASSERT_DESC(inOffset % 16 == 0, "Offset into constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
+		MAD_ASSERT_DESC(inLength % 16 == 0, "Length of used constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
+
+		inOffset /= 16;
+		inLength /= 16;
+
+		g_d3dDeviceContext->GSSetConstantBuffers1(inSlot, 1, inBuffer.GetAddressOf(), &inOffset, &inLength);
 	}
 
 	void UGraphicsDriver::SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const
