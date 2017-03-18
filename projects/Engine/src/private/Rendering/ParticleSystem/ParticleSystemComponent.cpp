@@ -1,4 +1,7 @@
 #include "Rendering/ParticleSystem/ParticleSystemComponent.h"
+
+#include "Core/GameWorldLoader.h"
+
 #include "Rendering/RenderContext.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/ParticleSystem/ParticleSystem.h"
@@ -17,9 +20,9 @@ namespace MAD
 		SParticleSystemSpawnParams systemSpawnParams;
 		eastl::vector<SParticleEmitterSpawnParams> emitterSpawnParams; // Only one for now
 
-		systemSpawnParams.SystemName = "Basic Particles";
-		systemSpawnParams.SystemRenderProgramPath = "engine\\shaders\\ParticleSystem\\ParticleSystemCPU.hlsl";
-		systemSpawnParams.ParticleTexturePath = "engine\\textures\\full_fire.jpg";
+		systemSpawnParams.SystemName = m_systemName;
+		systemSpawnParams.SystemRenderProgramPath = m_systemEffectProgramPath;
+		systemSpawnParams.ParticleTexturePath = m_systemEffectTexturePath;
 
 		emitterSpawnParams.emplace_back(1000, -1.0f); // repeat at 500 particles/second
 
@@ -29,9 +32,12 @@ namespace MAD
 		m_particleSystem->TransformParticles(GetViewSpacePosition());
 	}
 
-	void CParticleSystemComponent::Load(const UGameWorldLoader&)
+	void CParticleSystemComponent::Load(const UGameWorldLoader& inLoader)
 	{
 		// Load in particle system and emitter data
+		inLoader.GetString("name", m_systemName);
+		inLoader.GetString("effect_shader", m_systemEffectProgramPath);
+		inLoader.GetString("effect_texture", m_systemEffectTexturePath);
 	}
 
 	void CParticleSystemComponent::UpdateComponent(float)

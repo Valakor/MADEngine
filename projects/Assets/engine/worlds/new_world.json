@@ -148,6 +148,9 @@
 							"type": "CParticleSystemComponent",
 							"position": [0.0, 150.0, 0.0],
 							"properties": {
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\full_fire.jpg"
 							}
 						},
 						{
