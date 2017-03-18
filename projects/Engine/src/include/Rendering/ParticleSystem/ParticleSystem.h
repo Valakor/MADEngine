@@ -15,12 +15,13 @@ namespace MAD
 	{
 		eastl::string SystemName;
 		eastl::string SystemRenderProgramPath;
+		eastl::string ParticleTexturePath;
 	};
 
 	class UParticleSystem
 	{
 	public:
-		static const size_t s_maxNumParticles = 1024;
+		static const size_t s_maxNumParticles = 4096;
 		static const size_t s_maxNumEmitters = 10;
 	public:
 		UParticleSystem() {}
@@ -33,7 +34,7 @@ namespace MAD
 		void TransformParticles(const Vector3& newInitPos/*, const Vector3& newInitVel*/);
 		const eastl::string& GetSystemName() const { return m_particleSystemName; }
 	private:
-		void InitializePipeline(const eastl::string& inRenderPassPath);
+		void InitializePipeline(const SParticleSystemSpawnParams& inSystemParams);
 		void ActivateParticles(const eastl::vector<SCPUParticle>& inNewParticles);
 
 		void UpdatePipelineData();
@@ -56,6 +57,7 @@ namespace MAD
 		eastl::array<float, s_maxNumParticles> m_gpuAgeData;
 
 		eastl::shared_ptr<class UInputLayout> m_particleInputLayout;
+		eastl::shared_ptr<class UTexture> m_particleTexture;
 
 		// Vertex buffers for the particle system
 		BufferPtr_t m_initialPosVB;

@@ -19,8 +19,9 @@ namespace MAD
 
 		systemSpawnParams.SystemName = "Basic Particles";
 		systemSpawnParams.SystemRenderProgramPath = "engine\\shaders\\ParticleSystem\\ParticleSystemCPU.hlsl";
+		systemSpawnParams.ParticleTexturePath = "engine\\textures\\full_fire.jpg";
 
-		emitterSpawnParams.emplace_back(500, -1.0f); // repeat at 500 particles/second
+		emitterSpawnParams.emplace_back(1000, -1.0f); // repeat at 500 particles/second
 
 		m_particleSystem = URenderContext::Get().GetRenderer().SpawnParticleSystem(systemSpawnParams, emitterSpawnParams);
 

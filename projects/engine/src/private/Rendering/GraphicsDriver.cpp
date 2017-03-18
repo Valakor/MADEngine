@@ -622,7 +622,7 @@ namespace MAD
 		return depthRasterizerStatePtr;
 	}
 
-	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend) const
+	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend, D3D11_BLEND inDestBlend, D3D11_BLEND_OP inBlendOp) const
 	{
 		D3D11_BLEND_DESC1 blendDesc;
 		MEM_ZERO(blendDesc);
@@ -630,9 +630,9 @@ namespace MAD
 		blendDesc.IndependentBlendEnable = FALSE;
 		blendDesc.RenderTarget[0].BlendEnable = inEnableBlend;
 		blendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlend = inSrcBlend;
+		blendDesc.RenderTarget[0].DestBlend = inDestBlend;
+		blendDesc.RenderTarget[0].BlendOp = inBlendOp;
 		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;

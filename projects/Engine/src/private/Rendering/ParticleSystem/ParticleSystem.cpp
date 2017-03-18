@@ -6,6 +6,7 @@
 #include "Rendering/InputLayout.h"
 #include "Rendering/InputLayoutElementArray.h"
 #include "Rendering/RenderPassProgram.h"
+#include "Rendering/Texture.h"
 
 #include "Misc/AssetCache.h"
 #include "Misc/Logging.h"
@@ -24,7 +25,7 @@ namespace MAD
 	{
 		m_particleSystemName = inSystemParams.SystemName;
 
-		InitializePipeline(inSystemParams.SystemRenderProgramPath);
+		InitializePipeline(inSystemParams);
 
 		m_bIsDirty = false;
 		m_firstInactiveEmitter = 0;
@@ -109,14 +110,14 @@ namespace MAD
 		m_bIsDirty = false;
 	}
 
-	void UParticleSystem::InitializePipeline(const eastl::string& inRenderPassPath)
+	void UParticleSystem::InitializePipeline(const SParticleSystemSpawnParams& inSystemParams)
 	{
 		eastl::vector<char> compiledByteCode;
 		auto& renderer = URenderContext::Get().GetRenderer();
 		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
 		const auto& gBufferPassDesc = renderer.GetGBufferPassDescriptor();
 
-		if (!graphicsDriver.CompileShaderFromFile(UAssetCache::GetAssetRoot() + inRenderPassPath, "VS", "vs_5_0", compiledByteCode))
+		if (!graphicsDriver.CompileShaderFromFile(UAssetCache::GetAssetRoot() + inSystemParams.SystemRenderProgramPath, "VS", "vs_5_0", compiledByteCode))
 		{
 			MAD_ASSERT_DESC(false, "Error compiling particle system shader");
 			return;
@@ -131,8 +132,8 @@ namespace MAD
 		m_renderPassDescriptor.m_depthStencilView = gBufferPassDesc.m_depthStencilView;
 
 		m_renderPassDescriptor.m_rasterizerState = graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
-		m_renderPassDescriptor.m_blendState = graphicsDriver.CreateBlendState(true); // TODO Change blend state creation API to allow for different types of blending
-		m_renderPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inRenderPassPath);
+		m_renderPassDescriptor.m_blendState = graphicsDriver.CreateBlendState(false/*, D3D11_BLEND_SRC_COLOR*/); // TODO Change blend state creation API to allow for different types of blending
+		m_renderPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inSystemParams.SystemRenderProgramPath);
 
 		// Create input layout
 		UInputLayoutElementArray layoutElemArray;
@@ -144,6 +145,9 @@ namespace MAD
 		layoutElemArray.PushElement<float>("AGE", 0, AsIntegral(EParticleVertexBufferSlot::Age));
 
 		m_particleInputLayout = eastl::make_shared<UInputLayout>(layoutElemArray, compiledByteCode.data(), compiledByteCode.size());
+
+		// Create particle system texture
+		m_particleTexture = UTexture::Load(inSystemParams.ParticleTexturePath, false, false);
 
 		// Initialize vertex buffers for particle data
 		m_initialPosVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::InitialPosVS), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
@@ -231,6 +235,9 @@ namespace MAD
 
 		// Set the input layout
 		m_particleInputLayout->BindToPipeline();
+
+		// Set particle texture
+		graphicsDriver.SetPixelShaderResource(m_particleTexture->GetTexureResource(), ETextureSlot::DiffuseMap);
 
 		// Set the vertex buffers
 		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::InitialPos), 1, m_initialPosVB.GetAddressOf(), &initialPosSize, &byteOffset);

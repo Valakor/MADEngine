@@ -49,7 +49,7 @@ void GS(point ParticleVSOut gsIn[1], inout TriangleStream<ParticleVertexGSOut> p
 	ParticleVertexGSOut billboardVertices[4];
 	
 	float3x3 lookAtMatrix = CreateLookAt(gsIn[0].PositionVS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 1.0f, 0.0f)); //[0] Forward, [1] Left, [2] Up
-
+	
 	float3 basisVectors[4] = 
 	{
 		{ -1.0f,  1.0f , 0.0f }, // Top-left
@@ -78,4 +78,5 @@ void GS(point ParticleVSOut gsIn[1], inout TriangleStream<ParticleVertexGSOut> p
 float4 PS(ParticleVertexGSOut inGSOut) : SV_Target
 {
 	return g_diffuseMap.Sample(g_linearSampler, inGSOut.ParticleUV);
+	//return inGSOut.ParticleColor;
 }
