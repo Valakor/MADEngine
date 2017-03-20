@@ -13,14 +13,14 @@ namespace MAD
 			, InitialVelVS(inVel)
 			, ParticleColor(inColor)
 			, ParticleSize(inSize)
-			, Age(inAge)
+			, ParticleAge(inAge)
 			, Duration(inDuration) {}
 
 		Vector3 InitialPosVS;
 		Vector3 InitialVelVS;
 		Vector4 ParticleColor;
 		Vector2 ParticleSize;
-		float	Age;
+		float	ParticleAge;
 		float	Duration;
 	};
 }

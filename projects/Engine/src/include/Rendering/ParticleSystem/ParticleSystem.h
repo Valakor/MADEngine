@@ -59,11 +59,11 @@ namespace MAD
 		eastl::shared_ptr<class UTexture> m_particleTexture;
 
 		// Vertex buffers for the particle system
-		BufferPtr_t m_initialPosVB;
-		BufferPtr_t m_initialVelVB;
-		BufferPtr_t m_particleColorVB;
-		BufferPtr_t m_particleSizeVB;
-		BufferPtr_t m_particleAgeVB;
+		UVertexArray m_initParticlePosVB;
+		UVertexArray m_initParticleVelVB;
+		UVertexArray m_particleColorVB;
+		UVertexArray m_particleSizeVB;
+		UVertexArray m_particleAgeVB;
 
 		SRenderPassDescriptor m_renderPassDescriptor;
 	};

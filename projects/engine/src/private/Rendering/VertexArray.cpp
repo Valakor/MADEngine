@@ -10,7 +10,7 @@ namespace MAD
 								, m_arraySemantic(EInputLayoutSemantic::INVALID)
 	{ }
 
-	UVertexArray::UVertexArray(class UGraphicsDriver& inGraphicsDriver, EVertexBufferSlot inSlot, EInputLayoutSemantic::Type inSemantic, 
+	UVertexArray::UVertexArray(class UGraphicsDriver& inGraphicsDriver, VertexBufferSlotType_t inSlot, EInputLayoutSemantic::Type inSemantic,
 							   const void* inVertexData, uint32_t inVertexSize, uint32_t inVertexCount, D3D11_USAGE inUsage, UINT inCPUAccessFlag)
 	{
 		m_vertexSize = inVertexSize;

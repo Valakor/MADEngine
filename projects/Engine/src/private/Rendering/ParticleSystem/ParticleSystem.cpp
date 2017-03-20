@@ -15,12 +15,6 @@ namespace MAD
 {
 	DECLARE_LOG_CATEGORY(LogParticleSystem);
 
-	template <typename T, typename M>
-	M get_type_of(M T::*);
-
-	#define GetTypeOf(MemVar)	decltype(get_type_of(&MemVar))
-	#define GetSizeOf(MemVar)		sizeof(GetTypeOf(MemVar))
-
 	void UParticleSystem::Initialize(const SParticleSystemSpawnParams& inSystemParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams)
 	{
 		m_particleSystemName = inSystemParams.SystemName;
@@ -80,7 +74,7 @@ namespace MAD
 		const size_t numActiveParticles = m_firstInactiveParticle;
 		for (size_t i = 0; i < numActiveParticles; ++i)
 		{
-			if (m_cpuParticlePool[i].Age > m_cpuParticlePool[i].Duration)
+			if (m_cpuParticlePool[i].ParticleAge > m_cpuParticlePool[i].Duration)
 			{
 				eastl::swap(m_cpuParticlePool[i], m_cpuParticlePool[m_firstInactiveParticle - 1]);
 
@@ -91,7 +85,7 @@ namespace MAD
 		// Tick all of the active particles
 		for (size_t i = 0; i < m_firstInactiveParticle; ++i)
 		{
-			m_cpuParticlePool[i].Age += inDeltaTime;
+			m_cpuParticlePool[i].ParticleAge += inDeltaTime;
 		}
 
 		//LOG(LogParticleSystem, Log, "Active Particles: %d\n", m_firstInactiveParticle);
@@ -143,11 +137,12 @@ namespace MAD
 		}
 
 		// Initialize vertex buffers for particle data
-		m_initialPosVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::InitialPosVS), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		m_initialVelVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::InitialVelVS), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		m_particleColorVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::ParticleColor), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		m_particleSizeVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::ParticleSize), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		m_particleAgeVB = graphicsDriver.CreateVertexBuffer(nullptr, s_maxNumParticles * GetSizeOf(SCPUParticle::Age), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		//m_initParticlePosVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::InitialPos), EInputLayoutSemantic::INVALID, nullptr, GetSize(&SCPUParticle::InitialPosVS), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_initParticlePosVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::InitialPos), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::InitialPosVS), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_initParticleVelVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::InitialVel), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::InitialVelVS), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_particleColorVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::Color), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::ParticleColor), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_particleSizeVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::Size), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::ParticleSize), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_particleAgeVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::Age), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::ParticleAge), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	}
 
 	void UParticleSystem::UpdatePipelineData()
@@ -160,14 +155,14 @@ namespace MAD
 			m_gpuInitVelData[i] = m_cpuParticlePool[i].InitialVelVS;
 			m_gpuColorData[i] = m_cpuParticlePool[i].ParticleColor;
 			m_gpuSizeData[i] = m_cpuParticlePool[i].ParticleSize;
-			m_gpuAgeData[i] = m_cpuParticlePool[i].Age;
+			m_gpuAgeData[i] = m_cpuParticlePool[i].ParticleAge;
 		}
 
-		graphicsDriver.UpdateBuffer(m_initialPosVB, m_gpuInitPosData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::InitialPosVS));
-		graphicsDriver.UpdateBuffer(m_initialVelVB, m_gpuInitVelData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::InitialVelVS));
-		graphicsDriver.UpdateBuffer(m_particleColorVB, m_gpuColorData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::ParticleColor));
-		graphicsDriver.UpdateBuffer(m_particleSizeVB, m_gpuSizeData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::ParticleSize));
-		graphicsDriver.UpdateBuffer(m_particleAgeVB, m_gpuAgeData.data(), m_firstInactiveParticle * GetSizeOf(SCPUParticle::Age));
+		m_initParticlePosVB.Update(graphicsDriver, m_gpuInitPosData.data(), m_firstInactiveParticle * sizeof(SCPUParticle::InitialPosVS));
+		m_initParticleVelVB.Update(graphicsDriver, m_gpuInitVelData.data(), m_firstInactiveParticle * sizeof(SCPUParticle::InitialVelVS));
+		m_particleColorVB.Update(graphicsDriver, m_gpuColorData.data(), m_firstInactiveParticle * sizeof(SCPUParticle::ParticleColor));
+		m_particleSizeVB.Update(graphicsDriver, m_gpuSizeData.data(), m_firstInactiveParticle * sizeof(SCPUParticle::ParticleSize));
+		m_particleAgeVB.Update(graphicsDriver, m_gpuAgeData.data(), m_firstInactiveParticle * sizeof(SCPUParticle::ParticleAge));
 	}
 
 	void UParticleSystem::ActivateParticles(const eastl::vector<SCPUParticle>& inNewParticles)
@@ -193,14 +188,6 @@ namespace MAD
 
 	void UParticleSystem::DrawParticles(float)
 	{
-		const UINT initialPosSize = GetSizeOf(SCPUParticle::InitialPosVS);
-		const UINT initialVelSize = GetSizeOf(SCPUParticle::InitialVelVS);
-		const UINT particleColorSize = GetSizeOf(SCPUParticle::ParticleColor);
-		const UINT particleExtentSize = GetSizeOf(SCPUParticle::ParticleSize);
-		const UINT particleAgeSize = GetSizeOf(SCPUParticle::Age);
-
-		const UINT byteOffset = 0;
-
 		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
 		auto renderContext = graphicsDriver.TEMPGetDeviceContext();
 
@@ -226,11 +213,11 @@ namespace MAD
 		}
 
 		// Set the vertex buffers
-		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::InitialPos), 1, m_initialPosVB.GetAddressOf(), &initialPosSize, &byteOffset);
-		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::InitialVel), 1, m_initialVelVB.GetAddressOf(), &initialVelSize, &byteOffset);
-		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::Color), 1, m_particleColorVB.GetAddressOf(), &particleColorSize, &byteOffset);
-		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::Size), 1, m_particleSizeVB.GetAddressOf(), &particleExtentSize, &byteOffset);
-		renderContext->IASetVertexBuffers(AsIntegral(EParticleVertexBufferSlot::Age), 1, m_particleAgeVB.GetAddressOf(), &particleAgeSize, &byteOffset);
+		m_initParticlePosVB.Bind(graphicsDriver, 0);
+		m_initParticleVelVB.Bind(graphicsDriver, 0);
+		m_particleColorVB.Bind(graphicsDriver, 0);
+		m_particleSizeVB.Bind(graphicsDriver, 0);
+		m_particleAgeVB.Bind(graphicsDriver, 0);
 
 		// Activate the render pass descriptor
 		m_renderPassDescriptor.m_renderPassProgram->SetProgramActive(graphicsDriver, 0);

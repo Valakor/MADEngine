@@ -775,10 +775,10 @@ namespace MAD
 		g_d3dDeviceContext->IASetPrimitiveTopology(inPrimitiveTopology);
 	}
 
-	void UGraphicsDriver::SetVertexBuffer(BufferPtr_t inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
+	void UGraphicsDriver::SetVertexBuffer(BufferPtr_t inVertexBuffer, VertexBufferSlotType_t inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
 	{
 		UINT byteOffset = inVertexOffset * inVertexSize;
-		g_d3dDeviceContext->IASetVertexBuffers(AsIntegral(inVertexSlot), 1, inVertexBuffer.GetAddressOf(), &inVertexSize, &byteOffset);
+		g_d3dDeviceContext->IASetVertexBuffers(inVertexSlot, 1, inVertexBuffer.GetAddressOf(), &inVertexSize, &byteOffset);
 	}
 
 	void UGraphicsDriver::SetIndexBuffer(BufferPtr_t inIndexBuffer, UINT inIndexOffset) const

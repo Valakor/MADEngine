@@ -54,7 +54,7 @@ namespace MAD
 		void SetViewport(float inX, float inY, float inWidth, float inHeight) const;
 		void SetInputLayout(InputLayoutPtr_t inInputLayout) const;
 		void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY inPrimitiveTopology) const;
-		void SetVertexBuffer(BufferPtr_t inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexIndexOffset) const;
+		void SetVertexBuffer(BufferPtr_t inVertexBuffer, VertexBufferSlotType_t inVertexSlot, UINT inVertexSize, UINT inVertexIndexOffset) const;
 		void SetIndexBuffer(BufferPtr_t inIndexBuffer, UINT inIndexOffset) const;
 		void SetVertexShader(VertexShaderPtr_t inVertexShader) const;
 		void SetGeometryShader(GeometryShaderPtr_t inGeometryShader) const;
