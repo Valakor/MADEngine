@@ -224,7 +224,7 @@ namespace MAD
 		m_renderPassDescriptor.ApplyPassState(graphicsDriver);
 
 		// Draw the particles
-		renderContext->Draw(static_cast<UINT>(m_firstInactiveParticle), 0);
+		renderContext->Draw(m_firstInactiveParticle, 0);
 	}
 
 }

@@ -21,7 +21,7 @@ namespace MAD
 	class UParticleSystem
 	{
 	public:
-		static const size_t s_maxNumParticles = 4096;
+		static const uint32_t s_maxNumParticles = 4096; // uint32_t because DX API takes a UINT max
 		static const size_t s_maxNumEmitters = 10;
 	public:
 		UParticleSystem() {}
@@ -42,7 +42,7 @@ namespace MAD
 	private:
 		float m_systemDuration;
 		size_t m_firstInactiveEmitter;
-		size_t m_firstInactiveParticle;
+		uint32_t m_firstInactiveParticle;
 		eastl::string m_particleSystemName;
 
 		eastl::array<UParticleSystemEmitter, s_maxNumEmitters> m_particleEmitters;
