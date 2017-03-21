@@ -1,15 +1,15 @@
 #pragma once
 
 #include <EASTL/shared_ptr.h>
+#include <EASTl/stack.h>
 #include <EASTL/string.h>
-#include <rapidjson/document.h>
 
-#include "Core/SimpleMath.h"
+#include "JSONTypes.h"
 
 namespace MAD
 {
 	class OGameWorld;
-
+	
 	class UGameWorldLoader
 	{
 	public:
@@ -24,11 +24,13 @@ namespace MAD
 		bool GetColor(const char* inProp, Color& outColor) const;
 		bool GetQuaternion(const char* inProp, Quaternion& outQuat) const; // Reads quat directly
 		bool GetRotation(const char* inProp, Quaternion& outRot) const; // Reads quat as pitch/yaw/roll (converts degrees -> rads)
-
+		bool GetObject(const char* inProp, UObjectValue& outObject) const;
+		bool GetArray(const char* inProp, UArrayValue& outArray) const;
 	private:
 		rapidjson::Document m_doc;
 		rapidjson::Value* m_currentValue = nullptr;
 
+		eastl::stack<rapidjson::Value*> m_jsonValueStack;
 		eastl::string m_relativeFilePath;
 		eastl::string m_fullFilePath;
 

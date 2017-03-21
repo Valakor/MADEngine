@@ -1,5 +1,5 @@
 #include "Core/DebugTransformComponent.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Core/GameEngine.h"
 #include "Rendering/Renderer.h"
 

@@ -2,7 +2,7 @@
 #include "Core/Entity.h"
 #include "Core/GameEngine.h"
 #include "Core/GameWindow.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 #include "Misc/Logging.h"
 #include "Core/GameInput.h"

@@ -5,7 +5,7 @@
 #include "Core/ComponentPriorityInfo.h"
 #include "Core/PointLightComponent.h"
 #include "Core/MoveComponent.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 
 #define MAD_DEFINE_TEST_COMPONENT(TestComponentName)							\

@@ -1,4 +1,4 @@
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 
 #include <fstream>
 #include <rapidjson/error/en.h>
@@ -55,6 +55,8 @@ namespace MAD
 	{
 		m_currentValue = &inRoot;
 
+		m_jsonValueStack.push(m_currentValue);
+
 		// Load world name
 		eastl::string worldName;
 		if (!GetString("worldName", worldName))
@@ -92,12 +94,17 @@ namespace MAD
 			LoadLayer(layer);
 		}
 
+		m_currentValue = m_jsonValueStack.top();
+		m_jsonValueStack.pop();
+
 		return true;
 	}
 
 	bool UGameWorldLoader::LoadLayer(Value& inRoot)
 	{
 		m_currentValue = &inRoot;
+
+		m_jsonValueStack.push(m_currentValue);
 
 		// Read layer name
 		eastl::string layerName;
@@ -122,12 +129,17 @@ namespace MAD
 			LoadEntity(entity_value, layerName);
 		}
 
+		m_currentValue = m_jsonValueStack.top();
+		m_jsonValueStack.pop();
+
 		return true;
 	}
 
 	bool UGameWorldLoader::LoadEntity(Value& inRoot, const eastl::string& inLayerName)
 	{
 		m_currentValue = &inRoot;
+
+		m_jsonValueStack.push(m_currentValue);
 
 		// Read entity type name
 		eastl::string entityTypeName = "AEntity";
@@ -172,12 +184,17 @@ namespace MAD
 		// Finalize the deferred spawning of the entity
 		m_world->FinalizeSpawnEntity(entity);
 
+		m_currentValue = m_jsonValueStack.top();
+		m_jsonValueStack.pop();
+
 		return true;
 	}
 
 	bool UGameWorldLoader::LoadExistingComponent(Value& inRoot, eastl::shared_ptr<AEntity> inOwningEntity)
 	{
 		m_currentValue = &inRoot;
+
+		m_jsonValueStack.push(m_currentValue);
 
 		// Read component type name
 		eastl::string compTypeName;
@@ -238,12 +255,17 @@ namespace MAD
 		m_currentValue = &props_iter->value;
 		comp->Load(*this);
 
+		m_currentValue = m_jsonValueStack.top();
+		m_jsonValueStack.pop();
+
 		return true;
 	}
 
 	bool UGameWorldLoader::LoadNewComponent(Value& inRoot, eastl::shared_ptr<AEntity> inOwningEntity)
 	{
 		m_currentValue = &inRoot;
+
+		m_jsonValueStack.push(m_currentValue);
 
 		// Read component type name
 		eastl::string compTypeName;
@@ -301,6 +323,9 @@ namespace MAD
 		// Update the component's properties
 		m_currentValue = &props_iter->value;
 		comp->Load(*this);
+
+		m_currentValue = m_jsonValueStack.top();
+		m_jsonValueStack.pop();
 
 		return true;
 	}
@@ -480,4 +505,31 @@ namespace MAD
 		outRot = Quaternion::CreateFromYawPitchRoll(pitchYawRoll.y, pitchYawRoll.x, pitchYawRoll.z);
 		return true;
 	}
+
+	bool UGameWorldLoader::GetObject(const char* inProp, UObjectValue& outObject) const
+	{
+		auto objPropIter = m_currentValue->FindMember(inProp);
+		if (objPropIter == m_currentValue->MemberEnd() || !objPropIter->value.IsObject())
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tCould not load Object property `%s`\n", inProp);
+			return false;
+		}
+
+		outObject = UObjectValue(&objPropIter->value);
+		return true;
+	}
+
+	bool UGameWorldLoader::GetArray(const char* inProp, UArrayValue& outArray) const
+	{
+		auto arrayPropIter = m_currentValue->FindMember(inProp);
+		if (arrayPropIter == m_currentValue->MemberEnd() && !arrayPropIter->value.IsArray())
+		{
+			LOG(LogGameWorldLoader, Warning, "\t\tCOuld not load Array property '%s'\n", inProp);
+			return false;
+		}
+
+		outArray = UArrayValue(&arrayPropIter->value);
+		return true;
+	}
+
 }

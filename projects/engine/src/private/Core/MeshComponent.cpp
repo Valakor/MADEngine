@@ -1,7 +1,7 @@
 #include "Core/MeshComponent.h"
 #include "Core/Entity.h"
 #include "Core/GameEngine.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/DrawItem.h"

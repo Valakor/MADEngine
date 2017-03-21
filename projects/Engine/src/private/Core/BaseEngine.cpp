@@ -7,7 +7,7 @@
 #include "Core/GameInstance.h"
 #include "Core/GameWindow.h"
 #include "Core/GameWorld.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Core/PhysicsWorld.h"
 #include "Misc/AssetCache.h"
 #include "Misc/Parse.h"

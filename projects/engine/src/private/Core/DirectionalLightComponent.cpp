@@ -1,6 +1,6 @@
 #include "Core/DirectionalLightComponent.h"
 #include "Core/GameEngine.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 
 namespace MAD
