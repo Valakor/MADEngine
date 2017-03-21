@@ -172,18 +172,16 @@ namespace MAD
 			return;
 		}
 
-		size_t numSpawnedParticles = inNewParticles.size();
+		uint32_t numSpawnedParticles = static_cast<uint32_t>(inNewParticles.size());
 
 		if (m_firstInactiveParticle + numSpawnedParticles > UParticleSystem::s_maxNumParticles)
 		{
 			numSpawnedParticles -= ((m_firstInactiveParticle + numSpawnedParticles) - UParticleSystem::s_maxNumParticles);
 		}
 
-		for (size_t i = 0; i < numSpawnedParticles; ++i)
-		{
-			m_cpuParticlePool[m_firstInactiveParticle] = inNewParticles[i];
-			++m_firstInactiveParticle;
-		}
+		memcpy(&m_cpuParticlePool[m_firstInactiveParticle], inNewParticles.data(), numSpawnedParticles * sizeof(SCPUParticle));
+
+		m_firstInactiveParticle += numSpawnedParticles;
 	}
 
 	void UParticleSystem::DrawParticles(float)
