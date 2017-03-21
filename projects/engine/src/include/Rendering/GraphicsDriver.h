@@ -39,10 +39,10 @@ namespace MAD
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
 		DepthStencilPtr_t CreateDepthStencil(int inWidth, int inHeight, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
-		DepthStencilStatePtr_t CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc) const;
+		DepthStencilStatePtr_t CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc, D3D11_DEPTH_WRITE_MASK inDepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL) const;
 		RasterizerStatePtr_t CreateRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 		RasterizerStatePtr_t CreateDepthRasterizerState() const;
-		BlendStatePtr_t CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend = D3D11_BLEND_ONE, D3D11_BLEND inDestBlend = D3D11_BLEND_ONE, D3D11_BLEND_OP inBlendOp = D3D11_BLEND_OP_ADD) const;
+		BlendStatePtr_t CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend = D3D11_BLEND_ONE, D3D11_BLEND inDestBlend = D3D11_BLEND_ONE, D3D11_BLEND_OP inBlendOp = D3D11_BLEND_OP_ADD, D3D11_BLEND inSrcAlphaBlend = D3D11_BLEND_ONE, D3D11_BLEND inDestAlphaBlend = D3D11_BLEND_ZERO, D3D11_BLEND_OP inAlphaBlendOp = D3D11_BLEND_OP_ADD) const;
 
 		BufferPtr_t CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags = D3D11_USAGE_IMMUTABLE, UINT inCPUAccessFlags = 0) const;
 		BufferPtr_t CreateIndexBuffer(const void* inData, UINT inDataSize) const;

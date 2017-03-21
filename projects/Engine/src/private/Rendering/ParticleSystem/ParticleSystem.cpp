@@ -112,11 +112,12 @@ namespace MAD
 		m_renderPassDescriptor.m_renderTargets.push_back(gBufferPassDesc.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
 		// Reuse the G-Buffer depth stencil view so that our particles obey regular occlusion logic with existing objects in scene
-		m_renderPassDescriptor.m_depthStencilState = gBufferPassDesc.m_depthStencilState;
+		// We can't use the G-buffer depth stencil state though beacuse we don't want any depth writes on the particles since we want blending ontop of each other
+		m_renderPassDescriptor.m_depthStencilState = graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_ALWAYS);
 		m_renderPassDescriptor.m_depthStencilView = gBufferPassDesc.m_depthStencilView;
 
 		m_renderPassDescriptor.m_rasterizerState = graphicsDriver.CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
-		m_renderPassDescriptor.m_blendState = graphicsDriver.CreateBlendState(false/*, D3D11_BLEND_SRC_COLOR*/); // TODO Change blend state creation API to allow for different types of blending
+		m_renderPassDescriptor.m_blendState = graphicsDriver.CreateBlendState(true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE, D3D11_BLEND_OP_ADD, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD); // TODO Change blend state creation API to allow for different types of blending
 		m_renderPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inSystemParams.SystemRenderProgramPath);
 
 		// Create input layout
@@ -137,7 +138,6 @@ namespace MAD
 		}
 
 		// Initialize vertex buffers for particle data
-		//m_initParticlePosVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::InitialPos), EInputLayoutSemantic::INVALID, nullptr, GetSize(&SCPUParticle::InitialPosVS), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		m_initParticlePosVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::InitialPos), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::InitialPosVS), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		m_initParticleVelVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::InitialVel), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::InitialVelVS), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		m_particleColorVB = UVertexArray(graphicsDriver, AsIntegral(EParticleVertexBufferSlot::Color), EInputLayoutSemantic::INVALID, nullptr, sizeof(SCPUParticle::ParticleColor), s_maxNumParticles, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);

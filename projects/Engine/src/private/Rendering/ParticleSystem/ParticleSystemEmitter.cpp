@@ -47,12 +47,14 @@ namespace MAD
 		//float velY = -(rand() % 400);  // 0,400
 		//float velZ = 0/*rand() % 200 - 50*/;
 		//Vector4 particleColor = { 1.0f, 0.8431372549f, 0.0f, 1.0f };m
-		float velX = rand() % 400 - 200; // -200,200
-		float velY = -(rand() % 25);  // 0,400
+		//float velX = rand() % 400 - 200; // -200,200
+		//float velY = -(rand() % 25);  // 0,400
+		float velX = rand() % 100 - 50; // -200,200
+		float velY = (rand() % 200 + 100);  // 0,400
 		float velZ = 0/*rand() % 200 - 50*/;
 		Vector4 particleColor = { 0.0f, 101.0f/255.0f, 155.0f/255.0f, 1.0f };
 
-		return { Vector3(), Vector3(velX, velY, velZ), particleColor, Vector2(7.0, 7.0f), 0.0f, 10.0f };
+		return { Vector3(), Vector3(velX, velY, velZ), particleColor, Vector2(100.0, 100.0f), 0.0f, 5.0f };
 	}
 }
 

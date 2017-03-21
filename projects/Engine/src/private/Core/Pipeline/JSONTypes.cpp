@@ -137,25 +137,40 @@ namespace MAD
 	}
 
 	template <>
-	bool UGenericValue::Get(Color& outColor) const
+	bool UGenericValue::IsA<Vector4>() const
 	{
 		if (!m_value->IsArray() || m_value->Size() != 4)
 		{
 			return false;
 		}
 
-		for (SizeType i = 0; i < 3; i++)
+		UArrayValue valueArray(m_value);
+
+		for (SizeType i = 0; i < 4; ++i)
 		{
-			if (!m_value[i].IsDouble())
+			if (!valueArray[i].IsA<double>())
 			{
 				return false;
 			}
 		}
 
-		outColor.x = m_value[0].GetFloat();
-		outColor.y = m_value[1].GetFloat();
-		outColor.z = m_value[2].GetFloat();
-		outColor.w = m_value[3].GetFloat();
+		return true;
+	}
+
+	template <>
+	bool UGenericValue::Get(Color& outColor) const
+	{
+		if (!IsA<Vector4>())
+		{
+			return false;
+		}
+
+		UArrayValue valueArray(m_value);
+
+		valueArray[0].Get(outColor.x);
+		valueArray[1].Get(outColor.y);
+		valueArray[2].Get(outColor.z);
+		valueArray[3].Get(outColor.w);
 
 		return true;
 	}

@@ -507,9 +507,11 @@ namespace MAD
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		m_textBatchRenderer.FlushBatch();
 
-		BindPerFrameConstants();
+		g_graphicsDriver.StartEventGroup(L"Particle Systems");
 
 		m_particleSystemManager.UpdateParticleSystems(inFrameTime);
+
+		g_graphicsDriver.EndEventGroup();
 	}
 
 	void URenderer::EndFrame()

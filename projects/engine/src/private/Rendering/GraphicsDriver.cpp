@@ -556,14 +556,14 @@ namespace MAD
 		return depthStencil;
 	}
 
-	DepthStencilStatePtr_t UGraphicsDriver::CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc) const
+	DepthStencilStatePtr_t UGraphicsDriver::CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc, D3D11_DEPTH_WRITE_MASK inDepthWriteMask) const
 	{
 		D3D11_DEPTH_STENCIL_DESC stateDesc;
 		MEM_ZERO(stateDesc);
 
 		// Depth test parameters
 		stateDesc.DepthEnable = inDepthTestEnable;
-		stateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		stateDesc.DepthWriteMask = inDepthWriteMask;
 		stateDesc.DepthFunc = inComparisonFunc;
 
 		// Stencil test parameters
@@ -622,7 +622,7 @@ namespace MAD
 		return depthRasterizerStatePtr;
 	}
 
-	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend, D3D11_BLEND inDestBlend, D3D11_BLEND_OP inBlendOp) const
+	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend, D3D11_BLEND inDestBlend, D3D11_BLEND_OP inBlendOp, D3D11_BLEND inSrcAlphaBlend, D3D11_BLEND inDestAlphaBlend, D3D11_BLEND_OP inAlphaBlendOp) const
 	{
 		D3D11_BLEND_DESC1 blendDesc;
 		MEM_ZERO(blendDesc);
@@ -633,9 +633,9 @@ namespace MAD
 		blendDesc.RenderTarget[0].SrcBlend = inSrcBlend;
 		blendDesc.RenderTarget[0].DestBlend = inDestBlend;
 		blendDesc.RenderTarget[0].BlendOp = inBlendOp;
-		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = inSrcAlphaBlend;
+		blendDesc.RenderTarget[0].DestBlendAlpha = inDestAlphaBlend;
+		blendDesc.RenderTarget[0].BlendOpAlpha = inAlphaBlendOp;
 		blendDesc.RenderTarget[0].LogicOp = D3D11_LOGIC_OP_NOOP;
 		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 

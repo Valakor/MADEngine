@@ -4,6 +4,8 @@
 #include "Rendering/Renderer.h"
 #include "Rendering/GraphicsDriver.h"
 
+#include "Misc/utf8conv.h"
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -18,11 +20,7 @@ namespace MAD
 	{
 		for (size_t i = 0; i < m_firstInactiveParticleSystem; ++i)
 		{
-			eastl::wstring particleSystemGroupName(eastl::wstring::CtorSprintf(), L"Particle System: ");
-
-			particleSystemGroupName.append(eastl::wstring(m_particleSystemPool[i].GetSystemName().c_str()));
-
-			URenderContext::Get().GetGraphicsDriver().StartEventGroup(particleSystemGroupName);
+			URenderContext::Get().GetGraphicsDriver().StartEventGroup(utf8util::UTF16FromUTF8(m_particleSystemPool[i].GetSystemName().c_str()));
 
 			m_particleSystemPool[i].TickSystem(inDeltaTime);
 
