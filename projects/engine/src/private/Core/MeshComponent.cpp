@@ -65,14 +65,17 @@ namespace MAD
 		return a;
 	}
 
-	void CMeshComponent::Load(const UGameWorldLoader& inLoader)
+	void CMeshComponent::Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
 	{
-		inLoader.GetBool("visible", m_meshInstance.m_bVisible);
+		UNREFERENCED_PARAMETER(inLoader);
+
+		inPropertyObj.GetProperty("visible", m_meshInstance.m_bVisible);
 
 		eastl::string meshName;
-		if (inLoader.GetString("mesh", meshName))
+		if (inPropertyObj.GetProperty("mesh", meshName))
 		{
 			m_meshInstance.m_mesh = UMesh::Load(meshName);
 		}
 	}
+
 }

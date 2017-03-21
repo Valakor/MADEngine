@@ -125,6 +125,7 @@ namespace MAD
 		return inAngle;
 	}
 
+	// Assumes angles are in radians already
 	Quaternion FromEulerAngles(float inPitch, float inYaw, float inRoll)
 	{
 		// Implementation taken from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/

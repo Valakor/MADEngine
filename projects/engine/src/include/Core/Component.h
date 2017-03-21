@@ -58,7 +58,7 @@ namespace MAD
 		const AEntity& GetOwningEntity() const { return *m_owningEntity; }
 		UComponent* GetParent() const { return m_parentComponent; }
 
-		virtual void Load(const class UGameWorldLoader& inLoader) { (void)inLoader; }
+		virtual void Load(const class UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) { UNREFERENCED_PARAMETER(inLoader); UNREFERENCED_PARAMETER(inPropertyObj); }
 
 		void PrintTranslationHierarchy(uint8_t inDepth) const;
 		void PopulateTransformQueue(eastl::queue<ULinearTransform>& inOutTransformQueue) const;

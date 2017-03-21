@@ -48,18 +48,19 @@ namespace MAD
 		renderer.UpdateCameraConstants(m_cameraInstance);
 	}
 
-	void CCameraComponent::Load(const UGameWorldLoader& inLoader)
+	void CCameraComponent::Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
 	{
+		UNREFERENCED_PARAMETER(inLoader);
+
 		auto clientWindow = gEngine->GetWindow().GetClientSize();
 		const float aspectRatio = static_cast<float>(clientWindow.x) / clientWindow.y;
 
-		inLoader.GetFloat("fov", m_cameraInstance.m_verticalFOV);
-		inLoader.GetFloat("near", m_cameraInstance.m_nearPlaneDistance);
-		inLoader.GetFloat("far", m_cameraInstance.m_farPlaneDistance);
-		inLoader.GetFloat("exposure", m_cameraInstance.m_exposure);
-
-		inLoader.GetFloat("moveSpeed", m_cameraMoveSpeed);
-		inLoader.GetFloat("lookSpeed", m_cameraLookSpeed);
+		inPropertyObj.GetProperty("fov", m_cameraInstance.m_verticalFOV);
+		inPropertyObj.GetProperty("near", m_cameraInstance.m_nearPlaneDistance);
+		inPropertyObj.GetProperty("far", m_cameraInstance.m_farPlaneDistance);
+		inPropertyObj.GetProperty("exposure", m_cameraInstance.m_exposure);
+		inPropertyObj.GetProperty("moveSpeed", m_cameraMoveSpeed);
+		inPropertyObj.GetProperty("lookSpeed", m_cameraLookSpeed);
 
 		m_cameraPosInitial = GetWorldTranslation();
 		m_cameraRotInitial = GetWorldRotation();

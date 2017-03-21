@@ -12,7 +12,7 @@ namespace MAD
 		explicit CParticleSystemComponent(OGameWorld* inOwningWorld);
 
 		virtual void PostInitializeComponents() override;
-		virtual void Load(const UGameWorldLoader& inLoader) override;
+		virtual void Load(const class UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 	private:
 		Vector3 GetViewSpacePosition() const;

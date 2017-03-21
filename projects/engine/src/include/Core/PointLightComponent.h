@@ -11,7 +11,7 @@ namespace MAD
 	public:
 		explicit CPointLightComponent(OGameWorld* inOwningWorld);
 
-		virtual void Load(const UGameWorldLoader& inLoader) override;
+		virtual void Load(const UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 
 		inline void SetEnabled(bool inEnabled) { m_pointLight.m_isLightEnabled = inEnabled; }

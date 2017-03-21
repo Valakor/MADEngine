@@ -356,11 +356,12 @@ namespace MAD
 				root->SetWorldTranslation(m_initialPosition + offset);
 			}
 
-			virtual void Load(const UGameWorldLoader& inLoader) override
+			virtual void Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj) override
 			{
-				inLoader.GetBool("enabled", m_enabled);
-				inLoader.GetFloat("speed", m_moveSpeed);
-				inLoader.GetFloat("distance", m_distance);
+				UNREFERENCED_PARAMETER(inLoader);
+				inPropertyObj.GetProperty("enabled", m_enabled);
+				inPropertyObj.GetProperty("speed", m_moveSpeed);
+				inPropertyObj.GetProperty("distance", m_distance);
 			}
 
 			virtual void OnBeginPlay() override
@@ -408,11 +409,12 @@ namespace MAD
 				GetOwningEntity().SetWorldTranslation(resultPosition);
 			}
 
-			virtual void Load(const UGameWorldLoader& inLoader) override
+			virtual void Load(const UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) override
 			{
-				inLoader.GetBool("enabled", m_enabled);
-				inLoader.GetFloat("angular_speed", m_angularSpeed);
-				inLoader.GetFloat("radius", m_radius);
+				UNREFERENCED_PARAMETER(inLoader);
+				inPropertyObj.GetProperty("enabled", m_enabled);
+				inPropertyObj.GetProperty("angular_speed", m_angularSpeed);
+				inPropertyObj.GetProperty("radius", m_radius);
 			}
 
 			virtual void OnBeginPlay() override

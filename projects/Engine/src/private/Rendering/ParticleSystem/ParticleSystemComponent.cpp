@@ -37,18 +37,19 @@ namespace MAD
 		m_particleSystem->TransformParticles(GetViewSpacePosition());
 	}
 
-	void CParticleSystemComponent::Load(const UGameWorldLoader& inLoader)
+	void CParticleSystemComponent::Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
 	{
+		UNREFERENCED_PARAMETER(inLoader);
 		// Load in particle system and emitter data
 		// ***Testing loading code***
 		UArrayValue emitterArray;
 
-		inLoader.GetBool("enabled", m_bEnabled);
-		inLoader.GetString("name", m_systemName);
-		inLoader.GetString("effect_shader", m_systemEffectProgramPath);
-		inLoader.GetString("effect_texture", m_systemEffectTexturePath);
+		inPropertyObj.GetProperty("enabled", m_bEnabled);
+		inPropertyObj.GetProperty("name", m_systemName);
+		inPropertyObj.GetProperty("effect_shader", m_systemEffectProgramPath);
+		inPropertyObj.GetProperty("effect_texture", m_systemEffectTexturePath);
 
-		if (inLoader.GetArray("emitters", emitterArray))
+		if (inPropertyObj.GetProperty("emitters", emitterArray))
 		{
 			const SizeType numEmitters = emitterArray.Size();
 

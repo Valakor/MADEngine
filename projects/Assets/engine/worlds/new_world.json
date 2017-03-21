@@ -174,7 +174,7 @@
 						{
 							"type": "CMeshComponent",
 							"position": [0.0, 0.0, 350.0],
-							"rotation": [0.0, -90.0, 0.0],
+							"rotation": [45.0, -90.0, 15.0],
 							"scale": 100.0,
 							"properties": {
 								"visible": true,

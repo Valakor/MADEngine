@@ -13,7 +13,7 @@ namespace MAD
 	public:
 		explicit CCameraComponent(OGameWorld* inOwningWorld);
 
-		virtual void Load(const UGameWorldLoader& inLoader) override;
+		virtual void Load(const UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 
 	private:

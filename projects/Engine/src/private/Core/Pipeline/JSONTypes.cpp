@@ -211,7 +211,7 @@ namespace MAD
 
 
 	template <>
-	bool UObjectValue::GetProperty(const char* inPropName, UObjectValue& outObjectValue)
+	bool UObjectValue::GetProperty(const char* inPropName, UObjectValue& outObjectValue) const
 	{
 		auto propFindIter = m_objectValue.m_value->FindMember(inPropName);
 
@@ -225,7 +225,7 @@ namespace MAD
 	}
 
 	template <>
-	bool UObjectValue::GetProperty(const char* inPropName, UArrayValue& outArrayValue)
+	bool UObjectValue::GetProperty(const char* inPropName, UArrayValue& outArrayValue) const
 	{
 		auto propFindIter = m_objectValue.m_value->FindMember(inPropName);
 

@@ -32,7 +32,7 @@ namespace MAD
 		UObjectValue() {}
 		UObjectValue(const UGenericValue& inObjectValue) : m_objectValue(inObjectValue) {}
 
-		template <typename ValueType> bool GetProperty(const char* inPropName, ValueType& outPropValue);
+		template <typename ValueType> bool GetProperty(const char* inPropName, ValueType& outPropValue) const;
 	private:
 		UGenericValue m_objectValue;
 	};
@@ -65,7 +65,7 @@ namespace MAD
 	}
 
 	template <typename ValueType>
-	bool UObjectValue::GetProperty(const char* inPropName, ValueType& outPropValue)
+	bool UObjectValue::GetProperty(const char* inPropName, ValueType& outPropValue) const
 	{
 		auto propFindIter = m_objectValue.m_value->FindMember(inPropName);
 
@@ -107,6 +107,6 @@ namespace MAD
 	template <> bool UGenericValue::Get<UArrayValue>(UArrayValue& outArrayValue) const;
 
 	// Explicit specializations for UObjectValue
-	template <> bool UObjectValue::GetProperty<UObjectValue>(const char* inPropName, UObjectValue& outObjectValue);
-	template <> bool UObjectValue::GetProperty<UArrayValue>(const char* inPropName, UArrayValue& outArrayValue);
+	template <> bool UObjectValue::GetProperty<UObjectValue>(const char* inPropName, UObjectValue& outObjectValue) const;
+	template <> bool UObjectValue::GetProperty<UArrayValue>(const char* inPropName, UArrayValue& outArrayValue) const;
 }

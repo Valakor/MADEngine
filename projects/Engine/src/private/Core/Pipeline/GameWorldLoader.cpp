@@ -48,18 +48,16 @@ namespace MAD
 			return false;
 		}
 
-		return LoadWorld(m_doc);
+		UObjectValue worldObjectValue(&m_doc);
+
+		return LoadWorld(worldObjectValue);
 	}
 
-	bool UGameWorldLoader::LoadWorld(Value& inRoot)
+	bool UGameWorldLoader::LoadWorld(UObjectValue& inWorld)
 	{
-		m_currentValue = &inRoot;
-
-		m_jsonValueStack.push(m_currentValue);
-
 		// Load world name
 		eastl::string worldName;
-		if (!GetString("worldName", worldName))
+		if (!inWorld.GetProperty("worldName", worldName))
 		{
 			LOG(LogGameWorldLoader, Warning, "No world name found. Please specify a world name\n");
 			return false;
@@ -72,43 +70,44 @@ namespace MAD
 
 		// Load world configuration
 		Color ambientColor(0.2f, 0.2f, 0.2f, 1.0f);
-		GetColor("ambientColor", ambientColor);
+		inWorld.GetProperty("ambientColor", ambientColor);
 		gEngine->GetRenderer().SetWorldAmbientColor(ambientColor);
 
 		Color backBufferClearColor(0.529f, 0.808f, 0.922f, 1.0f);
-		GetColor("backBufferColor", backBufferClearColor);
+		inWorld.GetProperty("backBufferColor", backBufferClearColor);
 		gEngine->GetRenderer().SetBackBufferClearColor(backBufferClearColor);
 
 		// Check layers array
-		auto layer_iter = m_doc.FindMember("layers");
-		if (layer_iter == m_doc.MemberEnd() || !layer_iter->value.IsArray() || layer_iter->value.Size() < 1)
+		UArrayValue layerArray;
+
+		if (!inWorld.GetProperty("layers", layerArray))
 		{
 			LOG(LogGameWorldLoader, Warning, "World `%s` (%s) has no layers and will be empty. Was this intentional?\n", worldName.c_str(), m_fullFilePath.c_str());
 			return true;
 		}
-		LOG(LogGameWorldLoader, Log, "Number of layers: %i\n", layer_iter->value.Size());
+
+		LOG(LogGameWorldLoader, Log, "Number of layers: %i\n", layerArray.Size());
 
 		// Load layers
-		for (auto& layer : layer_iter->value.GetArray())
-		{
-			LoadLayer(layer);
-		}
+		const SizeType numLayers = layerArray.Size();
 
-		m_currentValue = m_jsonValueStack.top();
-		m_jsonValueStack.pop();
+		for (SizeType i = 0; i < numLayers; ++i)
+		{
+			UObjectValue layerObject;
+
+			layerArray[i].Get(layerObject);
+
+			LoadLayer(layerObject);
+		}
 
 		return true;
 	}
 
-	bool UGameWorldLoader::LoadLayer(Value& inRoot)
+	bool UGameWorldLoader::LoadLayer(UObjectValue& inLayer)
 	{
-		m_currentValue = &inRoot;
-
-		m_jsonValueStack.push(m_currentValue);
-
 		// Read layer name
 		eastl::string layerName;
-		if (!GetString("name", layerName))
+		if (!inLayer.GetProperty("name", layerName))
 		{
 			LOG(LogGameWorldLoader, Warning, "Layer has no name. Please specify a layer name\n");
 			return false;
@@ -116,34 +115,34 @@ namespace MAD
 		LOG(LogGameWorldLoader, Log, "Layer `%s`\n", layerName.c_str());
 
 		// Check entities array
-		auto entity_iter = inRoot.FindMember("entities");
-		if (entity_iter == inRoot.MemberEnd() || !entity_iter->value.IsArray() || entity_iter->value.Size() < 1)
+		UArrayValue entityArray;
+
+		if (!inLayer.GetProperty("entities", entityArray))
 		{
 			LOG(LogGameWorldLoader, Warning, "Layer `%s` has no entities. Was this intentional?\n", layerName.c_str());
 			return true;
 		}
 
 		// Load the entities
-		for (auto& entity_value : entity_iter->value.GetArray())
-		{
-			LoadEntity(entity_value, layerName);
-		}
+		const SizeType numEntities = entityArray.Size();
 
-		m_currentValue = m_jsonValueStack.top();
-		m_jsonValueStack.pop();
+		for (SizeType i = 0; i < numEntities; ++i)
+		{
+			UObjectValue entityObject;
+
+			entityArray[i].Get(entityObject);
+
+			LoadEntity(entityObject, layerName);
+		}
 
 		return true;
 	}
 
-	bool UGameWorldLoader::LoadEntity(Value& inRoot, const eastl::string& inLayerName)
+	bool UGameWorldLoader::LoadEntity(UObjectValue& inEntity, const eastl::string& inLayerName)
 	{
-		m_currentValue = &inRoot;
-
-		m_jsonValueStack.push(m_currentValue);
-
 		// Read entity type name
 		eastl::string entityTypeName = "AEntity";
-		GetString("type", entityTypeName);
+		inEntity.GetProperty("type", entityTypeName);
 
 		// Get entity type info
 		auto typeInfo = TTypeInfo::GetTypeInfo(entityTypeName);
@@ -157,48 +156,53 @@ namespace MAD
 		eastl::shared_ptr<AEntity> entity = m_world->SpawnEntityDeferred<AEntity>(*typeInfo, inLayerName);
 
 		eastl::string entityDebugName = "UNASSIGNED";
-		GetString("name", entityDebugName);
+		inEntity.GetProperty("name", entityDebugName);
 
 		entity->SetDebugName(entityDebugName);
 
 		// Load existing components
-		auto existing_iter = inRoot.FindMember("existingComponents");
-		if (existing_iter != inRoot.MemberEnd() && existing_iter->value.IsArray())
+		UArrayValue existingComponentArray;
+		UArrayValue newComponentArray;
+
+		if (inEntity.GetProperty("existingComponents", existingComponentArray))
 		{
-			for (auto& component : existing_iter->value.GetArray())
+			const SizeType numExistComps = existingComponentArray.Size();
+
+			for (SizeType i = 0; i < numExistComps; ++i)
 			{
-				LoadExistingComponent(component, entity);
+				UObjectValue existingCompObj;
+
+				existingComponentArray[i].Get(existingCompObj);
+
+				LoadExistingComponent(existingCompObj, entity);
 			}
 		}
 
-		// Load new components
-		auto new_iter = inRoot.FindMember("newComponents");
-		if (new_iter != inRoot.MemberEnd() && new_iter->value.IsArray())
+		if (inEntity.GetProperty("newComponents", newComponentArray))
 		{
-			for (auto& component : new_iter->value.GetArray())
+			const SizeType numNewComps = newComponentArray.Size();
+
+			for (SizeType i = 0; i < numNewComps; ++i)
 			{
-				LoadNewComponent(component, entity);
+				UObjectValue newCompObj;
+
+				newComponentArray[i].Get(newCompObj);
+
+				LoadNewComponent(newCompObj, entity);
 			}
 		}
 
 		// Finalize the deferred spawning of the entity
 		m_world->FinalizeSpawnEntity(entity);
 
-		m_currentValue = m_jsonValueStack.top();
-		m_jsonValueStack.pop();
-
 		return true;
 	}
 
-	bool UGameWorldLoader::LoadExistingComponent(Value& inRoot, eastl::shared_ptr<AEntity> inOwningEntity)
+	bool UGameWorldLoader::LoadExistingComponent(UObjectValue& inExistingComp, eastl::shared_ptr<class AEntity> inOwningEntity)
 	{
-		m_currentValue = &inRoot;
-
-		m_jsonValueStack.push(m_currentValue);
-
 		// Read component type name
 		eastl::string compTypeName;
-		if (!GetString("type", compTypeName))
+		if (!inExistingComp.GetProperty("type", compTypeName))
 		{
 			LOG(LogGameWorldLoader, Warning, "\t\tExisting component has no specified type name, skipping\n");
 			return false;
@@ -223,8 +227,9 @@ namespace MAD
 		eastl::shared_ptr<UComponent> comp = comp_weak.lock();
 
 		// Load the component's properties
-		auto props_iter = inRoot.FindMember("properties");
-		if (props_iter == inRoot.MemberEnd() || !props_iter->value.IsObject())
+		UObjectValue compPropertyObj;
+
+		if (!inExistingComp.GetProperty("properties", compPropertyObj))
 		{
 			LOG(LogGameWorldLoader, Warning, "\t\tExisting component `%s`: Could not load properties\n", compTypeName.c_str());
 			return false;
@@ -233,43 +238,39 @@ namespace MAD
 		// Load the component's transform
 		{
 			Vector3 position;
-			if (GetVector("position", position))
+			if (inExistingComp.GetProperty("position", position))
 			{
 				comp->SetRelativeTranslation(position);
 			}
 
-			Quaternion rotation;
-			if (GetRotation("rotation", rotation))
+			Vector3 rotationAngles;
+			if (inExistingComp.GetProperty("rotation", rotationAngles))
 			{
-				comp->SetRelativeRotation(rotation);
+				rotationAngles.x = ConvertToRadians(rotationAngles.x);
+				rotationAngles.y = ConvertToRadians(rotationAngles.y);
+				rotationAngles.z = ConvertToRadians(rotationAngles.z);
+
+				comp->SetRelativeRotation(FromEulerAngles(rotationAngles.x, rotationAngles.y, rotationAngles.z));
 			}
 
 			float scale;
-			if (GetFloat("scale", scale))
+			if (inExistingComp.GetProperty("scale", scale))
 			{
 				comp->SetRelativeScale(scale);
 			}
 		}
 
 		// Update the component's properties
-		m_currentValue = &props_iter->value;
-		comp->Load(*this);
-
-		m_currentValue = m_jsonValueStack.top();
-		m_jsonValueStack.pop();
+		comp->Load(*this, compPropertyObj);
 
 		return true;
 	}
 
-	bool UGameWorldLoader::LoadNewComponent(Value& inRoot, eastl::shared_ptr<AEntity> inOwningEntity)
+	bool UGameWorldLoader::LoadNewComponent(UObjectValue& inNewComp, eastl::shared_ptr<class AEntity> inOwningEntity)
 	{
-		m_currentValue = &inRoot;
-
-		m_jsonValueStack.push(m_currentValue);
-
 		// Read component type name
 		eastl::string compTypeName;
-		if (!GetString("type", compTypeName))
+		if (!inNewComp.GetProperty("type", compTypeName))
 		{
 			LOG(LogGameWorldLoader, Warning, "\t\tNew component has no specified type name, skipping\n");
 			return false;
@@ -284,8 +285,9 @@ namespace MAD
 		}
 
 		// Load the component's properties
-		auto props_iter = inRoot.FindMember("properties");
-		if (props_iter == inRoot.MemberEnd() || !props_iter->value.IsObject())
+		UObjectValue compPropertyObj;
+
+		if (!inNewComp.GetProperty("properties", compPropertyObj))
 		{
 			LOG(LogGameWorldLoader, Warning, "\t\tNew component `%s`: Could not load properties\n", compTypeName.c_str());
 			return false;
@@ -302,234 +304,31 @@ namespace MAD
 		// Load the component's transform
 		{
 			Vector3 position;
-			if (GetVector("position", position))
+			if (inNewComp.GetProperty("position", position))
 			{
 				comp->SetRelativeTranslation(position);
 			}
 
-			Quaternion rotation;
-			if (GetRotation("rotation", rotation))
+			Vector3 rotationAngles;
+			if (inNewComp.GetProperty("rotation", rotationAngles))
 			{
-				comp->SetRelativeRotation(rotation);
+				rotationAngles.x = ConvertToRadians(rotationAngles.x);
+				rotationAngles.y = ConvertToRadians(rotationAngles.y);
+				rotationAngles.z = ConvertToRadians(rotationAngles.z);
+
+				comp->SetRelativeRotation(FromEulerAngles(rotationAngles.x, rotationAngles.y, rotationAngles.z));
 			}
 
 			float scale;
-			if (GetFloat("scale", scale))
+			if (inNewComp.GetProperty("scale", scale))
 			{
 				comp->SetRelativeScale(scale);
 			}
 		}
 
 		// Update the component's properties
-		m_currentValue = &props_iter->value;
-		comp->Load(*this);
-
-		m_currentValue = m_jsonValueStack.top();
-		m_jsonValueStack.pop();
+		comp->Load(*this, compPropertyObj);
 
 		return true;
 	}
-
-	bool UGameWorldLoader::GetFloat(const char* inProp, float& outFloat) const
-	{
-		auto it = m_currentValue->FindMember(inProp);
-		if (it == m_currentValue->MemberEnd())
-		{
-			return false;
-		}
-
-		auto& prop = it->value;
-		if (!prop.IsDouble())
-		{
-			return false;
-		}
-
-		outFloat = prop.GetFloat();
-		return true;
-	}
-
-	bool UGameWorldLoader::GetInt(const char* inProp, int& outInt) const
-	{
-		auto it = m_currentValue->FindMember(inProp);
-		if (it == m_currentValue->MemberEnd())
-		{
-			return false;
-		}
-
-		auto& prop = it->value;
-		if (!prop.IsInt())
-		{
-			return false;
-		}
-
-		outInt = prop.GetInt();
-		return true;
-	}
-
-	bool UGameWorldLoader::GetString(const char* inProp, eastl::string& outString) const
-	{
-		auto it = m_currentValue->FindMember(inProp);
-		if (it == m_currentValue->MemberEnd())
-		{
-			return false;
-		}
-
-		auto& prop = it->value;
-		if (!prop.IsString())
-		{
-			return false;
-		}
-
-		outString = prop.GetString();
-		return true;
-	}
-
-	bool UGameWorldLoader::GetBool(const char* inProp, bool& outBool) const
-	{
-		auto it = m_currentValue->FindMember(inProp);
-		if (it == m_currentValue->MemberEnd())
-		{
-			return false;
-		}
-
-		auto& prop = it->value;
-		if (!prop.IsBool())
-		{
-			return false;
-		}
-
-		outBool = prop.GetBool();
-		return true;
-	}
-
-	bool UGameWorldLoader::GetVector(const char* inProp, Vector3& outVector) const
-	{
-		auto it = m_currentValue->FindMember(inProp);
-		if (it == m_currentValue->MemberEnd())
-		{
-			return false;
-		}
-
-		auto& prop = it->value;
-		if (!prop.IsArray() || prop.Size() != 3)
-		{
-			return false;
-		}
-
-		for (SizeType i = 0; i < 3; i++)
-		{
-			if (!prop[i].IsDouble())
-			{
-				return false;
-			}
-		}
-
-		outVector.x = prop[0].GetFloat();
-		outVector.y = prop[1].GetFloat();
-		outVector.z = prop[2].GetFloat();
-
-		return true;
-	}
-
-	bool UGameWorldLoader::GetColor(const char* inProp, Color& outColor) const
-	{
-		auto it = m_currentValue->FindMember(inProp);
-		if (it == m_currentValue->MemberEnd())
-		{
-			return false;
-		}
-
-		auto& prop = it->value;
-		if (!prop.IsArray() || prop.Size() != 4)
-		{
-			return false;
-		}
-
-		for (SizeType i = 0; i < 3; i++)
-		{
-			if (!prop[i].IsDouble())
-			{
-				return false;
-			}
-		}
-
-		outColor.x = prop[0].GetFloat();
-		outColor.y = prop[1].GetFloat();
-		outColor.z = prop[2].GetFloat();
-		outColor.w = prop[3].GetFloat();
-
-		return true;
-	}
-
-	bool UGameWorldLoader::GetQuaternion(const char* inProp, Quaternion& outQuat) const
-	{
-		auto it = m_currentValue->FindMember(inProp);
-		if (it == m_currentValue->MemberEnd())
-		{
-			return false;
-		}
-
-		auto& prop = it->value;
-		if (!prop.IsArray() || prop.Size() != 4)
-		{
-			return false;
-		}
-
-		for (SizeType i = 0; i < 3; i++)
-		{
-			if (!prop[i].IsDouble())
-			{
-				return false;
-			}
-		}
-
-		outQuat.x = prop[0].GetFloat();
-		outQuat.y = prop[1].GetFloat();
-		outQuat.z = prop[2].GetFloat();
-		outQuat.w = prop[3].GetFloat();
-
-		return true;
-	}
-
-	bool UGameWorldLoader::GetRotation(const char* inProp, Quaternion& outRot) const
-	{
-		Vector3 pitchYawRoll;
-		if (!GetVector(inProp, pitchYawRoll))
-		{
-			return false;
-		}
-
-		pitchYawRoll.x = ConvertToRadians(pitchYawRoll.x);
-		pitchYawRoll.y = ConvertToRadians(pitchYawRoll.y);
-		pitchYawRoll.z = ConvertToRadians(pitchYawRoll.z);
-		outRot = Quaternion::CreateFromYawPitchRoll(pitchYawRoll.y, pitchYawRoll.x, pitchYawRoll.z);
-		return true;
-	}
-
-	bool UGameWorldLoader::GetObject(const char* inProp, UObjectValue& outObject) const
-	{
-		auto objPropIter = m_currentValue->FindMember(inProp);
-		if (objPropIter == m_currentValue->MemberEnd() || !objPropIter->value.IsObject())
-		{
-			LOG(LogGameWorldLoader, Warning, "\t\tCould not load Object property `%s`\n", inProp);
-			return false;
-		}
-
-		outObject = UObjectValue(&objPropIter->value);
-		return true;
-	}
-
-	bool UGameWorldLoader::GetArray(const char* inProp, UArrayValue& outArray) const
-	{
-		auto arrayPropIter = m_currentValue->FindMember(inProp);
-		if (arrayPropIter == m_currentValue->MemberEnd() && !arrayPropIter->value.IsArray())
-		{
-			LOG(LogGameWorldLoader, Warning, "\t\tCOuld not load Array property '%s'\n", inProp);
-			return false;
-		}
-
-		outArray = UArrayValue(&arrayPropIter->value);
-		return true;
-	}
-
 }
