@@ -129,7 +129,7 @@
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPURain.hlsl",
 								"emitters": [
 									{
-										"emit_rate": 5,
+										"emit_rate": 150,
 										"emit_object": {
 											"property1": "hello",
 											"property2": "world"
@@ -198,10 +198,20 @@
 							"type": "CParticleSystemComponent",
 							"position": [0.0, 150.0, 0.0],
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\full_fire.jpg"
+								"effect_texture": "engine\\textures\\full_fire.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_object": {
+											"property1": "hello",
+											"property2": "world"
+										},
+										"emit_duration": -1.0
+									}
+								]
 							}
 						},
 						{

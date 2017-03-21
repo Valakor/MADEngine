@@ -16,22 +16,10 @@ namespace MAD
 
 	void CParticleSystemComponent::PostInitializeComponents()
 	{
-		if (!m_bEnabled)
+		if (!m_bEnabled || !m_particleSystem)
 		{
 			return;
 		}
-
-		// Request a particle system from the renderer based on spawn parameters
-		SParticleSystemSpawnParams systemSpawnParams;
-		eastl::vector<SParticleEmitterSpawnParams> emitterSpawnParams; // Only one for now
-
-		systemSpawnParams.SystemName = m_systemName;
-		systemSpawnParams.SystemRenderProgramPath = m_systemEffectProgramPath;
-		systemSpawnParams.ParticleTexturePath = m_systemEffectTexturePath;
-
-		emitterSpawnParams.emplace_back(50, -1.0f); // repeat at 500 particles/second
-
-		m_particleSystem = URenderContext::Get().GetRenderer().SpawnParticleSystem(systemSpawnParams, emitterSpawnParams);
 
 		// Set particle initial translation data
 		m_particleSystem->TransformParticles(GetViewSpacePosition());
@@ -40,14 +28,30 @@ namespace MAD
 	void CParticleSystemComponent::Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
 	{
 		UNREFERENCED_PARAMETER(inLoader);
+
+		// Request a particle system from the renderer based on spawn parameters
+		SParticleSystemSpawnParams systemSpawnParams;
+		eastl::vector<SParticleEmitterSpawnParams> emitterSpawnParams;
+
 		// Load in particle system and emitter data
-		// ***Testing loading code***
 		UArrayValue emitterArray;
 
 		inPropertyObj.GetProperty("enabled", m_bEnabled);
-		inPropertyObj.GetProperty("name", m_systemName);
-		inPropertyObj.GetProperty("effect_shader", m_systemEffectProgramPath);
-		inPropertyObj.GetProperty("effect_texture", m_systemEffectTexturePath);
+
+		if (inPropertyObj.GetProperty("name", m_systemName))
+		{
+			systemSpawnParams.SystemName = m_systemName;
+		}
+
+		if (inPropertyObj.GetProperty("effect_shader", m_systemEffectProgramPath))
+		{
+			systemSpawnParams.SystemRenderProgramPath = m_systemEffectProgramPath;
+		}
+
+		if (inPropertyObj.GetProperty("effect_texture", m_systemEffectTexturePath))
+		{
+			systemSpawnParams.ParticleTexturePath = m_systemEffectTexturePath;
+		}
 
 		if (inPropertyObj.GetProperty("emitters", emitterArray))
 		{
@@ -65,6 +69,8 @@ namespace MAD
 
 				currentEmitter.GetProperty("emit_rate", emitRate);
 				currentEmitter.GetProperty("emit_duration", emitDuration);
+
+				emitterSpawnParams.emplace_back(emitRate, emitDuration); // repeat at 500 particles/second
 
 				if (currentEmitter.GetProperty("emit_object", emitObject))
 				{
@@ -92,6 +98,8 @@ namespace MAD
 				}
 			}
 		}
+
+		m_particleSystem = URenderContext::Get().GetRenderer().SpawnParticleSystem(systemSpawnParams, emitterSpawnParams);
 	}
 
 	void CParticleSystemComponent::UpdateComponent(float)
