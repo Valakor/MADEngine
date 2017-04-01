@@ -13,7 +13,7 @@ namespace MAD
 	public:
 		explicit CMeshComponent(OGameWorld* inOwningWorld);
 		
-		virtual void Load(const UGameWorldLoader& inLoader) override;
+		virtual void Load(const UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 
 		bool LoadFrom(const eastl::string& inAssetName);

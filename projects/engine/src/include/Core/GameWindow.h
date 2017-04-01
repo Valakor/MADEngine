@@ -20,7 +20,6 @@ namespace MAD
 
 		static bool SetWorkingDirectory();
 		static eastl::string GetWorkingDirectory();
-
 	private:
 		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -28,9 +27,9 @@ namespace MAD
 		static HWND CreateNativeWindow(HINSTANCE inHInstance, const wchar_t* inWindowTitle, int inWidth, int inHeight);
 
 	public:
-		UGameWindow() : hWnd(nullptr) { }
+		explicit UGameWindow(HWND inTargetWindow = nullptr) : m_hWnd(inTargetWindow) {}
 
-		HWND GetHWnd() const { return hWnd; }
+		HWND GetHWnd() const { return m_hWnd; }
 
 		bool HasFocus() const;
 
@@ -56,6 +55,6 @@ namespace MAD
 		static bool s_bWasResized;
 		static bool s_bIsMinimized;
 
-		HWND hWnd;
+		HWND m_hWnd;
 	};
 }

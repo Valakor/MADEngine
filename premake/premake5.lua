@@ -1,3 +1,7 @@
+require("premake-qt/qt")
+
+local qt = premake.extensions.qt;
+
 workspace "MAD"
 	location "../projects"
 	language "C++"
@@ -107,6 +111,17 @@ function useDirectXTK()
 	filter { }
 end
 
+function useQT()
+	qt.enable();
+	qtpath "$(QTDIR)"
+	qtgenerateddir "../projects/AngerManagement/GeneratedFiles"
+	qtprefix "Qt5"
+	qtmodules { "core", "gui", "widgets" }
+	filter { "configurations:Debug"}
+		qtsuffix "d"
+	filter {}
+end
+
 function commonSetup()
 	rtti "Off"
 	warnings "Extra"
@@ -120,27 +135,40 @@ function commonSetup()
 	useYojimbo()
 end
 
-project "engine"
-	location "../projects/engine"
+project "Engine"
+	location "../projects/Engine"
 	kind "StaticLib"
-	files "../projects/engine/src/**"
-	includedirs { "../projects/engine/src/include" }
+	files { "../projects/Engine/src/**", "../projects/Assets/engine/shaders/**", "../projects/Assets/engine/worlds/**" }
+	includedirs { "../projects/Engine/src/include" }
 	pchheader "stdafx.h"
-	pchsource "../projects/engine/src/private/stdafx.cpp"
+	pchsource "../projects/Engine/src/private/stdafx.cpp"
 	forceincludes { "stdafx.h" }
 	commonSetup()
 
 function useEngine()
-	includedirs "../projects/engine/src/include"
-	links "engine"
+	includedirs "../projects/Engine/src/include"
+	links "Engine"
 end
 
-project "game"
-	location "../projects/game"
+project "AngerManagement"
+	location "../projects/AngerManagement"
 	kind "WindowedApp"
-	files "../projects/game/src/**"
+	files "../projects/AngerManagement/src/**"
+	useQT()
+	includedirs { "../projects/AngerManagement/src" } -- self inclusion so that the auto-gen Qt files can refer to custom widget headers
+	useEngine()
+	-- Figure if there is a way of specifying the AngerManagement project to inherit include directories from the Engine project (?)
+	commonSetup()
+
+	defines { "_EDITOR" }
+	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" \"%{prj.name}\" \"$(TargetDir)\" \"$(SolutionDir)\"" }
+
+project "Game"
+	location "../projects/Game"
+	kind "WindowedApp"
+	files "../projects/Game/src/**"
 	commonSetup()
 	useEngine()
 	entrypoint "mainCRTStartup"
 
-	postbuildcommands { "if not exist $(TargetDir)assets mklink /J $(TargetDir)assets $(SolutionDir)assets" }
+	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" \"%{prj.name}\" \"$(TargetDir)\" \"$(SolutionDir)\"" }

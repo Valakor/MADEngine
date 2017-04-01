@@ -193,6 +193,7 @@ namespace MAD
 		{
 			SetVertexConstantBuffer(m_constantBuffers[i], i);
 			SetPixelConstantBuffer(m_constantBuffers[i], i);
+			SetGeometryConstantBuffer(m_constantBuffers[i], i);
 		}
 
 #ifdef _DEBUG
@@ -378,6 +379,7 @@ namespace MAD
 		return hr == S_OK;
 	}
 
+	// TOOD: Make Create___Shader a template function
 	VertexShaderPtr_t UGraphicsDriver::CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode)
 	{
 		VertexShaderPtr_t vertexShaderPtr;
@@ -394,6 +396,15 @@ namespace MAD
 		DX_HRESULT(g_d3dDevice->CreatePixelShader(inCompiledPSByteCode.data(), inCompiledPSByteCode.size(), nullptr, pixelShaderPtr.GetAddressOf()), "Failure Creating Pixel Shader from Compiled Shader Code");
 
 		return pixelShaderPtr;
+	}
+
+	GeometryShaderPtr_t UGraphicsDriver::CreateGeometryShader(const eastl::vector<char>& inCompiledGSByteCode)
+	{
+		GeometryShaderPtr_t geometryShaderPtr;
+
+		DX_HRESULT(g_d3dDevice->CreateGeometryShader(inCompiledGSByteCode.data(), inCompiledGSByteCode.size(), nullptr, geometryShaderPtr.GetAddressOf()), "Failure Creating Geometry Shader from Compiled Shader Code");
+
+		return geometryShaderPtr;
 	}
 
 	RenderTargetPtr_t UGraphicsDriver::CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, ShaderResourcePtr_t* outOptionalShaderResource) const
@@ -545,14 +556,14 @@ namespace MAD
 		return depthStencil;
 	}
 
-	DepthStencilStatePtr_t UGraphicsDriver::CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc) const
+	DepthStencilStatePtr_t UGraphicsDriver::CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc, D3D11_DEPTH_WRITE_MASK inDepthWriteMask) const
 	{
 		D3D11_DEPTH_STENCIL_DESC stateDesc;
 		MEM_ZERO(stateDesc);
 
 		// Depth test parameters
 		stateDesc.DepthEnable = inDepthTestEnable;
-		stateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		stateDesc.DepthWriteMask = inDepthWriteMask;
 		stateDesc.DepthFunc = inComparisonFunc;
 
 		// Stencil test parameters
@@ -611,7 +622,7 @@ namespace MAD
 		return depthRasterizerStatePtr;
 	}
 
-	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend) const
+	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend, D3D11_BLEND inDestBlend, D3D11_BLEND_OP inBlendOp, D3D11_BLEND inSrcAlphaBlend, D3D11_BLEND inDestAlphaBlend, D3D11_BLEND_OP inAlphaBlendOp) const
 	{
 		D3D11_BLEND_DESC1 blendDesc;
 		MEM_ZERO(blendDesc);
@@ -619,12 +630,12 @@ namespace MAD
 		blendDesc.IndependentBlendEnable = FALSE;
 		blendDesc.RenderTarget[0].BlendEnable = inEnableBlend;
 		blendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlend = inSrcBlend;
+		blendDesc.RenderTarget[0].DestBlend = inDestBlend;
+		blendDesc.RenderTarget[0].BlendOp = inBlendOp;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = inSrcAlphaBlend;
+		blendDesc.RenderTarget[0].DestBlendAlpha = inDestAlphaBlend;
+		blendDesc.RenderTarget[0].BlendOpAlpha = inAlphaBlendOp;
 		blendDesc.RenderTarget[0].LogicOp = D3D11_LOGIC_OP_NOOP;
 		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
@@ -659,7 +670,8 @@ namespace MAD
 
 	BufferPtr_t UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags, UINT inCPUAccessFlags) const
 	{
-		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial vertex data");
+		MAD_ASSERT_DESC(inData || (!inData && inUsageFlags != D3D11_USAGE_IMMUTABLE) , "Must specify initial vertex data if immutable usage, optional otherwise");
+
 		return CreateBuffer(inData, inDataSize, inUsageFlags, D3D11_BIND_VERTEX_BUFFER, inCPUAccessFlags);
 	}
 
@@ -763,10 +775,10 @@ namespace MAD
 		g_d3dDeviceContext->IASetPrimitiveTopology(inPrimitiveTopology);
 	}
 
-	void UGraphicsDriver::SetVertexBuffer(BufferPtr_t inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
+	void UGraphicsDriver::SetVertexBuffer(BufferPtr_t inVertexBuffer, VertexBufferSlotType_t inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
 	{
 		UINT byteOffset = inVertexOffset * inVertexSize;
-		g_d3dDeviceContext->IASetVertexBuffers(AsIntegral(inVertexSlot), 1, inVertexBuffer.GetAddressOf(), &inVertexSize, &byteOffset);
+		g_d3dDeviceContext->IASetVertexBuffers(inVertexSlot, 1, inVertexBuffer.GetAddressOf(), &inVertexSize, &byteOffset);
 	}
 
 	void UGraphicsDriver::SetIndexBuffer(BufferPtr_t inIndexBuffer, UINT inIndexOffset) const
@@ -779,6 +791,18 @@ namespace MAD
 		MAD_ASSERT_DESC(inVertexShader, "Invalid vertex shader");
 
 		g_d3dDeviceContext->VSSetShader(inVertexShader.Get(), nullptr, 0);
+	}
+
+	void UGraphicsDriver::SetGeometryShader(GeometryShaderPtr_t inGeometryShader) const
+	{
+		// No need for nullptr check becuase you can safely set the geometry shader to null
+		g_d3dDeviceContext->GSSetShader(inGeometryShader.Get(), nullptr, 0);
+	}
+
+	void UGraphicsDriver::SetPixelShader(PixelShaderPtr_t inPixelShader) const
+	{
+		// No need for nullptr check because you can safely set the pixel shader to null
+		g_d3dDeviceContext->PSSetShader(inPixelShader.Get(), nullptr, 0);
 	}
 
 	void UGraphicsDriver::SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const
@@ -797,10 +821,20 @@ namespace MAD
 		g_d3dDeviceContext->VSSetConstantBuffers1(inSlot, 1, inBuffer.GetAddressOf(), &inOffset, &inLength);
 	}
 
-	void UGraphicsDriver::SetPixelShader(PixelShaderPtr_t inPixelShader) const
+	void UGraphicsDriver::SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const
 	{
-		// No need for nullptr check because you can safely set the pixel shader to null
-		g_d3dDeviceContext->PSSetShader(inPixelShader.Get(), nullptr, 0);
+		g_d3dDeviceContext->GSSetConstantBuffers(inSlot, 1, inBuffer.GetAddressOf());
+	}
+
+	void UGraphicsDriver::SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const
+	{
+		MAD_ASSERT_DESC(inOffset % 16 == 0, "Offset into constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
+		MAD_ASSERT_DESC(inLength % 16 == 0, "Length of used constant buffer must be divisible by 16 (as it is measured in # of shader constants)");
+
+		inOffset /= 16;
+		inLength /= 16;
+
+		g_d3dDeviceContext->GSSetConstantBuffers1(inSlot, 1, inBuffer.GetAddressOf(), &inOffset, &inLength);
 	}
 
 	void UGraphicsDriver::SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const

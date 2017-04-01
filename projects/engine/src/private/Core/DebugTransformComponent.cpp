@@ -1,5 +1,5 @@
 #include "Core/DebugTransformComponent.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Core/GameEngine.h"
 #include "Rendering/Renderer.h"
 
@@ -12,10 +12,12 @@ namespace MAD
 	{
 	}
 
-	void CDebugTransformComponent::Load(const UGameWorldLoader& inLoader)
+	void CDebugTransformComponent::Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
 	{
-		inLoader.GetBool("enabled", m_isEnabled);
-		inLoader.GetFloat("debug_scale", m_debugScale);
+		UNREFERENCED_PARAMETER(inLoader);
+
+		inPropertyObj.GetProperty("enabled", m_isEnabled);
+		inPropertyObj.GetProperty("debug_scale", m_debugScale);
 
 		// Generate the vertex buffers
 		PopulateTransformVertexArrays();

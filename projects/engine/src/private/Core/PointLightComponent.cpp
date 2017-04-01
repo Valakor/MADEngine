@@ -1,7 +1,7 @@
 #include "Core/PointLightComponent.h"
 #include "Rendering/Renderer.h"
 #include "Core/GameEngine.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 
 namespace MAD
 {
@@ -27,12 +27,15 @@ namespace MAD
 		}
 	}
 
-	void CPointLightComponent::Load(const UGameWorldLoader& inLoader)
+	void CPointLightComponent::Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
 	{
-		inLoader.GetBool("enabled", m_pointLight.m_isLightEnabled);
-		inLoader.GetColor("color", m_pointLight.m_gpuPointLight.m_lightColor);
-		inLoader.GetFloat("intensity", m_pointLight.m_gpuPointLight.m_lightIntensity);
-		inLoader.GetFloat("innerRadius", m_pointLight.m_gpuPointLight.m_lightInnerRadius);
-		inLoader.GetFloat("outerRadius", m_pointLight.m_gpuPointLight.m_lightOuterRadius);
+		UNREFERENCED_PARAMETER(inLoader);
+
+		inPropertyObj.GetProperty("enabled", m_pointLight.m_isLightEnabled);
+		inPropertyObj.GetProperty("color", m_pointLight.m_gpuPointLight.m_lightColor);
+		inPropertyObj.GetProperty("intensity", m_pointLight.m_gpuPointLight.m_lightIntensity);
+		inPropertyObj.GetProperty("innerRadius", m_pointLight.m_gpuPointLight.m_lightInnerRadius);
+		inPropertyObj.GetProperty("outerRadius", m_pointLight.m_gpuPointLight.m_lightOuterRadius);
 	}
+
 }

@@ -157,6 +157,7 @@ namespace MAD
 
 		void UnBindObject(void* inObj);
 
+		bool HasFocus() const { return !bIgnoreInput; }
 	private:
 		UGameInput();
 

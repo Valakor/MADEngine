@@ -1,6 +1,6 @@
 #include "Core/DirectionalLightComponent.h"
 #include "Core/GameEngine.h"
-#include "Core/GameWorldLoader.h"
+#include "Core/Pipeline/GameWorldLoader.h"
 #include "Rendering/Renderer.h"
 
 namespace MAD
@@ -23,12 +23,14 @@ namespace MAD
 		}
 	}
 
-	void CDirectionalLightComponent::Load(const UGameWorldLoader& inLoader)
+	void CDirectionalLightComponent::Load(const class UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
 	{
-		inLoader.GetBool("enabled", m_directionalLight.m_isLightEnabled);
-		inLoader.GetColor("color", m_directionalLight.m_gpuDirectionalLight.m_lightColor);
-		inLoader.GetVector("direction", m_directionalLight.m_gpuDirectionalLight.m_lightDirection);
-		inLoader.GetFloat("intensity", m_directionalLight.m_gpuDirectionalLight.m_lightIntensity);
+		UNREFERENCED_PARAMETER(inLoader);
+
+		inPropertyObj.GetProperty("enabled", m_directionalLight.m_isLightEnabled);
+		inPropertyObj.GetProperty("color", m_directionalLight.m_gpuDirectionalLight.m_lightColor);
+		inPropertyObj.GetProperty("direction", m_directionalLight.m_gpuDirectionalLight.m_lightDirection);
+		inPropertyObj.GetProperty("intensity", m_directionalLight.m_gpuDirectionalLight.m_lightIntensity);
 
 		m_directionalLight.m_gpuDirectionalLight.m_lightDirection.Normalize();
 	}

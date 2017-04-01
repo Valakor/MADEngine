@@ -33,15 +33,16 @@ namespace MAD
 
 		VertexShaderPtr_t CreateVertexShader(const eastl::vector<char>& inCompiledVSByteCode);
 		PixelShaderPtr_t CreatePixelShader(const eastl::vector<char>& inCompiledPSByteCode);
+		GeometryShaderPtr_t CreateGeometryShader(const eastl::vector<char>& inCompiledGSByteCode);
 
 		RenderTargetPtr_t CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
 		DepthStencilPtr_t CreateDepthStencil(int inWidth, int inHeight, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
-		DepthStencilStatePtr_t CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc) const;
+		DepthStencilStatePtr_t CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc, D3D11_DEPTH_WRITE_MASK inDepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL) const;
 		RasterizerStatePtr_t CreateRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 		RasterizerStatePtr_t CreateDepthRasterizerState() const;
-		BlendStatePtr_t CreateBlendState(bool inEnableBlend) const;
+		BlendStatePtr_t CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend = D3D11_BLEND_ONE, D3D11_BLEND inDestBlend = D3D11_BLEND_ONE, D3D11_BLEND_OP inBlendOp = D3D11_BLEND_OP_ADD, D3D11_BLEND inSrcAlphaBlend = D3D11_BLEND_ONE, D3D11_BLEND inDestAlphaBlend = D3D11_BLEND_ZERO, D3D11_BLEND_OP inAlphaBlendOp = D3D11_BLEND_OP_ADD) const;
 
 		BufferPtr_t CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags = D3D11_USAGE_IMMUTABLE, UINT inCPUAccessFlags = 0) const;
 		BufferPtr_t CreateIndexBuffer(const void* inData, UINT inDataSize) const;
@@ -53,9 +54,10 @@ namespace MAD
 		void SetViewport(float inX, float inY, float inWidth, float inHeight) const;
 		void SetInputLayout(InputLayoutPtr_t inInputLayout) const;
 		void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY inPrimitiveTopology) const;
-		void SetVertexBuffer(BufferPtr_t inVertexBuffer, EVertexBufferSlot inVertexSlot, UINT inVertexSize, UINT inVertexIndexOffset) const;
+		void SetVertexBuffer(BufferPtr_t inVertexBuffer, VertexBufferSlotType_t inVertexSlot, UINT inVertexSize, UINT inVertexIndexOffset) const;
 		void SetIndexBuffer(BufferPtr_t inIndexBuffer, UINT inIndexOffset) const;
 		void SetVertexShader(VertexShaderPtr_t inVertexShader) const;
+		void SetGeometryShader(GeometryShaderPtr_t inGeometryShader) const;
 		void SetPixelShader(PixelShaderPtr_t inPixelShader) const;
 		void SetPixelShaderResource(ShaderResourcePtr_t inShaderResource, ETextureSlot inSlot) const;
 		void SetRasterizerState(RasterizerStatePtr_t inRasterizerState) const;
@@ -108,6 +110,8 @@ namespace MAD
 		void SetVertexConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
 		void SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const;
 		void SetPixelConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
+		void SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot) const;
+		void SetGeometryConstantBuffer(BufferPtr_t inBuffer, UINT inSlot, UINT inOffset, UINT inLength) const;
 		void SetPixelShaderResource(ShaderResourcePtr_t inShaderResource, UINT inSlot) const;
 
 		RenderTargetPtr_t m_backBuffer;

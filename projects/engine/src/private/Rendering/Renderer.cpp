@@ -7,6 +7,7 @@
 #include "Misc/Logging.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/InputLayoutCache.h"
+#include "Rendering/ParticleSystem/ParticleSystem.h"
 
 namespace MAD
 {
@@ -39,6 +40,35 @@ namespace MAD
 		auto clientSize = inWindow.GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
 
+		InitializeRenderPasses();
+		InitializeDebugGrid(6);
+
+		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
+
+		LOG(LogRenderer, Log, "Renderer initialization successful\n");
+		return true;
+	}
+
+	void URenderer::OnScreenSizeChanged()
+	{
+		auto newSize = m_window->GetClientSize();
+		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
+
+		SetViewport(newSize.x, newSize.y);
+
+		InitializeRenderPasses();
+
+		m_textBatchRenderer.OnScreenSizeChanged();
+
+		m_backBuffer.Reset(); // When we resize the window, we need to make sure we release all references to the back buffer (the graphics driver and renderer both have a reference)
+
+		g_graphicsDriver.OnScreenSizeChanged();
+
+		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
+	}
+
+	void URenderer::InitializeRenderPasses()
+	{
 		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
 		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
 		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
@@ -47,13 +77,6 @@ namespace MAD
 
 		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
 		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-
-		InitializeDebugGrid(6);
-
-		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
-
-		LOG(LogRenderer, Log, "Renderer initialization successful\n");
-		return true;
 	}
 
 	void URenderer::Shutdown()
@@ -136,6 +159,11 @@ namespace MAD
 		m_textBatchRenderer.BatchTextInstance(inSourceString, inScreenX, inScreenY);
 	}
 
+	UParticleSystem* URenderer::SpawnParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams)
+	{
+		return m_particleSystemManager.ActivateParticleSystem(inSpawnParams, inEmitterParams);
+	}
+
 	void URenderer::ClearRenderItems()
 	{
 		m_currentStateIndex = 1 - m_currentStateIndex;
@@ -148,28 +176,7 @@ namespace MAD
 		m_queuedPointLights[m_currentStateIndex].clear();
 	}
 
-	void URenderer::OnScreenSizeChanged()
-	{
-		auto newSize = m_window->GetClientSize();
-		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
-
-		g_graphicsDriver.OnScreenSizeChanged();
-
-		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
-		InitializeTextRenderPass("engine\\shaders\\RenderDebugText.hlsl");
-
-		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-
-		SetViewport(newSize.x, newSize.y);
-
-		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
-	}
-
-	void URenderer::Frame(float framePercent)
+	void URenderer::Frame(float inFramePercent, float inFrameTime)
 	{
 		m_frame++;
 		MAD_ASSERT_DESC(m_frame != eastl::numeric_limits<decltype(m_frame)>::max(), "");
@@ -179,7 +186,7 @@ namespace MAD
 		if (m_frame > 0)
 		{
 			// We need at least one frame's worth of buffer for state interpolation
-			Draw(framePercent);
+			Draw(inFramePercent, inFrameTime);
 		}
 		
 		EndFrame();
@@ -450,10 +457,12 @@ namespace MAD
 		g_graphicsDriver.EndEventGroup();
 	}
 
-	void URenderer::Draw(float inFramePercent)
+	void URenderer::Draw(float inFramePercent, float inFrameTime)
 	{
 		// Bind per-frame constants
 		CalculateCameraConstants(inFramePercent);
+		m_perFrameConstants.m_gameTime = gEngine->GetGameTime();
+		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
@@ -496,11 +505,13 @@ namespace MAD
 		// Always draw text as the last pass (WARNING, if we ever get to post processing effects, need to move this after the post processing)
 		m_textRenderPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
-
-		DrawOnScreenText("-------------------------------", 25, 125);
-		DrawOnScreenText(eastl::string("Text Batch Size: ").append(eastl::to_string(m_textBatchRenderer.GetBatchSize())), 25, 150);
-
 		m_textBatchRenderer.FlushBatch();
+
+		g_graphicsDriver.StartEventGroup(L"Particle Systems");
+
+		m_particleSystemManager.UpdateParticleSystems(inFrameTime);
+
+		g_graphicsDriver.EndEventGroup();
 	}
 
 	void URenderer::EndFrame()
@@ -695,15 +706,20 @@ namespace MAD
 			lightMinPosHS = Vector4::Transform(lightMinPosHS, m_perFrameConstants.m_cameraProjectionMatrix);
 			lightMaxPosHS = Vector4::Transform(lightMaxPosHS, m_perFrameConstants.m_cameraProjectionMatrix);
 
-			// Perspective divide from clip into NDC space
-			lightMinPosHS /= lightMinPosHS.w;
-			lightMaxPosHS /= lightMaxPosHS.w;
+			// Check for zero w value because for points that at the same z-position as the camera, they will
+			// lead to a 0 w-value (in viewspace) since the projection value produces a w value equal to -z
+			if (lightMinPosHS.w != 0.0f && lightMaxPosHS.w != 0.0f)
+			{
+				// Perspective divide from clip into NDC space
+				lightMinPosHS /= lightMinPosHS.w;
+				lightMaxPosHS /= lightMaxPosHS.w;
 
-			MAD_ASSERT_DESC(FloatEqual(lightMinPosHS.w, 1.0f), "Light min extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
-			MAD_ASSERT_DESC(FloatEqual(lightMaxPosHS.w, 1.0f), "Light max extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
+				MAD_ASSERT_DESC(FloatEqual(lightMinPosHS.w, 1.0f), "Light min extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
+				MAD_ASSERT_DESC(FloatEqual(lightMaxPosHS.w, 1.0f), "Light max extent NDC position doesn't have a 1.0f w component, matrix transformation is incorrect!\n");
 
-			// Light quad extents are in NDC
-			g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
+				// Light quad extents are in NDC
+				g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
+			}
 
 			g_graphicsDriver.EndEventGroup();
 		}

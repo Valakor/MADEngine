@@ -11,7 +11,7 @@ namespace MAD
 	public:
 		explicit CDirectionalLightComponent(OGameWorld* inOwningWorld);
 
-		virtual void Load(const class UGameWorldLoader& inLoader) override;
+		virtual void Load(const class UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 
 	private:

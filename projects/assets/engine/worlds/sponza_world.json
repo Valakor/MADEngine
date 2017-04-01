@@ -64,6 +64,90 @@
 					"existingComponents": [
 
 					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Fire Particles Entity",
+					"newComponents": [
+						{
+							"type": "CParticleSystemComponent",
+							"position": [0.0, 150.0, 0.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 20,
+										"emit_object": {
+											"property1": "hello",
+											"property2": "world"
+										},
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties":{
+								"enabled": false,
+								"speed": 2.5,
+								"distance": 100.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Rain Particles Entity",
+					"newComponents": [
+						{
+							"type": "CParticleSystemComponent",
+							"position": [0.0, 250.0, 0.0],
+							"properties": {
+								"name": "Rain Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPURain.hlsl",
+								"emitters": [
+									{
+										"emit_rate": 150,
+										"emit_object": {
+											"property1": "hello",
+											"property2": "world"
+										},
+										"emit_duration": -1.0
+									},
+									{
+										"emit_rate": 15,
+										"emit_object": {
+											"property1": "derek",
+											"property2": "truong",
+											"propertyList": [
+												{
+													"propertyA": [15.0, 5.0, 1.0],
+													"propertyB": "propertyB"
+												},
+												{
+													"propertyA": [-1.0, -34.5, 11.2],
+													"propertyB": "propertyB"
+												}
+											]
+										},
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties":{
+								"enabled": false,
+								"speed": 2.5,
+								"distance": 100.0
+							}
+						}
+					]
 				}
 			]
 		}

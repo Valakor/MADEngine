@@ -12,13 +12,18 @@ namespace MAD
 	{
 		m_textFontFamily = UFontFamily::Load(inFontRelativePath);
 
-		const POINT clientScreenSize = URenderContext::GetRenderer().GetScreenSize();
-
-		m_textProjectionMatrix = Matrix::CreateOrthographic(clientScreenSize.x, clientScreenSize.y, -0.1f, 1.0f); // Negative near plane because text will have a 0.0f z value
+		OnScreenSizeChanged();
 
 		InitializeTextVertexBuffers(inInitialNumChars);
 
 		m_isBatchRendererEnabled = true;
+	}
+
+	void UTextBatchRenderer::OnScreenSizeChanged()
+	{
+		const POINT clientScreenSize = URenderContext::GetRenderer().GetScreenSize();
+
+		m_textProjectionMatrix = Matrix::CreateOrthographic(clientScreenSize.x, clientScreenSize.y, -0.1f, 1.0f); // Negative near plane because text will have a 0.0f z value
 	}
 
 	void UTextBatchRenderer::InitializeTextVertexBuffers(uint16_t inInitialNumChars)

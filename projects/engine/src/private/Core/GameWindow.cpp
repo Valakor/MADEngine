@@ -35,7 +35,8 @@ namespace MAD
 		ShowWindow(hWnd, SW_SHOW);
 		UpdateWindow(hWnd);
 
-		outGameWindow.hWnd = hWnd;
+		outGameWindow.m_hWnd = hWnd;
+
 		return true;
 	}
 
@@ -144,14 +145,14 @@ namespace MAD
 
 	bool UGameWindow::HasFocus() const
 	{
-		return GetFocus() == hWnd;
+		return GetFocus() == m_hWnd;
 	}
 
 	void UGameWindow::CaptureCursor(bool bCapture) const
 	{
 		if (bCapture)
 		{
-			SetCapture(hWnd);
+			SetCapture(m_hWnd);
 		}
 		else
 		{
@@ -162,14 +163,14 @@ namespace MAD
 	void UGameWindow::CenterCursor() const
 	{
 		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);
+		GetClientRect(m_hWnd, &clientRect);
 		auto clientWidth = clientRect.right - clientRect.left;
 		auto clientHeight = clientRect.bottom - clientRect.top;
 
 		POINT pt;
 		pt.x = clientWidth / 2;
 		pt.y = clientHeight / 2;
-		ClientToScreen(hWnd, &pt);
+		ClientToScreen(m_hWnd, &pt);
 		SetCursorPos(pt.x, pt.y);
 	}
 
@@ -177,7 +178,7 @@ namespace MAD
 	{
 		POINT pt;
 		::GetCursorPos(&pt);
-		ScreenToClient(hWnd, &pt);
+		ScreenToClient(m_hWnd, &pt);
 		return pt;
 	}
 
@@ -190,14 +191,14 @@ namespace MAD
 	POINT UGameWindow::GetClientSize() const
 	{
 		RECT rect;
-		GetClientRect(hWnd, &rect);
+		GetClientRect(m_hWnd, &rect);
 		return{ rect.right - rect.left, rect.bottom - rect.top };
 	}
 
 	eastl::string UGameWindow::GetWindowName() const
 	{
 		wchar_t title[128];
-		GetWindowTextW(hWnd, title, 128);
+		GetWindowTextW(m_hWnd, title, 128);
 
 		return utf8util::UTF8FromUTF16(title);
 	}
@@ -205,7 +206,7 @@ namespace MAD
 	void UGameWindow::SetWindowName(const eastl::string& inWindowName)
 	{
 		auto wWindowName = utf8util::UTF16FromUTF8(inWindowName);
-		SetWindowTextW(hWnd, wWindowName.c_str());
+		SetWindowTextW(m_hWnd, wWindowName.c_str());
 	}
 
 	//

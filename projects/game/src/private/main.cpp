@@ -1,13 +1,30 @@
 #include "Engine.h"
+#include "Core/GameWindow.h"
 
 int main()
 {
 	MAD::UGameEngine gameEngine;
-	if (!gameEngine.Init("A MAD Game", 1600, 900))
+	eastl::shared_ptr<MAD::UGameWindow> gameWindow = eastl::make_shared<MAD::UGameWindow>();
+
+	if (!MAD::UGameWindow::CreateGameWindow("A MAD Game", 1600, 900, *gameWindow))
+	{
+		return false;
+	}
+
+	if (!gameEngine.Init(gameWindow))
 	{
 		return 1;
 	}
 
-	gameEngine.Run();
+	// ================= Game Engine Main Loop ========================
+	gameEngine.ExecuteEngineTests();
+
+	while (gameEngine.IsRunning())
+	{
+		gameEngine.Tick();
+	}
+
+	gameEngine.GetWindow().CaptureCursor(false);
+
 	return 0;
 }

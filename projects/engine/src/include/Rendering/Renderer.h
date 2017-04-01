@@ -14,6 +14,8 @@
 #include "Rendering/DepthTextureCube.h"
 #include "Rendering/TextBatchRenderer.h"
 
+#include "Rendering/ParticleSystem/ParticleSystemManager.h"
+
 namespace MAD
 {
 	class UGameWindow;
@@ -51,9 +53,11 @@ namespace MAD
 		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(1.0, 1.0, 1.0, 1.0));
 		void DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY);
 
+		class UParticleSystem* SpawnParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams);
+
 		void ClearRenderItems();
 
-		void Frame(float framePercent);
+		void Frame(float inFramePercent, float inFrameTime);
 
 		void OnScreenSizeChanged();
 
@@ -64,9 +68,13 @@ namespace MAD
 		void SetWorldAmbientColor(Color inColor);
 		void SetBackBufferClearColor(Color inColor);
 
+		// TODO Refactor the Renderer to allow for a better interface than this? Separate graphics sub-systems will need to be able to
+		// retrieve pass information (such as the g-buffer pass information)
+		const SRenderPassDescriptor& GetGBufferPassDescriptor() const { return m_gBufferPassDescriptor; }
 		class UGraphicsDriver& GetGraphicsDriver();
-		RasterizerStatePtr_t GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		const SPerFrameConstants& GetPerFrameConstants() const { return m_perFrameConstants; }
 
+		RasterizerStatePtr_t GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
 		void ToggleTextBatching();
@@ -74,6 +82,8 @@ namespace MAD
 		POINT GetScreenSize() const;
 	private:
 		// TODO: Eventually be able to initiliaze/load them from file
+		void InitializeRenderPasses();
+
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
@@ -92,7 +102,7 @@ namespace MAD
 		void SetViewport(LONG inWidth, LONG inHeight);
 
 		void BeginFrame();
-		void Draw(float inFramePercent);
+		void Draw(float inFramePercent, float inFrameTime);
 		void EndFrame();
 
 		void ClearExpiredDebugDrawItems();
@@ -138,6 +148,7 @@ namespace MAD
 		eastl::unique_ptr<UDepthTextureCube> m_depthTextureCube;
 
 		UTextBatchRenderer m_textBatchRenderer;
+		UParticleSystemManager m_particleSystemManager; // Use defaults for now
 
 		EVisualizeOptions m_visualizeOption;
 	};
