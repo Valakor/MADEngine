@@ -6,14 +6,10 @@
 
 #include "Misc/utf8conv.h"
 
-#include <stdlib.h>
-#include <time.h>
-
 namespace MAD
 {
 	UParticleSystemManager::UParticleSystemManager() : m_firstInactiveParticleSystem(0)
 	{
-		srand(time(nullptr));
 	}
 
 	void UParticleSystemManager::UpdateParticleSystems(float inDeltaTime)

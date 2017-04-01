@@ -33,6 +33,9 @@
 
 #include "Rendering/FontFamily.h"
 
+#include <stdlib.h>
+#include <time.h>
+
 using eastl::string;
 
 namespace MAD
@@ -127,6 +130,8 @@ namespace MAD
 
 	bool UBaseEngine::Init(eastl::shared_ptr<UGameWindow> inGameWindow)
 	{
+		srand(time(nullptr));
+
 		RegisterAllTypeInfos();
 		TTypeInfo::DumpTypeInfo();
 
