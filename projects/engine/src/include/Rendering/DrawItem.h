@@ -17,9 +17,7 @@ namespace MAD
 
 		void Draw(class UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride = eastl::numeric_limits<InputLayoutFlags_t>::max(), RasterizerStatePtr_t inRasterStateOverride = nullptr);
 
-		// Used for renderer state ping-ponging for interpolating state
-		size_t m_uniqueID;
-		ULinearTransform* m_previousDrawTransform;
+		InputLayoutPtr_t m_inputLayout;
 
 		eastl::vector<UVertexArray> m_vertexBuffers;
 		UINT m_vertexCount;
@@ -29,15 +27,16 @@ namespace MAD
 		UINT m_indexOffset;
 		UINT m_indexCount;
 
-		ULinearTransform m_transform;
+		EPrimitiveTopology m_primitiveTopology;
+		RasterizerStatePtr_t m_rasterizerState;
 
+		// Used for renderer state ping-ponging for interpolating state
+		size_t m_uniqueID;
+		ULinearTransform* m_previousDrawTransform;
+		ULinearTransform m_transform;
 		eastl::vector<eastl::pair<EConstantBufferSlot, eastl::pair<const void*, UINT>>> m_constantBufferData;
 		eastl::vector<eastl::pair<ETextureSlot, ShaderResourcePtr_t>> m_shaderResources;
 
-		InputLayoutPtr_t m_inputLayout;
 
-		EPrimitiveTopology m_primitiveTopology;
-
-		RasterizerStatePtr_t m_rasterizerState;
 	};
 }
