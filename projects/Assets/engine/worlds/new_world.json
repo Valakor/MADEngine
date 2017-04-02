@@ -109,7 +109,7 @@
 						{
 							"type": "CMeshComponent",
 							"position": [0.0, 0.0, 0.0],
-							"scale": 100.0,
+							"scale": 25.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\wooden_floor\\floor.obj"
@@ -196,7 +196,7 @@
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
-							"position": [0.0, 150.0, 0.0],
+							"position": [0.0, 50.0, 0.0],
 							"properties": {
 								"enabled": true,
 								"name": "Fire Effect",
@@ -226,7 +226,7 @@
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
-							"position": [150.0, 150.0, 0.0],
+							"position": [150.0, 50.0, 0.0],
 							"properties": {
 								"enabled": true,
 								"name": "Fire Effect",
@@ -248,7 +248,7 @@
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
-							"position": [-150.0, 150.0, 0.0],
+							"position": [-150.0, 50.0, 0.0],
 							"properties": {
 								"enabled": true,
 								"name": "Fire Effect",
@@ -270,7 +270,7 @@
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
-							"position": [0.0, 150.0, 150.0],
+							"position": [0.0, 50.0, 150.0],
 							"properties": {
 								"enabled": true,
 								"name": "Fire Effect",
@@ -292,7 +292,7 @@
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
-							"position": [0.0, 150.0, -150.0],
+							"position": [0.0, 50.0, -150.0],
 							"properties": {
 								"enabled": true,
 								"name": "Fire Effect",
@@ -314,7 +314,7 @@
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
-							"position": [150.0, 150.0, 150.0],
+							"position": [150.0, 50.0, 150.0],
 							"properties": {
 								"enabled": true,
 								"name": "Fire Effect",
@@ -336,7 +336,7 @@
 					"newComponents": [
 						{
 							"type": "CParticleSystemComponent",
-							"position": [-150.0, 150.0, -150.0],
+							"position": [-150.0, 50.0, -150.0],
 							"properties": {
 								"enabled": true,
 								"name": "Fire Effect",
