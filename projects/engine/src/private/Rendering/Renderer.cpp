@@ -141,7 +141,6 @@ namespace MAD
 		SDrawItem lineDrawItem;
 
 		lineDrawItem.m_transform = ULinearTransform(); // Start with identity
-		lineDrawItem.m_drawCommand = EDrawCommand::VertexDraw;
 		lineDrawItem.m_rasterizerState = m_debugPassDescriptor.m_rasterizerState;
 		lineDrawItem.m_primitiveTopology = EPrimitiveTopology::LineList;
 		lineDrawItem.m_vertexCount = 2;

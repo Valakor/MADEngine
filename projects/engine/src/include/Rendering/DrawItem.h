@@ -11,14 +11,6 @@
 
 namespace MAD
 {
-	enum class EDrawCommand : uint8_t
-	{
-		VertexDraw, // Vertex Buffer
-		IndexedDraw, // Index Buffer
-
-		MAX
-	};
-
 	struct SDrawItem
 	{
 		SDrawItem();
@@ -47,7 +39,5 @@ namespace MAD
 		EPrimitiveTopology m_primitiveTopology;
 
 		RasterizerStatePtr_t m_rasterizerState;
-
-		EDrawCommand m_drawCommand;
 	};
 }

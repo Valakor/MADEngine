@@ -43,7 +43,6 @@ namespace MAD
 
 		transformDrawItem.m_transform = GetWorldTransform();
 		transformDrawItem.m_primitiveTopology = EPrimitiveTopology::LineList;
-		transformDrawItem.m_drawCommand = EDrawCommand::VertexDraw;
 
 		gEngine->GetRenderer().QueueDebugDrawItem(transformDrawItem);
 	}

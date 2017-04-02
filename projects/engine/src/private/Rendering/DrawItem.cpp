@@ -10,10 +10,9 @@ namespace MAD
 		, m_previousDrawTransform(nullptr)
 		, m_vertexBufferOffset(0)
 		, m_vertexCount(0)
-	    , m_indexOffset(0)
-	    , m_indexCount(0)
-	    , m_primitiveTopology(EPrimitiveTopology::Undefined)
-	    , m_drawCommand(EDrawCommand::IndexedDraw) { } // TODO Rethink the default draw command later
+		, m_indexOffset(0)
+		, m_indexCount(0)
+		, m_primitiveTopology(EPrimitiveTopology::Undefined) {}
 
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, RasterizerStatePtr_t inRasterStateOverride)
 	{
@@ -75,14 +74,13 @@ namespace MAD
 
 		inGraphicsDriver.SetPrimitiveTopology(m_primitiveTopology);
 
-		switch (m_drawCommand)
+		if (m_indexCount > 0)
 		{
-		case EDrawCommand::VertexDraw:
-			inGraphicsDriver.Draw(m_vertexCount, 0);
-			break;
-		case EDrawCommand::IndexedDraw:
 			inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
-			break;
+		}
+		else
+		{
+			inGraphicsDriver.Draw(m_vertexCount, 0);
 		}
 	}
 }
