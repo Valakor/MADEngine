@@ -55,10 +55,7 @@ namespace MAD
 		NormalBuffer,
 		SpecularBuffer,
 		DepthBuffer,
-		ShadowMap,
-		ShadowCube,
-
-		FontMap,
+		CubeMap,
 
 		MAX
 	};

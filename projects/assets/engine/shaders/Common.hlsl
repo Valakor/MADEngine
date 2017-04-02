@@ -75,24 +75,21 @@ cbuffer CBPerDrawConstants : register(b5)
 	float4x4 g_objectToProjectionMatrix;
 };
 
-SamplerState g_pointSampler			: register(s0);
-SamplerState g_linearSampler		: register(s1);
-SamplerState g_trilinearSampler		: register(s2);
-SamplerState g_anisotropicSampler	: register(s3);
-SamplerComparisonState g_shadowMapSampler : register(s4);
+SamplerState g_pointSampler					: register(s0);
+SamplerState g_linearSampler				: register(s1);
+SamplerState g_trilinearSampler				: register(s2);
+SamplerState g_anisotropicSampler			: register(s3);
+SamplerComparisonState g_shadowMapSampler	: register(s4);
 
-Texture2D g_diffuseMap	: register(t0);
-Texture2D g_specularMap	: register(t1);
-Texture2D g_emissiveMap	: register(t2);
-Texture2D g_opacityMask : register(t3);
-Texture2D g_normalMap   : register(t4);
+Texture2D	g_diffuseMap		: register(t0);
+Texture2D	g_specularMap		: register(t1);
+Texture2D	g_emissiveMap		: register(t2);
+Texture2D	g_opacityMask		: register(t3);
+Texture2D	g_normalMap			: register(t4);
 
-Texture2D g_lightingBuffer	: register(t5);
-Texture2D g_diffuseBuffer	: register(t6);
-Texture2D g_normalBuffer	: register(t7);
-Texture2D g_specularBuffer	: register(t8);
-Texture2D g_depthBuffer		: register(t9);
-Texture2D g_shadowMap		: register(t10);
-TextureCube g_shadowCube	: register(t11);
-
-Texture2D g_fontMap		: register(t12);
+Texture2D	g_lightingBuffer	: register(t5);
+Texture2D	g_diffuseBuffer		: register(t6);
+Texture2D	g_normalBuffer		: register(t7);
+Texture2D	g_specularBuffer	: register(t8);
+Texture2D	g_depthBuffer		: register(t9);
+TextureCube g_cubeMap			: register(t10);

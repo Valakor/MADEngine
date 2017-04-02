@@ -99,7 +99,7 @@ float CalculateShadowFactor(float3 positionVS)
 		}
 	}
 	
-	return g_shadowCube.SampleCmpLevelZero(g_shadowMapSampler, sampleVec, calculatedDepth).r;
+	return g_cubeMap.SampleCmpLevelZero(g_shadowMapSampler, sampleVec, calculatedDepth).r;
 #else
 	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
 	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);
@@ -128,7 +128,7 @@ float CalculateShadowFactor(float3 positionVS)
 	[unroll]
 	for (int i = 0; i < 5; ++i)
 	{
-		shadowFactor += g_shadowMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy + offsets[i], positionLS.z).r;
+		shadowFactor += g_diffuseMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy + offsets[i], positionLS.z).r;
 	}
 
 	return shadowFactor / 5.0;

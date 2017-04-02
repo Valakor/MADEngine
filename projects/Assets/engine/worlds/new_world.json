@@ -22,6 +22,17 @@
 				{
 					"type": "ASceneCameraCharacter",
 					"name": "EditorCharacter",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, -350.0],
+							"scale": 150.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\sphere.obj"
+							}
+						}
+					],
 					"existingComponents": [
 						{
 							"type": "CCameraComponent",
@@ -44,7 +55,7 @@
 						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.86602540378, -0.17],
 								"intensity": 3.0
@@ -53,7 +64,7 @@
 						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.707107, -0.707107],
 								"intensity": 1.0
@@ -69,7 +80,7 @@
 							"type": "CPointLightComponent",
 							"position": [0.0, 175.0, 0.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"intensity": 15.0,
 								"innerRadius": 50.0,
@@ -173,7 +184,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, 0.0, 350.0],
+							"position": [0.0, 0.0, 150.0],
 							"rotation": [45.0, -90.0, 15.0],
 							"scale": 100.0,
 							"properties": {

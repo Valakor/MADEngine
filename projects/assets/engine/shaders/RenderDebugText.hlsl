@@ -29,5 +29,5 @@ PS_INPUT VS(VS_INPUT vsInput)
 
 float4 PS(PS_INPUT psInput) : SV_Target
 {
-	return g_fontMap.Sample(g_pointSampler, psInput.mTextUV);
+	return g_diffuseMap.Sample(g_pointSampler, psInput.mTextUV);
 }

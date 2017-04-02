@@ -558,7 +558,7 @@ namespace MAD
 	{
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred directional lighting");
 
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowMap);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 
 		m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DiffuseBuffer);
@@ -590,7 +590,7 @@ namespace MAD
 
 			// Render shadow map
 			g_graphicsDriver.StartEventGroup(L"Draw scene to shadow map");
-			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowMap);
+			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
 
@@ -605,7 +605,7 @@ namespace MAD
 
 			// Shading + lighting
 			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
-			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::ShadowMap);
+			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::DiffuseMap);
 			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 			g_graphicsDriver.DrawFullscreenQuad();
@@ -647,7 +647,7 @@ namespace MAD
 			memcpy(pointLightConstants.m_pointLightVPMatrices, shadowMapVPMatrices.data(), shadowMapVPMatrices.size() * sizeof(Matrix));
 
 			// Clear the resource slot for the texture cube
-			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowCube);
+			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::CubeMap);
 
 			m_pointShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_pointShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
@@ -676,7 +676,7 @@ namespace MAD
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 
 			// Bind the texture cube as shader resource
-			m_depthTextureCube->BindAsResource(ETextureSlot::ShadowCube);
+			m_depthTextureCube->BindAsResource(ETextureSlot::CubeMap);
 
 			// Transform the light's position into view space
 			pointLightConstants.m_pointLight.m_lightPosition = Vector3::Transform(pointLightConstants.m_pointLight.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);

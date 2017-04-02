@@ -80,7 +80,7 @@ namespace MAD
 		ComPtr<ID3D11DeviceContext> d3dDeviceContext = URenderContext::Get().GetGraphicsDriver().TEMPGetDeviceContext();
 
 		// If we're binding a cube side as a depth stencil view, we must unbind it as a shader resource
-		d3dDeviceContext->PSSetShaderResources(static_cast<UINT>(ETextureSlot::ShadowCube), 0, nullptr);
+		d3dDeviceContext->PSSetShaderResources(static_cast<UINT>(ETextureSlot::CubeMap), 0, nullptr);
 
 		// Clear the target depth stencil view
 		d3dDeviceContext->ClearDepthStencilView(m_textureCubeDSVs[inCubeSide].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);

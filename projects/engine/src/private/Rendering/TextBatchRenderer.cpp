@@ -124,7 +124,7 @@ namespace MAD
 
 		renderContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		renderContext->PSSetShaderResources(AsIntegral(ETextureSlot::FontMap), 1, m_textFontFamily->GetFontTextureResource().GetAddressOf());
+		renderContext->PSSetShaderResources(AsIntegral(ETextureSlot::DiffuseMap), 1, m_textFontFamily->GetFontTextureResource().GetAddressOf());
 
 		// Set the appropriate constant buffer values (for world-view-projection matrix)
 		updatedPerDrawContants.m_objectToProjectionMatrix = m_textProjectionMatrix;
@@ -136,7 +136,7 @@ namespace MAD
 
 		// Unbind the font map as a shader resource (just in case, there is another use for the texture slot)
 		ShaderResourcePtr_t nullShaderResource = nullptr;
-		renderContext->PSSetShaderResources(AsIntegral(ETextureSlot::FontMap), 1, nullShaderResource.GetAddressOf());
+		renderContext->PSSetShaderResources(AsIntegral(ETextureSlot::DiffuseMap), 1, nullShaderResource.GetAddressOf());
 
 		graphicsDriver.EndEventGroup();
 	}
