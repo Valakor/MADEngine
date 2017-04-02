@@ -11,7 +11,7 @@ namespace MAD
 	{ }
 
 	UVertexArray::UVertexArray(class UGraphicsDriver& inGraphicsDriver, VertexBufferSlotType_t inSlot, EInputLayoutSemantic::Type inSemantic,
-							   const void* inVertexData, uint32_t inVertexSize, uint32_t inVertexCount, D3D11_USAGE inUsage, UINT inCPUAccessFlag)
+							   const void* inVertexData, uint32_t inVertexSize, uint32_t inVertexCount, EResourceUsage inUsage, ECPUAccess inCPUAccessFlag)
 	{
 		m_vertexSize = inVertexSize;
 		m_bufferSize = inVertexSize * inVertexCount;

@@ -44,7 +44,7 @@ namespace MAD
 
 		InputLayoutPtr_t m_inputLayout;
 
-		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology;
+		EPrimitiveTopology m_primitiveTopology;
 
 		RasterizerStatePtr_t m_rasterizerState;
 

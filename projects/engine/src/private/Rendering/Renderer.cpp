@@ -143,7 +143,7 @@ namespace MAD
 		lineDrawItem.m_transform = ULinearTransform(); // Start with identity
 		lineDrawItem.m_drawCommand = EDrawCommand::VertexDraw;
 		lineDrawItem.m_rasterizerState = m_debugPassDescriptor.m_rasterizerState;
-		lineDrawItem.m_primitiveTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
+		lineDrawItem.m_primitiveTopology = EPrimitiveTopology::LineList;
 		lineDrawItem.m_vertexCount = 2;
 		lineDrawItem.m_vertexBufferOffset = 0; // No sub-meshes obviously
 
@@ -211,7 +211,7 @@ namespace MAD
 		g_graphicsDriver.DestroyDepthStencil(m_gBufferPassDescriptor.m_depthStencilView);
 		ShaderResourcePtr_t& depthBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 		m_gBufferPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(clientSize.x, clientSize.y, &depthBufferSRV);
-		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 
 		for (unsigned i = 0; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
 		{
@@ -244,13 +244,13 @@ namespace MAD
 	void URenderer::InitializeDirectionalLightingPass(const eastl::string& inDirLightingPassProgramPath)
 	{
 		m_dirLightingPassDescriptor.m_depthStencilView = nullptr;
-		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, EComparisonFunc::Always);
 
 		m_dirLightingPassDescriptor.m_renderTargets.clear();
 		m_dirLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 		m_dirLightingPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 
-		m_dirLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+		m_dirLightingPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Front);
 
 		m_dirLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inDirLightingPassProgramPath);
 
@@ -260,13 +260,13 @@ namespace MAD
 	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
 	{
 		m_pointLightingPassDescriptor.m_depthStencilView = nullptr;
-		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, EComparisonFunc::Always);
 
 		m_pointLightingPassDescriptor.m_renderTargets.clear();
 		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 		m_pointLightingPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 
-		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Front);
 
 		m_pointLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inLightingPassProgramPath);
 
@@ -287,7 +287,7 @@ namespace MAD
 		if (!m_debugPassDescriptor.m_rasterizerState)
 		{
 			// Since we only want to draw lines/points, our rasterizer state needs to rasterizer using wireframe
-			m_debugPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_WIREFRAME, D3D11_CULL_NONE);
+			m_debugPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::WireFrame, ECullMode::None);
 		}
 
 		m_debugPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
@@ -305,7 +305,7 @@ namespace MAD
 
 		if (!m_textRenderPassDescriptor.m_rasterizerState)
 		{
-			m_textRenderPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_NONE);
+			m_textRenderPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::None);
 		}
 
 		m_textRenderPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
@@ -316,7 +316,7 @@ namespace MAD
 	{
 		g_graphicsDriver.DestroyDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView);
 		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(4096, 4096, &m_shadowMapSRV);
-		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 
 		m_dirShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
 
@@ -333,7 +333,7 @@ namespace MAD
 		m_depthTextureCube = eastl::make_unique<UDepthTextureCube>(static_cast<uint16_t>(4096));
 
 		g_graphicsDriver.DestroyDepthStencil(m_pointShadowMappingPassDescriptor.m_depthStencilView);
-		m_pointShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+		m_pointShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 		m_pointShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
 
 		if (!m_pointShadowMappingPassDescriptor.m_rasterizerState)
@@ -891,11 +891,11 @@ namespace MAD
 		return g_graphicsDriver;
 	}
 
-	RasterizerStatePtr_t URenderer::GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const
+	RasterizerStatePtr_t URenderer::GetRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const
 	{
 		static eastl::hash_map<uint32_t, RasterizerStatePtr_t> s_stateCache;
 
-		uint32_t hash = inFillMode + inCullMode * 17;
+		uint32_t hash = static_cast<uint32_t>(inFillMode) + static_cast<uint32_t>(inCullMode) * 17;
 		auto iter = s_stateCache.find(hash);
 		if (iter != s_stateCache.end())
 		{

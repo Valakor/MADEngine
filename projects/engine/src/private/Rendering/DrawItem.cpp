@@ -12,7 +12,7 @@ namespace MAD
 		, m_vertexCount(0)
 	    , m_indexOffset(0)
 	    , m_indexCount(0)
-	    , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED)
+	    , m_primitiveTopology(EPrimitiveTopology::Undefined)
 	    , m_drawCommand(EDrawCommand::IndexedDraw) { } // TODO Rethink the default draw command later
 
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, RasterizerStatePtr_t inRasterStateOverride)

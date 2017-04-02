@@ -30,7 +30,7 @@ namespace MAD
 		depthCubeDesc.SampleDesc.Quality = 0;
 		depthCubeDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 		depthCubeDesc.Usage = D3D11_USAGE_DEFAULT;
-		depthCubeDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+		depthCubeDesc.BindFlags = static_cast<UINT>(EBindFlag::DepthStencil | EBindFlag::ShaderResource);
 		depthCubeDesc.CPUAccessFlags = 0;
 		depthCubeDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 

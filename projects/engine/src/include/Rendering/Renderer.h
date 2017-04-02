@@ -74,7 +74,7 @@ namespace MAD
 		class UGraphicsDriver& GetGraphicsDriver();
 		const SPerFrameConstants& GetPerFrameConstants() const { return m_perFrameConstants; }
 
-		RasterizerStatePtr_t GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		RasterizerStatePtr_t GetRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const;
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
 		void ToggleTextBatching();

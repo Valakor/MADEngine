@@ -91,12 +91,12 @@ namespace MAD
 			currentDrawItem.m_inputLayout = m_inputLayout;
 
 			// Topology
-			currentDrawItem.m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			currentDrawItem.m_primitiveTopology = EPrimitiveTopology::TriangleList;
 
 			// Two-sided materials will render without backface culling
 			currentDrawItem.m_rasterizerState = gEngine->GetRenderer().GetRasterizerState(
-				D3D11_FILL_SOLID,
-				currentMaterial.m_isTwoSided ? D3D11_CULL_NONE : D3D11_CULL_BACK);
+				EFillMode::Solid,
+				currentMaterial.m_isTwoSided ? ECullMode::None : ECullMode::Back);
 
 			// Vertices / indices
 			currentDrawItem.m_vertexBufferOffset = m_subMeshes[i].m_vertexStart;

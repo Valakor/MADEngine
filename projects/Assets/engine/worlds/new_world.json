@@ -26,7 +26,7 @@
 						{
 							"type": "CMeshComponent",
 							"position": [0.0, 0.0, -350.0],
-							"scale": 150.0,
+							"scale": 100.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\sphere.obj"

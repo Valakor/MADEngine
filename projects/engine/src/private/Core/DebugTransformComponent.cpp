@@ -42,7 +42,7 @@ namespace MAD
 		transformDrawItem.m_indexOffset = 0;
 
 		transformDrawItem.m_transform = GetWorldTransform();
-		transformDrawItem.m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+		transformDrawItem.m_primitiveTopology = EPrimitiveTopology::LineList;
 		transformDrawItem.m_drawCommand = EDrawCommand::VertexDraw;
 
 		gEngine->GetRenderer().QueueDebugDrawItem(transformDrawItem);

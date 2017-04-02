@@ -35,7 +35,7 @@ namespace MAD
 	private:
 		void InitializeTextVertexBuffers(uint16_t inInitialNumChars);
 		void BindToPipeline();
-		void ProcessTextInstance(const STextInstance& inTextInstance);
+		void UpdateCPUTextData(const STextInstance& inTextInstance);
 		void GenerateQuadVertices(const struct SFontChar& inCharInfo, float inLocalCoordX, float inLocalCoordY);
 	private:
 		static const uint8_t s_numVertsPerQuad = 6;
