@@ -65,8 +65,8 @@ namespace MAD
 
 		void UpdateCameraConstants(const struct SCameraInstance& inCameraInstance);
 		void CalculateCameraConstants(float inFramePercent);
-		void SetWorldAmbientColor(Color inColor);
-		void SetBackBufferClearColor(Color inColor);
+		void SetWorldAmbientColor(const Color& inColor);
+		void SetBackBufferClearColor(const Color& inColor);
 
 		// TODO Refactor the Renderer to allow for a better interface than this? Separate graphics sub-systems will need to be able to
 		// retrieve pass information (such as the g-buffer pass information)
@@ -107,6 +107,7 @@ namespace MAD
 
 		void ClearExpiredDebugDrawItems();
 
+		void DrawGBuffer(float inFramePercent);
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
 		void DrawDebugPrimitives(float inFramePerecent);

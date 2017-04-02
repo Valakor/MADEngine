@@ -1,6 +1,7 @@
 #include "Rendering/DrawItem.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/Renderer.h"
+#include "Rendering/RenderingConstants.h"
 #include "Core/GameEngine.h"
 
 namespace MAD
@@ -17,6 +18,7 @@ namespace MAD
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, RasterizerStatePtr_t inRasterStateOverride)
 	{
 		InputLayoutFlags_t inputLayout = 0;
+
 		for (const auto& vertexBuffer : m_vertexBuffers)
 		{
 			if (vertexBuffer.GetSemantic() & inInputLayoutOverride)
@@ -25,6 +27,7 @@ namespace MAD
 				vertexBuffer.Bind(inGraphicsDriver, m_vertexBufferOffset);
 			}
 		}
+
 		inGraphicsDriver.SetInputLayout(UInputLayoutCache::GetInputLayout(inputLayout));
 
 		if (m_indexBuffer)

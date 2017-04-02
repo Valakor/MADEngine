@@ -38,7 +38,6 @@ namespace MAD
 	};
 
 	using ProgramId_t = uint64_t;
-	using ProgramShaderTuple_t = eastl::tuple<VertexShaderPtr_t, GeometryShaderPtr_t, PixelShaderPtr_t>;
 	using ProgramPermutations_t = eastl::hash_map<ProgramId_t, eastl::shared_ptr<UPassProgram>>;
 
 	class URenderPassProgram

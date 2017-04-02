@@ -22,17 +22,6 @@
 				{
 					"type": "ASceneCameraCharacter",
 					"name": "EditorCharacter",
-					"newComponents": [
-						{
-							"type": "CMeshComponent",
-							"position": [0.0, 0.0, -350.0],
-							"scale": 100.0,
-							"properties": {
-								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\sphere.obj"
-							}
-						}
-					],
 					"existingComponents": [
 						{
 							"type": "CCameraComponent",
@@ -96,14 +85,6 @@
 							}
 						},
 						{
-							"type": "CCircularMoveComponent",
-							"properties": {
-								"enabled": false,
-								"angular_speed": 65.0,
-								"radius": 150.0
-							}
-						},
-						{
 							"type": "CDebugTransformComponent",
 							"position": [0.0, 0.0, 0.0],
 							"properties": {
@@ -130,6 +111,21 @@
 				},
 				{
 					"type": "AEntity",
+					"name": "Reflection Sphere",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 100.0, 0.0],
+							"scale": 25.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\reflection_sphere.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
 					"name": "Rain Particles Entity",
 					"newComponents": [
 						{
@@ -141,39 +137,152 @@
 								"emitters": [
 									{
 										"emit_rate": 150,
-										"emit_object": {
-											"property1": "hello",
-											"property2": "world"
-										},
 										"emit_duration": -1.0
 									},
 									{
 										"emit_rate": 15,
-										"emit_object": {
-											"property1": "derek",
-											"property2": "truong",
-											"propertyList": [
-												{
-													"propertyA": [15.0, 5.0, 1.0],
-													"propertyB": "propertyB"
-												},
-												{
-													"propertyA": [-1.0, -34.5, 11.2],
-													"propertyB": "propertyB"
-												}
-											]
-										},
+										"emit_duration": -1.0
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Fire Particles Entity",
+					"newComponents": [
+						{
+							"type": "UComponent",
+							"position": [-300.0, 0.0, -300.0],
+							"properties": {}
+						},
+						{
+							"type": "CParticleSystemComponent",
+							"position": [200.0, 0.0, 150.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
 										"emit_duration": -1.0
 									}
 								]
 							}
 						},
 						{
-							"type": "CSinMoveComponent",
-							"properties":{
-								"enabled": false,
-								"speed": 2.5,
-								"distance": 100.0
+							"type": "CParticleSystemComponent",
+							"position": [0.0, 50.0, 0.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CParticleSystemComponent",
+							"position": [150.0, 50.0, 0.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CParticleSystemComponent",
+							"position": [-150.0, 50.0, 0.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CParticleSystemComponent",
+							"position": [0.0, 50.0, 150.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CParticleSystemComponent",
+							"position": [0.0, 50.0, -150.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CParticleSystemComponent",
+							"position": [150.0, 50.0, 150.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_duration": -1.0
+									}
+								]
+							}
+						},
+						{
+							"type": "CParticleSystemComponent",
+							"position": [-150.0, 50.0, -150.0],
+							"properties": {
+								"enabled": true,
+								"name": "Fire Effect",
+								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
+								"effect_texture": "engine\\textures\\fire_texture.jpg",
+								"emitters": [
+									{
+										"emit_rate": 50,
+										"emit_duration": -1.0
+									}
+								]
 							}
 						}
 					]
@@ -197,168 +306,6 @@
 							"position": [0.0, 0.5, 0.0],
 							"properties": {
 								"enabled": true
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Fire Particles Entity",
-					"newComponents": [
-						{
-							"type": "CParticleSystemComponent",
-							"position": [0.0, 50.0, 0.0],
-							"properties": {
-								"enabled": true,
-								"name": "Fire Effect",
-								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\fire_texture.jpg",
-								"emitters": [
-									{
-										"emit_rate": 50,
-										"emit_duration": -1.0
-									}
-								]
-							}
-						},
-						{
-							"type": "CSinMoveComponent",
-							"properties":{
-								"enabled": false,
-								"speed": 2.5,
-								"distance": 100.0
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Fire Particles Entity 2",
-					"newComponents": [
-						{
-							"type": "CParticleSystemComponent",
-							"position": [150.0, 50.0, 0.0],
-							"properties": {
-								"enabled": true,
-								"name": "Fire Effect",
-								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\fire_texture.jpg",
-								"emitters": [
-									{
-										"emit_rate": 50,
-										"emit_duration": -1.0
-									}
-								]
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Fire Particles Entity 3",
-					"newComponents": [
-						{
-							"type": "CParticleSystemComponent",
-							"position": [-150.0, 50.0, 0.0],
-							"properties": {
-								"enabled": true,
-								"name": "Fire Effect",
-								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\fire_texture.jpg",
-								"emitters": [
-									{
-										"emit_rate": 50,
-										"emit_duration": -1.0
-									}
-								]
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Fire Particles Entity 4",
-					"newComponents": [
-						{
-							"type": "CParticleSystemComponent",
-							"position": [0.0, 50.0, 150.0],
-							"properties": {
-								"enabled": true,
-								"name": "Fire Effect",
-								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\fire_texture.jpg",
-								"emitters": [
-									{
-										"emit_rate": 50,
-										"emit_duration": -1.0
-									}
-								]
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Fire Particles Entity 5",
-					"newComponents": [
-						{
-							"type": "CParticleSystemComponent",
-							"position": [0.0, 50.0, -150.0],
-							"properties": {
-								"enabled": true,
-								"name": "Fire Effect",
-								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\fire_texture.jpg",
-								"emitters": [
-									{
-										"emit_rate": 50,
-										"emit_duration": -1.0
-									}
-								]
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Fire Particles Entity 6",
-					"newComponents": [
-						{
-							"type": "CParticleSystemComponent",
-							"position": [150.0, 50.0, 150.0],
-							"properties": {
-								"enabled": true,
-								"name": "Fire Effect",
-								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\fire_texture.jpg",
-								"emitters": [
-									{
-										"emit_rate": 50,
-										"emit_duration": -1.0
-									}
-								]
-							}
-						}
-					]
-				},
-				{
-					"type": "AEntity",
-					"name": "Fire Particles Entity 7",
-					"newComponents": [
-						{
-							"type": "CParticleSystemComponent",
-							"position": [-150.0, 50.0, -150.0],
-							"properties": {
-								"enabled": true,
-								"name": "Fire Effect",
-								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
-								"effect_texture": "engine\\textures\\fire_texture.jpg",
-								"emitters": [
-									{
-										"emit_rate": 50,
-										"emit_duration": -1.0
-									}
-								]
 							}
 						}
 					]

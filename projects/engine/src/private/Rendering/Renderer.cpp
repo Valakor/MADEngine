@@ -8,6 +8,7 @@
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/InputLayoutCache.h"
 #include "Rendering/ParticleSystem/ParticleSystem.h"
+#include "Rendering/RenderingConstants.h"
 
 namespace MAD
 {
@@ -69,14 +70,14 @@ namespace MAD
 
 	void URenderer::InitializeRenderPasses()
 	{
-		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
-		InitializeTextRenderPass("engine\\shaders\\RenderDebugText.hlsl");
+		InitializeGBufferPass(AssetPaths::GBufferPass);
+		InitializeDirectionalLightingPass(AssetPaths::DeferredLightingPass);
+		InitializePointLightingPass(AssetPaths::DeferredLightingPass);
+		InitializeDebugPass(AssetPaths::DebugGeometryPass);
+		InitializeTextRenderPass(AssetPaths::DebugTextPass);
 
-		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
+		InitializeDirectionalShadowMappingPass(AssetPaths::DepthPass);
+		InitializePointLightShadowMappingPass(AssetPaths::DepthPass);
 	}
 
 	void URenderer::Shutdown()
@@ -464,38 +465,8 @@ namespace MAD
 		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
-
-		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
-
-		// Go through each draw item and bind input assembly data
-		g_graphicsDriver.StartEventGroup(L"Draw scene to GBuffer");
-		for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
-		{
-			// Before processing the draw item, we need to determine which program it should use and bind that
-			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem.second));
-
-			// Each individual DrawItem should issue its own draw call
-			currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
-		}
-		g_graphicsDriver.EndEventGroup();
-
-		if (m_visualizeOption != EVisualizeOptions::None)
-		{
-			g_graphicsDriver.StartEventGroup(L"Visualize GBuffer");
-			DoVisualizeGBuffer();
-			g_graphicsDriver.EndEventGroup();
-			return;
-		}
-
-		// Do directional lighting
+		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);
-
-		// Do point lighting
 		DrawPointLighting(inFramePercent);
 
 		// Always perform the forward debug pass after the main deferred pass
@@ -519,7 +490,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
 		if (!loadedBackBufferProgram)
 		{
-			backBufferProgram = URenderPassProgram::Load("engine\\shaders\\BackBufferFinalize.hlsl");
+			backBufferProgram = URenderPassProgram::Load(AssetPaths::BackBufferFinalizePass);
 			loadedBackBufferProgram = true;
 		}
 
@@ -551,6 +522,38 @@ namespace MAD
 
 			return (currentGameTime - inDebugHandle.m_initialGameTime) > inDebugHandle.m_duration;
 		}), m_debugDrawItems.end());
+	}
+
+	void URenderer::DrawGBuffer(float inFramePercent)
+	{
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
+
+		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
+
+		// Go through each draw item and bind input assembly data
+		g_graphicsDriver.StartEventGroup(L"Draw scene to GBuffer");
+		for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
+		{
+			// Before processing the draw item, we need to determine which program it should use and bind that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem.second));
+
+			// Each individual DrawItem should issue its own draw call
+			currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
+		}
+		g_graphicsDriver.EndEventGroup();
+
+		if (m_visualizeOption != EVisualizeOptions::None)
+		{
+			g_graphicsDriver.StartEventGroup(L"Visualize GBuffer");
+			DoVisualizeGBuffer();
+			g_graphicsDriver.EndEventGroup();
+			return;
+		}
+
 	}
 
 	void URenderer::DrawDirectionalLighting(float inFramePercent)
@@ -756,7 +759,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
 		if (!loadedCopyTextureProgram)
 		{
-			copyTextureProgram = URenderPassProgram::Load("engine\\shaders\\CopyTexture.hlsl");
+			copyTextureProgram = URenderPassProgram::Load(AssetPaths::TextureBlitPass);
 			loadedCopyTextureProgram = true;
 		}
 
@@ -764,7 +767,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> depthProgram;
 		if (!loadedDepthProgram)
 		{
-			depthProgram = URenderPassProgram::Load("engine\\shaders\\RenderDepth.hlsl");
+			depthProgram = URenderPassProgram::Load(AssetPaths::DepthPass);
 			loadedDepthProgram = true;
 		}
 
@@ -864,7 +867,7 @@ namespace MAD
 		m_perFrameConstants.m_cameraExposure = currentCamera.m_exposure;
 	}
 
-	void URenderer::SetWorldAmbientColor(Color inColor)
+	void URenderer::SetWorldAmbientColor(const Color& inColor)
 	{
 		// Convert from sRGB space to linear color space.
 		// This is then converted back to sRGB space when rendering to the back buffer
@@ -877,7 +880,7 @@ namespace MAD
 		g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerScene, &m_perSceneConstants, sizeof(m_perSceneConstants));
 	}
 
-	void URenderer::SetBackBufferClearColor(Color inColor)
+	void URenderer::SetBackBufferClearColor(const Color& inColor)
 	{
 		m_clearColor.x = powf(inColor.x, 2.2f);
 		m_clearColor.y = powf(inColor.y, 2.2f);
