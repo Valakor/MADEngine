@@ -24,6 +24,8 @@ namespace MAD
 		const auto& gBufferPassDesc = URenderContext::Get().GetRenderer().GetGBufferPassDescriptor();
 		SPerDrawConstants skyboxDrawConstants;
 
+		graphicsDriver.StartEventGroup(L"Drawing Sky Sphere");
+
 		// Bind the program
 		m_skyboxShader->SetProgramActive(graphicsDriver, 0);
 
@@ -52,6 +54,8 @@ namespace MAD
 		graphicsDriver.SetPixelShaderResource(m_boxCubeMapSRV, ETextureSlot::CubeMap);
 
 		graphicsDriver.DrawIndexed(static_cast<UINT>(m_skyboxMesh->m_indexBuffer.size()), 0, 0);
+
+		graphicsDriver.EndEventGroup();
 	}
 
 	bool USkybox::InitializeSkybox(const eastl::string& inShaderPath, const eastl::string& inCubemapPath)
