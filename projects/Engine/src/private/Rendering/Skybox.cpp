@@ -84,7 +84,7 @@ namespace MAD
 		if (!m_skyboxBlendState) return false;
 
 		// Initialize the position vertex buffer with the vertices of the entire box
-		m_skyboxMesh = UMesh::Load("engine\\meshes\\primitives\\sphere.obj");
+		m_skyboxMesh = UMesh::Load("engine\\meshes\\primitives\\icosphere.obj");
 		MAD_ASSERT_DESC(m_skyboxMesh != nullptr, "Error loading the skybox cube mesh\n");
 		if (!m_skyboxMesh) return false;
 

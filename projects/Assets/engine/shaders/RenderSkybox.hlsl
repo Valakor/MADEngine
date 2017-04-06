@@ -18,9 +18,9 @@ VS_OUTPUT VS(VS_INPUT vsInput)
 {
 	VS_OUTPUT vsOutput;
 
-	float4 skyboxPosWS = mul(float4(vsInput.PositionMS, 1.0), g_objectToWorldMatrix);
-	vsOutput.PositionCS = mul(skyboxPosWS, g_cameraProjectionMatrix);
-	vsOutput.TexCoord = mul(skyboxPosWS, g_cameraInverseViewMatrix).xyz;
+	float3 skyboxPosScaled = mul(float4(vsInput.PositionMS, 1.0), g_objectToWorldMatrix).xyz;
+	vsOutput.PositionCS = mul(float4(skyboxPosScaled, 1.0), g_cameraProjectionMatrix);
+	vsOutput.TexCoord = mul(float4(skyboxPosScaled, 0.0), g_cameraInverseViewMatrix); // We only want the sky sphere to rotate around the camera, not translate with it
 	
 	return vsOutput;
 }

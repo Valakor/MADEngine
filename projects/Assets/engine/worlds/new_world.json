@@ -116,7 +116,7 @@
 						{
 							"type": "CMeshComponent",
 							"position": [0.0, 100.0, 0.0],
-							"scale": 25.0,
+							"scale": 200.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\reflection_sphere.obj"
