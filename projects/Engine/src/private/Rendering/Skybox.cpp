@@ -15,7 +15,7 @@ namespace MAD
 		: m_skyboxDimensions(inBoxDimensions)
 		, m_skyboxTransform(Matrix::CreateScale(inBoxDimensions.x, inBoxDimensions.y, inBoxDimensions.z))
 	{
-		MAD_ASSERT_DESC(InitializeSkybox(inShaderPath, inCubemapPath), "Error loading skybox\n");
+		MAD_CHECK_DESC(InitializeSkybox(inShaderPath, inCubemapPath), "Error loading skybox\n");
 	}
 
 	void USkybox::DrawSkybox()
@@ -58,34 +58,34 @@ namespace MAD
 		eastl::shared_ptr<UTexture> boxCubeMapTex = UTexture::Load(inCubemapPath, true, false, D3D11_RESOURCE_MISC_TEXTURECUBE);
 
 		m_boxCubeMapSRV = boxCubeMapTex->GetTexureResource();
-		MAD_ASSERT_DESC(m_boxCubeMapSRV, "Error creating the shader resource view for the skybox cube map\n");
+		MAD_CHECK_DESC(m_boxCubeMapSRV, "Error creating the shader resource view for the skybox cube map\n");
 		if (!m_boxCubeMapSRV) return false;
 
 		m_skyboxShader = URenderPassProgram::Load(inShaderPath);
-		MAD_ASSERT_DESC(m_skyboxShader != nullptr, "Error loading the skybox shader program\n");
+		MAD_CHECK_DESC(m_skyboxShader != nullptr, "Error loading the skybox shader program\n");
 		if (!m_skyboxShader) return false;
 
 		m_skyboxInputLayout = UInputLayoutCache::GetInputLayout(EInputLayoutSemantic::Position);
-		MAD_ASSERT_DESC(m_skyboxInputLayout, "Error retrieving the skybox input layout\n");
+		MAD_CHECK_DESC(m_skyboxInputLayout, "Error retrieving the skybox input layout\n");
 		if (!m_skyboxInputLayout) return false;
 
 		m_depthStencilView = URenderContext::Get().GetRenderer().GetGBufferPassDescriptor().m_depthStencilView;
-		MAD_ASSERT_DESC(m_depthStencilView, "Error retrieving the g-buffer's depth buffer\n");
+		MAD_CHECK_DESC(m_depthStencilView, "Error retrieving the g-buffer's depth buffer\n");
 		if (!m_depthStencilView) return false;
 
 		m_depthStencilState = URenderContext::Get().GetRenderer().GetGBufferPassDescriptor().m_depthStencilState;
 
 		m_boxRasterizerState = URenderContext::Get().GetGraphicsDriver().CreateRasterizerState(EFillMode::Solid, ECullMode::Front);
-		MAD_ASSERT_DESC(m_boxRasterizerState, "Error creating rasterizer state\n");
+		MAD_CHECK_DESC(m_boxRasterizerState, "Error creating rasterizer state\n");
 		if (!m_boxRasterizerState) return false;
 
 		m_skyboxBlendState = URenderContext::Get().GetGraphicsDriver().CreateBlendState(false);
-		MAD_ASSERT_DESC(m_skyboxBlendState, "Error creating blend state\n");
+		MAD_CHECK_DESC(m_skyboxBlendState, "Error creating blend state\n");
 		if (!m_skyboxBlendState) return false;
 
 		// Initialize the position vertex buffer with the vertices of the entire box
 		m_skyboxMesh = UMesh::Load("engine\\meshes\\primitives\\icosphere.obj");
-		MAD_ASSERT_DESC(m_skyboxMesh != nullptr, "Error loading the skybox cube mesh\n");
+		MAD_CHECK_DESC(m_skyboxMesh != nullptr, "Error loading the skybox cube mesh\n");
 		if (!m_skyboxMesh) return false;
 
 		return true;
