@@ -41,10 +41,11 @@ namespace MAD
 		auto clientSize = inWindow.GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
 
-		m_globalEnvironmentMap = UColorTextureCube("engine\\textures\\beach.dds");
-
 		InitializeRenderPasses();
 		InitializeDebugGrid(6);
+
+		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
+		m_skyBox = USkybox(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
 
 		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
 
@@ -72,14 +73,14 @@ namespace MAD
 
 	void URenderer::InitializeRenderPasses()
 	{
-		InitializeGBufferPass(AssetPaths::GBufferPass);
-		InitializeDirectionalLightingPass(AssetPaths::DeferredLightingPass);
-		InitializePointLightingPass(AssetPaths::DeferredLightingPass);
-		InitializeDebugPass(AssetPaths::DebugGeometryPass);
-		InitializeTextRenderPass(AssetPaths::DebugTextPass);
+		InitializeGBufferPass(ShaderPaths::GBufferPass);
+		InitializeDirectionalLightingPass(ShaderPaths::DeferredLightingPass);
+		InitializePointLightingPass(ShaderPaths::DeferredLightingPass);
+		InitializeDebugPass(ShaderPaths::DebugGeometryPass);
+		InitializeTextRenderPass(ShaderPaths::DebugTextPass);
 
-		InitializeDirectionalShadowMappingPass(AssetPaths::DepthPass);
-		InitializePointLightShadowMappingPass(AssetPaths::DepthPass);
+		InitializeDirectionalShadowMappingPass(ShaderPaths::DepthPass);
+		InitializePointLightShadowMappingPass(ShaderPaths::DepthPass);
 	}
 
 	void URenderer::Shutdown()
@@ -473,6 +474,8 @@ namespace MAD
 		DrawDirectionalLighting(inFramePercent);
 		DrawPointLighting(inFramePercent);
 
+		m_skyBox.DrawSkybox();
+
 		// Always perform the forward debug pass after the main deferred pass
 		DrawDebugPrimitives(inFramePercent);
 
@@ -494,7 +497,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
 		if (!loadedBackBufferProgram)
 		{
-			backBufferProgram = URenderPassProgram::Load(AssetPaths::BackBufferFinalizePass);
+			backBufferProgram = URenderPassProgram::Load(ShaderPaths::BackBufferFinalizePass);
 			loadedBackBufferProgram = true;
 		}
 
@@ -763,7 +766,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
 		if (!loadedCopyTextureProgram)
 		{
-			copyTextureProgram = URenderPassProgram::Load(AssetPaths::TextureBlitPass);
+			copyTextureProgram = URenderPassProgram::Load(ShaderPaths::TextureBlitPass);
 			loadedCopyTextureProgram = true;
 		}
 
@@ -771,7 +774,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> depthProgram;
 		if (!loadedDepthProgram)
 		{
-			depthProgram = URenderPassProgram::Load(AssetPaths::DepthPass);
+			depthProgram = URenderPassProgram::Load(ShaderPaths::DepthPass);
 			loadedDepthProgram = true;
 		}
 

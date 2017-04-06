@@ -14,6 +14,7 @@
 #include "Rendering/DepthTextureCube.h"
 #include "Rendering/ColorTextureCube.h"
 #include "Rendering/TextBatchRenderer.h"
+#include "Rendering/Skybox.h"
 
 #include "Rendering/ParticleSystem/ParticleSystemManager.h"
 
@@ -131,7 +132,6 @@ namespace MAD
 		SCameraInstance m_camera[2];
 
 		eastl::vector<SDebugHandle> m_debugDrawItems;
-
 		eastl::hash_map<size_t, SDrawItem> m_queuedDrawItems[2];
 		eastl::hash_map<size_t, SGPUDirectionalLight> m_queuedDirLights[2];
 		eastl::hash_map<size_t, SGPUPointLight> m_queuedPointLights[2];
@@ -152,6 +152,7 @@ namespace MAD
 		UTextBatchRenderer m_textBatchRenderer;
 		UParticleSystemManager m_particleSystemManager; // Use defaults for now
 		UColorTextureCube m_globalEnvironmentMap;
+		USkybox m_skyBox;
 
 		EVisualizeOptions m_visualizeOption;
 	};

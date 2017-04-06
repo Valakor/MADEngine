@@ -18,9 +18,12 @@ namespace MAD
 		void Update(class UGraphicsDriver& inGraphicsDriver, const void* inData, size_t inDataSize);
 		bool Empty() const { return m_bufferSize == 0; }
 		EInputLayoutSemantic::Type GetSemantic() const { return m_arraySemantic; }
+		uint32_t GetVertexCount() const { return m_vertexCount; }
+		uint32_t GetVertexSize() const { return m_vertexSize; }
 
 	private:
 		BufferPtr_t m_buffer;
+		uint32_t m_vertexCount;
 		uint32_t m_vertexSize;
 		uint32_t m_bufferSize;
 		VertexBufferSlotType_t m_arrayUsage;

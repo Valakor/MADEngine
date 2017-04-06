@@ -230,7 +230,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		phong = lightIntensity * lightColor * attenuation * (diffuse + specular);
 	}
 
-	phong *= g_cubeMap.Sample(g_pointSampler, cameraReflectedWS);
+	//phong *= g_cubeMap.Sample(g_pointSampler, cameraReflectedWS);
 
-	return float4(phong, 1.0f);
+	return saturate(float4(phong, 1.0f));
 }
