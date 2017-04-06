@@ -12,6 +12,7 @@
 #include "Rendering/DrawItem.h"
 #include "Rendering/CameraInstance.h"
 #include "Rendering/DepthTextureCube.h"
+#include "Rendering/ColorTextureCube.h"
 #include "Rendering/TextBatchRenderer.h"
 
 #include "Rendering/ParticleSystem/ParticleSystemManager.h"
@@ -65,8 +66,8 @@ namespace MAD
 
 		void UpdateCameraConstants(const struct SCameraInstance& inCameraInstance);
 		void CalculateCameraConstants(float inFramePercent);
-		void SetWorldAmbientColor(Color inColor);
-		void SetBackBufferClearColor(Color inColor);
+		void SetWorldAmbientColor(const Color& inColor);
+		void SetBackBufferClearColor(const Color& inColor);
 
 		// TODO Refactor the Renderer to allow for a better interface than this? Separate graphics sub-systems will need to be able to
 		// retrieve pass information (such as the g-buffer pass information)
@@ -74,7 +75,7 @@ namespace MAD
 		class UGraphicsDriver& GetGraphicsDriver();
 		const SPerFrameConstants& GetPerFrameConstants() const { return m_perFrameConstants; }
 
-		RasterizerStatePtr_t GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		RasterizerStatePtr_t GetRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const;
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
 		void ToggleTextBatching();
@@ -107,6 +108,7 @@ namespace MAD
 
 		void ClearExpiredDebugDrawItems();
 
+		void DrawGBuffer(float inFramePercent);
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
 		void DrawDebugPrimitives(float inFramePerecent);
@@ -149,6 +151,7 @@ namespace MAD
 
 		UTextBatchRenderer m_textBatchRenderer;
 		UParticleSystemManager m_particleSystemManager; // Use defaults for now
+		UColorTextureCube m_globalEnvironmentMap;
 
 		EVisualizeOptions m_visualizeOption;
 	};

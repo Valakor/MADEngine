@@ -1,6 +1,7 @@
 #include "Rendering/DrawItem.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/Renderer.h"
+#include "Rendering/RenderingConstants.h"
 #include "Core/GameEngine.h"
 
 namespace MAD
@@ -10,14 +11,14 @@ namespace MAD
 		, m_previousDrawTransform(nullptr)
 		, m_vertexBufferOffset(0)
 		, m_vertexCount(0)
-	    , m_indexOffset(0)
-	    , m_indexCount(0)
-	    , m_primitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED)
-	    , m_drawCommand(EDrawCommand::IndexedDraw) { } // TODO Rethink the default draw command later
+		, m_indexOffset(0)
+		, m_indexCount(0)
+		, m_primitiveTopology(EPrimitiveTopology::Undefined) {}
 
 	void SDrawItem::Draw(UGraphicsDriver& inGraphicsDriver, float inFramePercent, const SPerFrameConstants& inPerFrameConstants, bool inBindMaterialProperties, InputLayoutFlags_t inInputLayoutOverride, RasterizerStatePtr_t inRasterStateOverride)
 	{
 		InputLayoutFlags_t inputLayout = 0;
+
 		for (const auto& vertexBuffer : m_vertexBuffers)
 		{
 			if (vertexBuffer.GetSemantic() & inInputLayoutOverride)
@@ -26,6 +27,7 @@ namespace MAD
 				vertexBuffer.Bind(inGraphicsDriver, m_vertexBufferOffset);
 			}
 		}
+
 		inGraphicsDriver.SetInputLayout(UInputLayoutCache::GetInputLayout(inputLayout));
 
 		if (m_indexBuffer)
@@ -75,14 +77,13 @@ namespace MAD
 
 		inGraphicsDriver.SetPrimitiveTopology(m_primitiveTopology);
 
-		switch (m_drawCommand)
+		if (m_indexCount > 0)
 		{
-		case EDrawCommand::VertexDraw:
-			inGraphicsDriver.Draw(m_vertexCount, 0);
-			break;
-		case EDrawCommand::IndexedDraw:
 			inGraphicsDriver.DrawIndexed(m_indexCount, 0, 0);
-			break;
+		}
+		else
+		{
+			inGraphicsDriver.Draw(m_vertexCount, 0);
 		}
 	}
 }

@@ -249,7 +249,7 @@ namespace MAD
 		CreateBackBufferRenderTargetView();
 	}
 
-	ShaderResourcePtr_t UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const
+	ShaderResourcePtr_t UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips, int32_t inMiscFlags) const
 	{
 		auto widePath = utf8util::UTF16FromUTF8(inPath);
 		auto extension = inPath.substr(inPath.find_last_of('.'));
@@ -263,11 +263,11 @@ namespace MAD
 		{
 			if (inGenerateMips)
 			{
-				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Default), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 			else
 			{
-				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Immutable), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 		}
 		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif" || extension == ".tiff")
@@ -275,11 +275,11 @@ namespace MAD
 			DirectX::WIC_LOADER_FLAGS flags = inForceSRGB ? DirectX::WIC_LOADER_FORCE_SRGB : DirectX::WIC_LOADER_DEFAULT;
 			if (inGenerateMips)
 			{
-				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, flags, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Default), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, flags, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 			else
 			{
-				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, 0, flags, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Immutable), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, flags, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 		}
 		else
@@ -418,14 +418,14 @@ namespace MAD
 		backingTexDesc.Format = inFormat;
 		backingTexDesc.SampleDesc.Count = 1;
 		backingTexDesc.SampleDesc.Quality = 0;
-		backingTexDesc.Usage = D3D11_USAGE_DEFAULT;
-		backingTexDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+		backingTexDesc.Usage = static_cast<D3D11_USAGE>(EResourceUsage::Default);
+		backingTexDesc.BindFlags = AsIntegral(EBindFlag::RenderTarget);
 		backingTexDesc.CPUAccessFlags = 0;
 		backingTexDesc.MiscFlags = 0;
 
 		if (outOptionalShaderResource)
 		{
-			backingTexDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+			backingTexDesc.BindFlags |= AsIntegral(EBindFlag::ShaderResource);
 		}
 		
 		ComPtr<ID3D11Texture2D> backingTex;
@@ -482,13 +482,13 @@ namespace MAD
 		samplerDesc.AddressW = inAddressMode;
 		samplerDesc.MipLODBias = 0;
 		samplerDesc.MaxAnisotropy = inMaxAnisotropy;
-		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		samplerDesc.ComparisonFunc = static_cast<D3D11_COMPARISON_FUNC>(EComparisonFunc::Never);
 		samplerDesc.MinLOD = 0;
 		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 		if (D3D11_DECODE_IS_COMPARISON_FILTER(inFilterMode))
 		{
-			samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+			samplerDesc.ComparisonFunc = static_cast<D3D11_COMPARISON_FUNC>(EComparisonFunc::Less);
 		}
 
 		if (inAddressMode == D3D11_TEXTURE_ADDRESS_BORDER)
@@ -516,14 +516,14 @@ namespace MAD
 		backingTexDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 		backingTexDesc.SampleDesc.Count = 1;
 		backingTexDesc.SampleDesc.Quality = 0;
-		backingTexDesc.Usage = D3D11_USAGE_DEFAULT;
-		backingTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		backingTexDesc.Usage = static_cast<D3D11_USAGE>(D3D11_USAGE_DEFAULT);
+		backingTexDesc.BindFlags = AsIntegral(EBindFlag::DepthStencil);
 		backingTexDesc.CPUAccessFlags = 0;
 		backingTexDesc.MiscFlags = 0;
 
 		if (outOptionalShaderResource)
 		{
-			backingTexDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+			backingTexDesc.BindFlags |= AsIntegral(EBindFlag::ShaderResource);
 		}
 
 		ComPtr<ID3D11Texture2D> backingTex;
@@ -556,15 +556,15 @@ namespace MAD
 		return depthStencil;
 	}
 
-	DepthStencilStatePtr_t UGraphicsDriver::CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc, D3D11_DEPTH_WRITE_MASK inDepthWriteMask) const
+	DepthStencilStatePtr_t UGraphicsDriver::CreateDepthStencilState(bool inDepthTestEnable, EComparisonFunc inComparisonFunc, EDepthWriteMask inDepthWriteMask) const
 	{
 		D3D11_DEPTH_STENCIL_DESC stateDesc;
 		MEM_ZERO(stateDesc);
 
 		// Depth test parameters
 		stateDesc.DepthEnable = inDepthTestEnable;
-		stateDesc.DepthWriteMask = inDepthWriteMask;
-		stateDesc.DepthFunc = inComparisonFunc;
+		stateDesc.DepthWriteMask = static_cast<D3D11_DEPTH_WRITE_MASK>(inDepthWriteMask);
+		stateDesc.DepthFunc = static_cast<D3D11_COMPARISON_FUNC>(inComparisonFunc);
 
 		// Stencil test parameters
 		stateDesc.StencilEnable = false;
@@ -589,12 +589,12 @@ namespace MAD
 		return depthStencilStatePtr;
 	}
 
-	RasterizerStatePtr_t UGraphicsDriver::CreateRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const
+	RasterizerStatePtr_t UGraphicsDriver::CreateRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const
 	{
 		D3D11_RASTERIZER_DESC1 rasterDesc;
 		MEM_ZERO(rasterDesc);
-		rasterDesc.FillMode = inFillMode;
-		rasterDesc.CullMode = inCullMode;
+		rasterDesc.FillMode = static_cast<D3D11_FILL_MODE>(inFillMode);
+		rasterDesc.CullMode = static_cast<D3D11_CULL_MODE>(inCullMode);
 		rasterDesc.FrontCounterClockwise = true;
 		rasterDesc.DepthClipEnable = true;
 
@@ -608,8 +608,8 @@ namespace MAD
 	{
 		D3D11_RASTERIZER_DESC1 rasterDesc;
 		MEM_ZERO(rasterDesc);
-		rasterDesc.FillMode = D3D11_FILL_SOLID;
-		rasterDesc.CullMode = D3D11_CULL_BACK;
+		rasterDesc.FillMode = static_cast<D3D11_FILL_MODE>(EFillMode::Solid);
+		rasterDesc.CullMode = static_cast<D3D11_CULL_MODE>(ECullMode::Back);
 		rasterDesc.FrontCounterClockwise = true;
 		rasterDesc.DepthClipEnable = true;
 		rasterDesc.DepthBias = 10000;
@@ -622,7 +622,7 @@ namespace MAD
 		return depthRasterizerStatePtr;
 	}
 
-	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend, D3D11_BLEND inDestBlend, D3D11_BLEND_OP inBlendOp, D3D11_BLEND inSrcAlphaBlend, D3D11_BLEND inDestAlphaBlend, D3D11_BLEND_OP inAlphaBlendOp) const
+	BlendStatePtr_t UGraphicsDriver::CreateBlendState(bool inEnableBlend, EBlendFactor inSrcBlend, EBlendFactor inDestBlend, EBlendOp inBlendOp, EBlendFactor inSrcAlphaBlend, EBlendFactor inDestAlphaBlend, EBlendOp inAlphaBlendOp) const
 	{
 		D3D11_BLEND_DESC1 blendDesc;
 		MEM_ZERO(blendDesc);
@@ -630,12 +630,12 @@ namespace MAD
 		blendDesc.IndependentBlendEnable = FALSE;
 		blendDesc.RenderTarget[0].BlendEnable = inEnableBlend;
 		blendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-		blendDesc.RenderTarget[0].SrcBlend = inSrcBlend;
-		blendDesc.RenderTarget[0].DestBlend = inDestBlend;
-		blendDesc.RenderTarget[0].BlendOp = inBlendOp;
-		blendDesc.RenderTarget[0].SrcBlendAlpha = inSrcAlphaBlend;
-		blendDesc.RenderTarget[0].DestBlendAlpha = inDestAlphaBlend;
-		blendDesc.RenderTarget[0].BlendOpAlpha = inAlphaBlendOp;
+		blendDesc.RenderTarget[0].SrcBlend = static_cast<D3D11_BLEND>(inSrcBlend);
+		blendDesc.RenderTarget[0].DestBlend = static_cast<D3D11_BLEND>(inDestBlend);
+		blendDesc.RenderTarget[0].BlendOp = static_cast<D3D11_BLEND_OP>(inBlendOp);
+		blendDesc.RenderTarget[0].SrcBlendAlpha = static_cast<D3D11_BLEND>(inSrcAlphaBlend);
+		blendDesc.RenderTarget[0].DestBlendAlpha = static_cast<D3D11_BLEND>(inDestAlphaBlend);
+		blendDesc.RenderTarget[0].BlendOpAlpha = static_cast<D3D11_BLEND_OP>(inAlphaBlendOp);
 		blendDesc.RenderTarget[0].LogicOp = D3D11_LOGIC_OP_NOOP;
 		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
@@ -645,14 +645,14 @@ namespace MAD
 		return blendStatePtr;
 	}
 
-	BufferPtr_t UGraphicsDriver::CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const
+	BufferPtr_t UGraphicsDriver::CreateBuffer(const void* inData, UINT inDataSize, EResourceUsage inUsage, EBindFlag inBindFlags, ECPUAccess inCpuAccessFlags) const
 	{
 		D3D11_BUFFER_DESC bufferDesc;
 		MEM_ZERO(bufferDesc);
-		bufferDesc.Usage = inUsage;
+		bufferDesc.Usage = static_cast<D3D11_USAGE>(inUsage);
 		bufferDesc.ByteWidth = inDataSize;
-		bufferDesc.BindFlags = inBindFlags;
-		bufferDesc.CPUAccessFlags = inCpuAccessFlags;
+		bufferDesc.BindFlags = static_cast<UINT>(inBindFlags);
+		bufferDesc.CPUAccessFlags = static_cast<UINT>(inCpuAccessFlags);
 		bufferDesc.MiscFlags = 0;
 		bufferDesc.StructureByteStride = 0;
 
@@ -668,23 +668,23 @@ namespace MAD
 		return bufferPtr;
 	}
 
-	BufferPtr_t UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags, UINT inCPUAccessFlags) const
+	BufferPtr_t UGraphicsDriver::CreateVertexBuffer(const void* inData, UINT inDataSize, EResourceUsage inUsageFlags, ECPUAccess inCPUAccessFlags) const
 	{
-		MAD_ASSERT_DESC(inData || (!inData && inUsageFlags != D3D11_USAGE_IMMUTABLE) , "Must specify initial vertex data if immutable usage, optional otherwise");
+		MAD_ASSERT_DESC(inData || (!inData && inUsageFlags != EResourceUsage::Immutable) , "Must specify initial vertex data if immutable usage, optional otherwise");
 
-		return CreateBuffer(inData, inDataSize, inUsageFlags, D3D11_BIND_VERTEX_BUFFER, inCPUAccessFlags);
+		return CreateBuffer(inData, inDataSize, inUsageFlags, EBindFlag::VertexBuffer, inCPUAccessFlags);
 	}
 
 	BufferPtr_t UGraphicsDriver::CreateIndexBuffer(const void* inData, UINT inDataSize) const
 	{
 		MAD_ASSERT_DESC(inData != nullptr, "Must specify initial index data");
-		return CreateBuffer(inData, inDataSize, D3D11_USAGE_IMMUTABLE, D3D11_BIND_INDEX_BUFFER, 0);
+		return CreateBuffer(inData, inDataSize, EResourceUsage::Immutable, EBindFlag::IndexBuffer, ECPUAccess::None);
 	}
 
 	BufferPtr_t UGraphicsDriver::CreateConstantBuffer(const void* inData, UINT inDataSize) const
 	{
 		MAD_ASSERT_DESC(inDataSize % 16 == 0, "Constant buffer size must be evenly divisible by 16");
-		return CreateBuffer(inData, inDataSize, D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE);
+		return CreateBuffer(inData, inDataSize, EResourceUsage::Dynamic, EBindFlag::ConstantBuffer, ECPUAccess::Write);
 	}
 
 	void* UGraphicsDriver::MapBuffer(BufferPtr_t inBuffer) const
@@ -692,7 +692,7 @@ namespace MAD
 		MAD_ASSERT_DESC(inBuffer, "Invalid buffer");
 
 		D3D11_MAPPED_SUBRESOURCE subResource;
-		g_d3dDeviceContext->Map(inBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
+		g_d3dDeviceContext->Map(inBuffer.Get(), 0, static_cast<D3D11_MAP>(EResourceMap::WriteDiscard), 0, &subResource);
 		return subResource.pData;
 	}
 
@@ -770,9 +770,9 @@ namespace MAD
 		g_d3dDeviceContext->IASetInputLayout(inInputLayout.Get());
 	}
 
-	void UGraphicsDriver::SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY inPrimitiveTopology) const
+	void UGraphicsDriver::SetPrimitiveTopology(EPrimitiveTopology inPrimitiveTopology) const
 	{
-		g_d3dDeviceContext->IASetPrimitiveTopology(inPrimitiveTopology);
+		g_d3dDeviceContext->IASetPrimitiveTopology(static_cast<D3D11_PRIMITIVE_TOPOLOGY>(inPrimitiveTopology));
 	}
 
 	void UGraphicsDriver::SetVertexBuffer(BufferPtr_t inVertexBuffer, VertexBufferSlotType_t inVertexSlot, UINT inVertexSize, UINT inVertexOffset) const
@@ -968,12 +968,12 @@ namespace MAD
 
 		static eastl::vector<Vector3> SubscreenQuadVerts = { { -1.0f, 1.0f, 0.0f },{ 1.0f, 1.0f, 0.0f },{ 1.0f, -1.0f, 0.0f },{ -1.0f, -1.0f, 0.0f } };
 		static const eastl::vector<uint16_t> SubscreenQuadIndices = { 0, 3, 1, 1, 3, 2 };
-		static BufferPtr_t SubscreenVertexBuffer = CreateVertexBuffer(SubscreenQuadVerts.data(), static_cast<UINT>(SubscreenQuadVerts.size() * sizeof(Vector3)), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		static BufferPtr_t SubscreenVertexBuffer = CreateVertexBuffer(SubscreenQuadVerts.data(), static_cast<UINT>(SubscreenQuadVerts.size() * sizeof(Vector3)), EResourceUsage::Dynamic, ECPUAccess::Write);
 		static BufferPtr_t SubscreenIndexBuffer = CreateIndexBuffer(SubscreenQuadIndices.data(), static_cast<UINT>(SubscreenQuadIndices.size() * sizeof(uint16_t)));
 
 		static InputLayoutPtr_t PosInputLayout = UInputLayoutCache::GetInputLayout(UInputLayoutCache::GetFlagForSemanticName("POSITION"));
-		static RasterizerStatePtr_t SubscreenRasterState = CreateRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
-		static DepthStencilStatePtr_t SubscreenDepthState = CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+		static RasterizerStatePtr_t SubscreenRasterState = CreateRasterizerState(EFillMode::Solid, ECullMode::Back);
+		static DepthStencilStatePtr_t SubscreenDepthState = CreateDepthStencilState(false, EComparisonFunc::Always);
 
 		Vector3 subscreenVerts[VERT_CORNER_MAX];
 
@@ -987,7 +987,7 @@ namespace MAD
 		SetDepthStencilState(SubscreenDepthState, 0);
 		SetRasterizerState(SubscreenRasterState);
 		SetInputLayout(PosInputLayout);
-		SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		SetPrimitiveTopology(EPrimitiveTopology::TriangleList);
 		SetIndexBuffer(SubscreenIndexBuffer, 0);
 		SetVertexBuffer(SubscreenVertexBuffer, EVertexBufferSlot::Position, sizeof(Vector3), 0);
 

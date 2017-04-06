@@ -90,4 +90,6 @@ namespace MAD
 	using RasterizerStatePtr_t = UGraphicsObject<ID3D11RasterizerState1>;
 	using ShaderResourcePtr_t = UGraphicsObject<ID3D11ShaderResourceView>;
 	using BufferPtr_t = UGraphicsObject<ID3D11Buffer>;
+	using Texture2DPtr_t = UGraphicsObject<ID3D11Texture2D>;
+	using ResourcePtr_t = UGraphicsObject<ID3D11Resource>;
 }

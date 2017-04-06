@@ -21,16 +21,24 @@ namespace MAD
 		EProgramShaderType_Invalid
 	};
 
+	class UPassProgram
+	{
+	public:
+		UPassProgram();
+
+		void SetVS(const VertexShaderPtr_t& inVS) { m_vs = inVS; }
+		void SetGS(const GeometryShaderPtr_t& inGS) { m_gs = inGS; }
+		void SetPS(const PixelShaderPtr_t& inPS) { m_ps = inPS; }
+
+		void BindToPipeline(class UGraphicsDriver& inGraphicsDriver);
+	private:
+		VertexShaderPtr_t m_vs;
+		GeometryShaderPtr_t m_gs;
+		PixelShaderPtr_t m_ps;
+	};
+
 	using ProgramId_t = uint64_t;
-	using ProgramShaderTuple_t = eastl::tuple<VertexShaderPtr_t, GeometryShaderPtr_t, PixelShaderPtr_t>;
-	using ProgramPermutations_t = eastl::hash_map<ProgramId_t, ProgramShaderTuple_t>;
-
-	// Utility template getter function for shader tuple
-	template <EProgramShaderType ShaderType>
-	auto GetPtrFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple));
-
-	template <EProgramShaderType ShaderType, typename ShaderIdType>
-	void SetPtrToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId);
+	using ProgramPermutations_t = eastl::hash_map<ProgramId_t, eastl::shared_ptr<UPassProgram>>;
 
 	class URenderPassProgram
 	{
@@ -48,20 +56,6 @@ namespace MAD
 	private:
 		static const eastl::hash_map<eastl::string, EProgramShaderType> s_entryPointToShaderTypeMap;
 	private:
-		// For now, we're only going to use a program with (potentially) only a vertex shader and pixel shader
-		// Will probably support an additional geometry shader
 		ProgramPermutations_t m_programPermutations;
 	};
-
-	template <EProgramShaderType ShaderType>
-	auto GetPtrFromShaderTuple(const ProgramShaderTuple_t& inShaderTuple) -> decltype(eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple))
-	{
-		return eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple);
-	}
-
-	template <EProgramShaderType ShaderType, typename ShaderIdType>
-	void SetPtrToShaderTuple(ProgramShaderTuple_t& inShaderTuple, const ShaderIdType& inShaderId)
-	{
-		eastl::get<static_cast<eastl::underlying_type<EProgramShaderType>::type>(ShaderType)>(inShaderTuple) = inShaderId;
-	}
 }

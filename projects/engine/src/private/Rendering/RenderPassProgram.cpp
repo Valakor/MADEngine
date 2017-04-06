@@ -18,9 +18,19 @@ namespace MAD
 		{ "PS", EProgramShaderType::EProgramShaderType_PS }
 	};
 
+	UPassProgram::UPassProgram() : m_vs(nullptr), m_gs(nullptr), m_ps(nullptr) {}
+
+	void UPassProgram::BindToPipeline(UGraphicsDriver& inGraphicsDriver)
+	{
+		// Bind the appropriate shaders, and unbind the ones that aren't valid for the target program
+		inGraphicsDriver.SetVertexShader(m_vs);
+		inGraphicsDriver.SetGeometryShader(m_gs);
+		inGraphicsDriver.SetPixelShader(m_ps);
+	}
+
 	// Uses the requested program ID to bind the correct shaders of the program to the pipeline
 	// Returns whether or not the program stores a valid shader entry for the requested target program ID
-	bool URenderPassProgram::SetProgramActive(class UGraphicsDriver& inGraphicsDriver, ProgramId_t inTargetProgramId) const
+	bool URenderPassProgram::SetProgramActive(UGraphicsDriver& inGraphicsDriver, ProgramId_t inTargetProgramId) const
 	{
 		auto programSetFindIter = m_programPermutations.find(inTargetProgramId);
 
@@ -30,21 +40,14 @@ namespace MAD
 			// Reason why permutation doesn't produce the shader IDs is because that is an engine level construct. If we ever move towards
 			// making shader permutation generation a pre-build operation, the transition will be much smoother if the output of on-the-fly generation
 			// and pre-build generation produces the same result
-			const ProgramShaderTuple_t& programShaderTuple = programSetFindIter->second;
-			
-			// Bind the appropriate shaders, and unbind the ones that aren't valid for the target program
-
-			// Vertex Shader
-			const VertexShaderPtr_t vertexShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_VS>(programShaderTuple);
-			inGraphicsDriver.SetVertexShader(vertexShaderPtr);
-
-			// Geometry Shader
-			const GeometryShaderPtr_t geometryShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_GS>(programShaderTuple);
-			inGraphicsDriver.SetGeometryShader(geometryShaderPtr);
-
-			// Pixel Shader
-			const PixelShaderPtr_t pixelShaderPtr = GetPtrFromShaderTuple<EProgramShaderType::EProgramShaderType_PS>(programShaderTuple);
-			inGraphicsDriver.SetPixelShader(pixelShaderPtr);
+			if (eastl::shared_ptr<UPassProgram> selectedPassProgram = programSetFindIter->second)
+			{
+				selectedPassProgram->BindToPipeline(inGraphicsDriver);
+			}
+			else
+			{
+				LOG(LogDefault, Warning, "Selected active program didn't have valid render pass program\n");
+			}
 
 			return true;
 		}
@@ -98,4 +101,5 @@ namespace MAD
 
 		return EProgramShaderType::EProgramShaderType_Invalid;
 	}
+
 }
