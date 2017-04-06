@@ -221,7 +221,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
@@ -237,7 +237,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
@@ -253,7 +253,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
@@ -269,7 +269,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
@@ -285,7 +285,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
@@ -301,7 +301,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
@@ -317,7 +317,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
@@ -333,7 +333,7 @@
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
 								"emitters": [
 									{
-										"emit_rate": 50,
+										"emit_rate": 35,
 										"emit_duration": -1.0
 									}
 								]
