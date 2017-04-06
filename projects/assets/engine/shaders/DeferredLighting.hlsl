@@ -3,6 +3,7 @@
 //=>:(Usage, VS, vs_5_0)
 //=>:(Usage, PS, ps_5_0)
 //=>:(Permute, POINT_LIGHT)
+//=>:(Permute, DIRECTIONAL_LIGHT)
 
 // Input structs for vertex and pixel shader
 struct VS_INPUT
@@ -100,7 +101,7 @@ float CalculateShadowFactor(float3 positionVS)
 	}
 	
 	return g_cubeMap.SampleCmpLevelZero(g_shadowMapSampler, sampleVec, calculatedDepth).r;
-#else
+#elif DIRECTIONAL_LIGHT
 	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
 	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);
 	positionLS.xyz /= positionLS.w;
@@ -132,6 +133,8 @@ float CalculateShadowFactor(float3 positionVS)
 	}
 
 	return shadowFactor / 5.0;
+#else
+	return 1.0;
 #endif
 }
 
@@ -148,10 +151,14 @@ void GetLightIrradianceProperties(float3 positionVS, out float attenuation, out 
 
 	lightColor = g_pointLight.m_lightColor;
 	lightIntensity = g_pointLight.m_lightIntensity;
-#else
+#elif DIRECTIONAL_LIGHT
 	attenuation = 1.0;
 	lightColor = g_directionalLight.m_lightColor;
 	lightIntensity = g_directionalLight.m_lightIntensity;
+#else
+	attenuation = 1.0;
+	lightColor = float4(1.0, 1.0, 1.0, 1.0);
+	lightIntensity = 1.0;
 #endif
 
 	attenuation *= shadowFactor;
@@ -196,6 +203,11 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 V = normalize(-positionVS);
 	float3 H = normalize(L + V);
 
+	float3 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
+	float3 normalWS = mul(float4(N, 0.0), g_cameraInverseViewMatrix);
+	float3 cameraWS = g_cameraInverseViewMatrix[3].xyz;
+	float3 cameraReflectedWS = reflect(positionWS - cameraWS, normalWS);
+
 	// Directional Phong shading
 	float3 phong = float3(0.0f, 0.0, 0.0);
 
@@ -217,6 +229,8 @@ float4 PS(PS_INPUT input) : SV_Target
 
 		phong = lightIntensity * lightColor * attenuation * (diffuse + specular);
 	}
+
+	phong *= g_cubeMap.Sample(g_pointSampler, cameraReflectedWS);
 
 	return float4(phong, 1.0f);
 }

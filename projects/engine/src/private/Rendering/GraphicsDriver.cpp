@@ -249,7 +249,7 @@ namespace MAD
 		CreateBackBufferRenderTargetView();
 	}
 
-	ShaderResourcePtr_t UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const
+	ShaderResourcePtr_t UGraphicsDriver::CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips, int32_t inMiscFlags) const
 	{
 		auto widePath = utf8util::UTF16FromUTF8(inPath);
 		auto extension = inPath.substr(inPath.find_last_of('.'));
@@ -263,11 +263,11 @@ namespace MAD
 		{
 			if (inGenerateMips)
 			{
-				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Default), AsIntegral(EBindFlag::ShaderResource), 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Default), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 			else
 			{
-				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Immutable), AsIntegral(EBindFlag::ShaderResource), 0, 0, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateDDSTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Immutable), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, inForceSRGB, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 		}
 		else if (extension == ".png" || extension == ".bmp" || extension == ".jpeg" || extension == ".jpg" || extension == ".tif" || extension == ".tiff")
@@ -275,11 +275,11 @@ namespace MAD
 			DirectX::WIC_LOADER_FLAGS flags = inForceSRGB ? DirectX::WIC_LOADER_FORCE_SRGB : DirectX::WIC_LOADER_DEFAULT;
 			if (inGenerateMips)
 			{
-				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Default), AsIntegral(EBindFlag::ShaderResource), 0, 0, flags, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), g_d3dDeviceContext.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Default), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, flags, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 			else
 			{
-				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Immutable), AsIntegral(EBindFlag::ShaderResource), 0, 0, flags, texture.GetAddressOf(), srv.GetAddressOf());
+				hr = DirectX::CreateWICTextureFromFileEx(g_d3dDevice.Get(), widePath.c_str(), 0, static_cast<D3D11_USAGE>(EResourceUsage::Immutable), AsIntegral(EBindFlag::ShaderResource), 0, inMiscFlags, flags, texture.GetAddressOf(), srv.GetAddressOf());
 			}
 		}
 		else

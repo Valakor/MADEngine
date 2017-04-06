@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Rendering/RenderingCommon.h"
+#include "Rendering/ColorTextureCube.h"
 #include "Rendering/Texture.h"
 
 namespace MAD

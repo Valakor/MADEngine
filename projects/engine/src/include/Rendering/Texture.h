@@ -15,7 +15,7 @@ namespace MAD
 		 * to ensure textures are only loaded once. Will load a default (checker pattern) texture if the texture at the given
 		 * path could not be loaded.
 		 */
-		static eastl::shared_ptr<UTexture> Load(const eastl::string& inRelativePath, bool inLoadAsSRGB, bool inGenerateMips);
+		static eastl::shared_ptr<UTexture> Load(const eastl::string& inRelativePath, bool inLoadAsSRGB, bool inGenerateMips, int32_t inMiscFlags = 0);
 
 		// Load textures using UTexture::Load(...)
 		UTexture();

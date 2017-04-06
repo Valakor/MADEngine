@@ -3,6 +3,7 @@
 #include <EASTL/string.h>
 #include <EASTL/numeric_limits.h>
 #include "Rendering/RenderPassProgram.h"
+#include "Rendering/RenderingCommon.h"
 
 namespace MAD
 {
@@ -19,6 +20,8 @@ namespace MAD
 
 		INVALID = eastl::numeric_limits<ProgramId_t>::max()
 	};
+
+	DECLARE_ENUM_TO_INTEGRAL(EProgramIdMask);
 
 	enum class EMetaFlagType : uint8_t
 	{

@@ -41,6 +41,8 @@ namespace MAD
 		auto clientSize = inWindow.GetClientSize();
 		SetViewport(clientSize.x, clientSize.y);
 
+		m_globalEnvironmentMap = UColorTextureCube("engine\\textures\\beach.dds");
+
 		InitializeRenderPasses();
 		InitializeDebugGrid(6);
 
@@ -464,6 +466,8 @@ namespace MAD
 		m_perFrameConstants.m_gameTime = gEngine->GetGameTime();
 		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
+
+		m_globalEnvironmentMap.BindToPipeline(ETextureSlot::CubeMap);
 
 		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);

@@ -27,7 +27,7 @@ namespace MAD
 
 		// Don't use this directly, use the AssetCache interface, e.g.
 		//     AssetCache.Load<UTexture>(...);
-		ShaderResourcePtr_t CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const;
+		ShaderResourcePtr_t CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips, int32_t inMiscFlags = 0) const;
 		
 		bool CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines = nullptr);
 
