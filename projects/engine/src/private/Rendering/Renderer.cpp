@@ -45,7 +45,7 @@ namespace MAD
 		InitializeDebugGrid(6);
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
-		m_skyBox = USkybox(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
+		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
 
 		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
 
@@ -474,7 +474,7 @@ namespace MAD
 		DrawDirectionalLighting(inFramePercent);
 		DrawPointLighting(inFramePercent);
 
-		m_skyBox.DrawSkybox();
+		m_skySphere.DrawSkybox();
 
 		// Always perform the forward debug pass after the main deferred pass
 		DrawDebugPrimitives(inFramePercent);

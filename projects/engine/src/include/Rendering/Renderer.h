@@ -14,7 +14,7 @@
 #include "Rendering/DepthTextureCube.h"
 #include "Rendering/ColorTextureCube.h"
 #include "Rendering/TextBatchRenderer.h"
-#include "Rendering/Skybox.h"
+#include "Rendering/SkySphere.h"
 
 #include "Rendering/ParticleSystem/ParticleSystemManager.h"
 
@@ -152,7 +152,7 @@ namespace MAD
 		UTextBatchRenderer m_textBatchRenderer;
 		UParticleSystemManager m_particleSystemManager; // Use defaults for now
 		UColorTextureCube m_globalEnvironmentMap;
-		USkybox m_skyBox;
+		USkySphere m_skySphere;
 
 		EVisualizeOptions m_visualizeOption;
 	};

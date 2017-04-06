@@ -1,4 +1,4 @@
-#include "Rendering/Skybox.h"
+#include "Rendering/SkySphere.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/GraphicsDriver.h"
@@ -11,14 +11,14 @@
 
 namespace MAD
 {
-	USkybox::USkybox(const eastl::string& inShaderPath, const eastl::string& inCubemapPath, const Vector3& inBoxDimensions)
+	USkySphere::USkySphere(const eastl::string& inShaderPath, const eastl::string& inCubemapPath, const Vector3& inBoxDimensions)
 		: m_skyboxDimensions(inBoxDimensions)
 		, m_skyboxTransform(Matrix::CreateScale(inBoxDimensions.x, inBoxDimensions.y, inBoxDimensions.z))
 	{
 		MAD_CHECK_DESC(InitializeSkybox(inShaderPath, inCubemapPath), "Error loading skybox\n");
 	}
 
-	void USkybox::DrawSkybox()
+	void USkySphere::DrawSkybox()
 	{
 		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
 		const auto& gBufferPassDesc = URenderContext::Get().GetRenderer().GetGBufferPassDescriptor();
@@ -58,7 +58,7 @@ namespace MAD
 		graphicsDriver.EndEventGroup();
 	}
 
-	bool USkybox::InitializeSkybox(const eastl::string& inShaderPath, const eastl::string& inCubemapPath)
+	bool USkySphere::InitializeSkybox(const eastl::string& inShaderPath, const eastl::string& inCubemapPath)
 	{
 		eastl::shared_ptr<UTexture> boxCubeMapTex = UTexture::Load(inCubemapPath, true, false, D3D11_RESOURCE_MISC_TEXTURECUBE);
 

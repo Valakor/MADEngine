@@ -5,11 +5,11 @@
 
 namespace MAD
 {
-	class USkybox
+	class USkySphere
 	{
 	public:
-		USkybox() {}
-		USkybox(const eastl::string& inShaderPath, const eastl::string& inCubemapPath, const Vector3& inBoxDimensions); // dimensions: <width, height, depth>
+		USkySphere() {}
+		USkySphere(const eastl::string& inShaderPath, const eastl::string& inCubemapPath, const Vector3& inBoxDimensions); // dimensions: <width, height, depth>
 	
 		void DrawSkybox();
 	private:
