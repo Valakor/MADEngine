@@ -47,8 +47,9 @@ namespace MAD
 
 		// Bind the rasterizer state
 		graphicsDriver.SetRasterizerState(m_boxRasterizerState);
-
 		graphicsDriver.SetBlendState(m_skyboxBlendState);
+
+		graphicsDriver.SetPixelShaderResource(m_boxCubeMapSRV, ETextureSlot::CubeMap);
 
 		graphicsDriver.DrawIndexed(static_cast<UINT>(m_skyboxMesh->m_indexBuffer.size()), 0, 0);
 	}

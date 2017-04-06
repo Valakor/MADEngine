@@ -615,7 +615,7 @@ namespace MAD
 			// Shading + lighting
 			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::DiffuseMap);
-			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 			g_graphicsDriver.DrawFullscreenQuad();
 
