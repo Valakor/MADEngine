@@ -193,6 +193,7 @@ namespace MAD
 		NormalBuffer,
 		SpecularBuffer,
 		DepthBuffer,
+		ReflectionBuffer,
 		CubeMap,
 
 		MAX
@@ -205,6 +206,7 @@ namespace MAD
 		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,
+		ReflectionBuffer,
 
 		MAX
 	};
@@ -298,8 +300,7 @@ namespace MAD
 		// 16 bytes ---------------------------------
 
 		Vector3 m_emissiveColor;
-	private:
-		float __pad2 = 0.0f;
+		float m_reflectivity;
 		// 16 bytes ---------------------------------
 	};
 	static_assert(sizeof(SGPUMaterial) == 48, "");

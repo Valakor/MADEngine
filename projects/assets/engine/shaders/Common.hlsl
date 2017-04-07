@@ -26,6 +26,7 @@ struct MeshMaterial
 	float3 m_specularColor;
 	float  m_specularPower;
 	float3 m_emissiveColor;
+	float  m_reflectivity;
 };
 
 cbuffer CBPerSceneConstants : register(b0)
@@ -92,4 +93,5 @@ Texture2D	g_diffuseBuffer		: register(t6);
 Texture2D	g_normalBuffer		: register(t7);
 Texture2D	g_specularBuffer	: register(t8);
 Texture2D	g_depthBuffer		: register(t9);
-TextureCube g_cubeMap			: register(t10);
+Texture2D	g_reflectionBuffer	: register(t10);
+TextureCube g_cubeMap			: register(t11);

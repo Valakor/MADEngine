@@ -170,10 +170,10 @@
 						{
 							"type": "CMeshComponent",
 							"position": [0.0, 250.0, 0.0],
-							"scale": 400.0,
+							"scale": 5.0,
 							"properties": {
 								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\reflection_sphere.obj"
+								"mesh": "engine\\meshes\\primitives\\tea_pot\\utah-teapot.obj"
 							}
 						}
 					]

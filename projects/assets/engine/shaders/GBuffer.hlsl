@@ -36,6 +36,7 @@ struct PS_OUTPUT
 	float4 m_diffuse		   : SV_Target1;
 	half2  m_normal			   : SV_Target2;
 	float4 m_specular		   : SV_Target3;
+	float  m_reflectivity	   : SV_Target4;
 };
 
 // Encodes a 3-component normal using a spheremap transform into
@@ -96,11 +97,12 @@ PS_OUTPUT PS(PS_INPUT input)
 
 	float3 finalLightAccumulation;
 
-	float3 finalAmbientColor  = g_ambientColor.rgb;
-	float3 finalEmissiveColor = g_material.m_emissiveColor;
-	float3 finalDiffuseColor  = g_material.m_diffuseColor;
-	float3 finalSpecularColor = g_material.m_specularColor;
-	float  finalSpecularPower = g_material.m_specularPower;
+	float3	finalAmbientColor	= g_ambientColor.rgb;
+	float3	finalEmissiveColor	= g_material.m_emissiveColor;
+	float3	finalDiffuseColor	= g_material.m_diffuseColor;
+	float3	finalSpecularColor	= g_material.m_specularColor;
+	float	finalSpecularPower	= g_material.m_specularPower;
+	float	finalReflectivity	= g_material.m_reflectivity;
 
 #ifdef EMISSIVE
 	finalEmissiveColor *= g_emissiveMap.Sample(g_anisotropicSampler, input.mTex).rgb;
@@ -120,10 +122,11 @@ PS_OUTPUT PS(PS_INPUT input)
 	finalLightAccumulation = finalAmbientColor + finalEmissiveColor;
 
 	PS_OUTPUT output;
-	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
-	output.m_diffuse           = float4(saturate(finalDiffuseColor), 1.0f);
-	output.m_normal            = EncodeNormal(finalVSNormal);
-	output.m_specular          = float4(saturate(finalSpecularColor), EncodeSpecPower(finalSpecularPower));
+	output.m_lightAccumulation	= float4(saturate(finalLightAccumulation), 1.0f);
+	output.m_diffuse			= float4(saturate(finalDiffuseColor), 1.0f);
+	output.m_normal				= EncodeNormal(finalVSNormal);
+	output.m_specular			= float4(saturate(finalSpecularColor), EncodeSpecPower(finalSpecularPower));
+	output.m_reflectivity		= finalReflectivity;
 
 	return output;
 }

@@ -262,6 +262,11 @@ namespace MAD
 				LOG_IMPORT(Log, "\tSpecular power = %f\n", specular_power);
 				madMaterial.m_mat.m_specularPower = specular_power;
 
+				// Assimp doesn't allow you import a reflectivity constant....using the refraction index for now
+				float reflectivity = 0.0f;
+				aiMaterial->Get(AI_MATKEY_REFRACTI, reflectivity);
+				madMaterial.m_mat.m_reflectivity = reflectivity;
+
 				aiString specular_tex;
 				if (specular_strength > 0.0f && specular_power >= 1.0f && AI_SUCCESS == aiMaterial->GetTexture(aiTextureType_SPECULAR, 0, &specular_tex))
 				{
