@@ -11,7 +11,7 @@ namespace MAD
 		USkySphere() {}
 		USkySphere(const eastl::string& inShaderPath, const eastl::string& inCubemapPath, const Vector3& inBoxDimensions); // dimensions: <width, height, depth>
 	
-		void DrawSkybox();
+		void DrawSkySphere();
 	private:
 		bool InitializeSkybox(const eastl::string& inShaderPath, const eastl::string& inCubemapPath);
 	private:

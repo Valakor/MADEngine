@@ -15,13 +15,15 @@ namespace MAD
 		// 1) load from pre-created cube map file
 		// 2) create backing texture to render to (TODO)
 		UColorTextureCube() {}
+		explicit UColorTextureCube(uint16_t inSideTexRes);
 		explicit UColorTextureCube(const eastl::string& inTexturePath);
 
-		void BindToPipeline(ETextureSlot inTextureSlot);
+		void BindCubeSideAsTarget(uint8_t inCubeSide);
+
+		void BindAsResource(ETextureSlot inTextureSlot);
 	private:
-		Texture2DPtr_t m_texture2D;
 		ShaderResourcePtr_t m_textureCubeSRV;
-		uint32_t m_textureWidth;
-		uint32_t m_textureHeight;
+
+		D3D11_VIEWPORT m_textureViewport;
 	};
 }

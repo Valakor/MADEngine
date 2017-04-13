@@ -88,7 +88,7 @@ namespace MAD
 		g_graphicsDriver.Shutdown();
 	}
 
-	void URenderer::QueueDrawItem(const SDrawItem& inDrawItem)
+	void URenderer::QueueDynamicDrawItem(const SDrawItem& inDrawItem)
 	{
 		// Queue up this draw item
 		auto result = m_queuedDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
@@ -100,6 +100,13 @@ namespace MAD
 		{
 			result.first->second.m_previousDrawTransform = &iter->second.m_transform;
 		}
+	}
+
+	void URenderer::QueueStaticDrawItem(const SDrawItem& inDrawItem)
+	{
+		// Queue up this draw item
+		auto result = m_staticQueuedItems.insert({ inDrawItem.m_uniqueID, inDrawItem });
+		MAD_ASSERT_DESC(result.second, "Duplicate static draw item detected. Static draw items don't need to be re-queued every frame since their state should be the same across frames");
 	}
 
 	void URenderer::QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration /*= 0.0f*/)
@@ -174,6 +181,7 @@ namespace MAD
 		// Clear out the expired debug draw items
 		ClearExpiredDebugDrawItems();
 
+		// Keep static draw items around until requested to remove, always refresh dynamic draw items however
 		m_queuedDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
 		m_queuedPointLights[m_currentStateIndex].clear();
@@ -474,13 +482,13 @@ namespace MAD
 		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
-		m_globalEnvironmentMap.BindToPipeline(ETextureSlot::CubeMap);
+		m_globalEnvironmentMap.BindAsResource(ETextureSlot::CubeMap);
 
 		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);
 		DrawPointLighting(inFramePercent);
 
-		m_skySphere.DrawSkybox();
+		m_skySphere.DrawSkySphere();
 
 		// Always perform the forward debug pass after the main deferred pass
 		DrawDebugPrimitives(inFramePercent);

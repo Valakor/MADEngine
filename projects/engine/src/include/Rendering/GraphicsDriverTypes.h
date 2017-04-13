@@ -28,6 +28,20 @@ namespace MAD
 
 		UGraphicsObject(T* inObjectPtr = nullptr) { p = inObjectPtr; }
 
+		template <typename U>
+		operator UGraphicsObject<U>()
+		{
+			return UGraphicsObject<U>(reinterpret_cast<U*>(p.Get()));
+		}
+
+		/*template <typename U>
+		UGraphicsObject<T>& UGraphicsObject(UGraphicsObject<U> inOtherGraphicsObject)
+		{
+			p = static_cast<T*>(inOtherGraphicsObject.p);
+
+			return *this;
+		}*/
+
 		void Debug_SetName(const eastl::string& inName)
 		{
 			auto obj = static_cast<ID3D11DeviceChild*>(p.Get());
@@ -37,6 +51,7 @@ namespace MAD
 
 		// Utility wrapper functions around the ComPtr (most used)
 		T* Get() { return p.Get(); }
+		const T* Get() const { return p.Get(); }
 		T** GetAddressOf() { return p.GetAddressOf(); }
 		void Reset() { p.Reset(); }
 
@@ -76,7 +91,6 @@ namespace MAD
 			return p != nullptr;
 		}
 	};
-
 
 	using VertexShaderPtr_t = UGraphicsObject<ID3D11VertexShader>;
 	using GeometryShaderPtr_t = UGraphicsObject<ID3D11GeometryShader>;

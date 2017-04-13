@@ -18,7 +18,7 @@ namespace MAD
 		MAD_CHECK_DESC(InitializeSkybox(inShaderPath, inCubemapPath), "Error loading skybox\n");
 	}
 
-	void USkySphere::DrawSkybox()
+	void USkySphere::DrawSkySphere()
 	{
 		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
 		const auto& gBufferPassDesc = URenderContext::Get().GetRenderer().GetGBufferPassDescriptor();

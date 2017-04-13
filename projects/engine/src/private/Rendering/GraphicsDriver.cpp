@@ -556,6 +556,15 @@ namespace MAD
 		return depthStencil;
 	}
 
+	DepthStencilPtr_t UGraphicsDriver::CreateDepthStencil(ResourcePtr_t inResource, const SDepthStencilViewDesc& inDepthStencilDesc) const
+	{
+		DepthStencilPtr_t outputDepthStencilPtr;
+
+		HR_CHECK(g_d3dDevice->CreateDepthStencilView(inResource.Get(), &inDepthStencilDesc, outputDepthStencilPtr.GetAddressOf()), "Error: Couldn't create depth stencil view associated with resource");
+
+		return outputDepthStencilPtr;
+	}
+
 	DepthStencilStatePtr_t UGraphicsDriver::CreateDepthStencilState(bool inDepthTestEnable, EComparisonFunc inComparisonFunc, EDepthWriteMask inDepthWriteMask) const
 	{
 		D3D11_DEPTH_STENCIL_DESC stateDesc;
@@ -587,6 +596,38 @@ namespace MAD
 		HR_CHECK(g_d3dDevice->CreateDepthStencilState(&stateDesc, depthStencilStatePtr.GetAddressOf()), "Failed to create depth stencil state");
 
 		return depthStencilStatePtr;
+	}
+
+	Texture2DPtr_t UGraphicsDriver::CreateTexture2D(const STexture2DDesc& inTextureDesc, const void* inInitialData /*= nullptr*/)
+	{
+		Texture2DPtr_t outputTexture2DPtr;
+
+		HR_CHECK(g_d3dDevice->CreateTexture2D(&inTextureDesc, static_cast<const D3D11_SUBRESOURCE_DATA*>(inInitialData), outputTexture2DPtr.GetAddressOf()), "Error: Failed to create texture 2D with specified description settings");
+
+		return outputTexture2DPtr;
+	}
+
+	ShaderResourcePtr_t UGraphicsDriver::CreateShaderResource(ResourcePtr_t inResource, DXGI_FORMAT inFormat, D3D11_SRV_DIMENSION inSRVDimension, uint32_t inMostDetailedMip, uint32_t inMipLevels) const
+	{
+		ShaderResourcePtr_t outputShaderResourcePtr;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceDesc;
+		MEM_ZERO(shaderResourceDesc);
+
+		shaderResourceDesc.Format = inFormat;
+		shaderResourceDesc.ViewDimension = inSRVDimension;
+
+		switch (inSRVDimension)
+		{
+		case D3D11_SRV_DIMENSION_TEXTURECUBE:
+			shaderResourceDesc.TextureCube.MostDetailedMip = inMostDetailedMip;
+			shaderResourceDesc.TextureCube.MipLevels = inMipLevels;
+			break;
+		}
+
+		HR_CHECK(g_d3dDevice->CreateShaderResourceView(inResource.Get(), &shaderResourceDesc, outputShaderResourcePtr.GetAddressOf()), "Error: Creating shader resource for input resource failed!");
+
+		return outputShaderResourcePtr;
 	}
 
 	RasterizerStatePtr_t UGraphicsDriver::CreateRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const

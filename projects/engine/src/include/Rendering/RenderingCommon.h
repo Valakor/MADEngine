@@ -155,6 +155,17 @@ namespace MAD
 		WriteNoOverwrite = D3D11_MAP_WRITE_NO_OVERWRITE
 	};
 
+	enum class EDSVDimension : eastl::underlying_type<D3D11_DSV_DIMENSION>::type
+	{
+		Unknown = D3D11_DSV_DIMENSION_UNKNOWN,
+		Texture1D = D3D11_DSV_DIMENSION_TEXTURE1D,
+		Texture1DArray = D3D11_DSV_DIMENSION_TEXTURE1DARRAY,
+		Texture2D = D3D11_DSV_DIMENSION_TEXTURE2D,
+		Texture2DArray = D3D11_DSV_DIMENSION_TEXTURE2DARRAY,
+		Texture2DMS = D3D11_DSV_DIMENSION_TEXTURE2DMS,
+		Texture2DMSArray = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY
+	};
+
 	DECLARE_ENUM_TO_INTEGRAL(EPrimitiveTopology)
 	DECLARE_ENUM_TO_INTEGRAL(EResourceUsage)
 	DECLARE_ENUM_TO_INTEGRAL(ECPUAccess)
@@ -253,6 +264,11 @@ namespace MAD
 	DECLARE_ENUM_TO_INTEGRAL(EParticleVertexBufferSlot);
 
 #undef DECLARE_SLOT_TO_INTEGRAL
+
+	// DirectX API Structs
+	struct SGraphicsViewport : D3D11_VIEWPORT {};
+	struct SDepthStencilViewDesc : D3D11_DEPTH_STENCIL_VIEW_DESC {};
+	struct STexture2DDesc : D3D11_TEXTURE2D_DESC {};
 
 	// Lights -------------------------------
 	struct SGPUPointLight

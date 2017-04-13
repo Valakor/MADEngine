@@ -13,6 +13,7 @@ namespace MAD
 	public:
 		explicit CMeshComponent(OGameWorld* inOwningWorld);
 		
+		virtual void PostInitializeComponents() override;
 		virtual void Load(const UGameWorldLoader& inLoader, const class UObjectValue& inPropertyObj) override;
 		virtual void UpdateComponent(float inDeltaTime) override;
 
@@ -27,5 +28,6 @@ namespace MAD
 		void ConstructDrawItem() const;
 	private:
 		SMeshInstance m_meshInstance;
+		bool m_bIsDynamic;
 	};
 }

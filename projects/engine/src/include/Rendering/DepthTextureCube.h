@@ -31,11 +31,10 @@ namespace MAD
 		// Binds the entire texture cube as a shader resource at specified texture slot
 		void BindAsResource(ETextureSlot inTextureSlot);
 	private:
-		eastl::array<ComPtr<ID3D11DepthStencilView>, UDepthTextureCube::s_numTextureCubeSides> m_textureCubeDSVs;
-		
-		ComPtr<ID3D11ShaderResourceView> m_textureCubeSRV;
+		eastl::array<ResourcePtr_t, UDepthTextureCube::s_numTextureCubeSides> m_textureDSVs;
 
-		D3D11_VIEWPORT m_textureCubeViewport;
+		ShaderResourcePtr_t m_textureCubeSRV;
+		SGraphicsViewport m_textureViewport;
 	};
 
 	using TextureCubeVPArray_t = eastl::array<Matrix, UDepthTextureCube::s_numTextureCubeSides>;

@@ -39,7 +39,10 @@ namespace MAD
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
 		DepthStencilPtr_t CreateDepthStencil(int inWidth, int inHeight, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
+		DepthStencilPtr_t CreateDepthStencil(ResourcePtr_t inResource, const SDepthStencilViewDesc& inDepthStencilDesc) const;
 		DepthStencilStatePtr_t CreateDepthStencilState(bool inDepthTestEnable, EComparisonFunc inComparisonFunc, EDepthWriteMask inDepthWriteMask = EDepthWriteMask::All) const;
+		Texture2DPtr_t CreateTexture2D(const STexture2DDesc& inTextureDesc, const void* inInitialData = nullptr);
+		ShaderResourcePtr_t CreateShaderResource(ResourcePtr_t inResource, DXGI_FORMAT inFormat, D3D11_SRV_DIMENSION inSRVDimension, uint32_t inMostDetailedMip, uint32_t inMipLevels) const;
 		RasterizerStatePtr_t CreateRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const;
 		RasterizerStatePtr_t CreateDepthRasterizerState() const;
 		BlendStatePtr_t CreateBlendState(bool inEnableBlend, EBlendFactor inSrcBlend = EBlendFactor::One, EBlendFactor inDestBlend = EBlendFactor::One, EBlendOp inBlendOp = EBlendOp::Add,

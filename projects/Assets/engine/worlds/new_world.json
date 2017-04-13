@@ -121,9 +121,9 @@
 					"newComponents": [
 						{
 							"type": "CPointLightComponent",
-							"position": [0.0, 175.0, 0.0],
+							"position": [0.0, 100.0, 0.0],
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"intensity": 15.0,
 								"innerRadius": 50.0,
@@ -132,7 +132,7 @@
 						},
 						{
 							"type": "CMeshComponent",
-							"scale": 5.0,
+							"scale": 10.0,
 							"properties": {
 								"visible": false,
 								"mesh": "engine\\meshes\\primitives\\cube.obj"
@@ -215,7 +215,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [200.0, 0.0, 150.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -231,7 +231,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [0.0, 50.0, 0.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -247,7 +247,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [150.0, 50.0, 0.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -263,7 +263,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [-150.0, 50.0, 0.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -279,7 +279,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [0.0, 50.0, 150.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -295,7 +295,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [0.0, 50.0, -150.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -311,7 +311,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [150.0, 50.0, 150.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -327,7 +327,7 @@
 							"type": "CParticleSystemComponent",
 							"position": [-150.0, 50.0, -150.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"name": "Fire Effect",
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPUFire.hlsl",
 								"effect_texture": "engine\\textures\\fire_texture.jpg",
@@ -360,6 +360,50 @@
 							"position": [0.0, 0.5, 0.0],
 							"properties": {
 								"enabled": true
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Monkey Column",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 0.0, -250.0],
+							"scale": 100.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\monkey_column.obj"
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Wooden Chair",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [-100.0, 0.0, 0.0],
+							"scale": 1.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\wooden_chair\\chair.obj"
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
 							}
 						}
 					]

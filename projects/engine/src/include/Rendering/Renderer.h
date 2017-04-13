@@ -47,7 +47,8 @@ namespace MAD
 		bool Init(UGameWindow& inWindow);
 		void Shutdown();
 
-		void QueueDrawItem(const SDrawItem& inDrawItem);
+		void QueueDynamicDrawItem(const SDrawItem& inDrawItem);
+		void QueueStaticDrawItem(const SDrawItem& inDrawItem);
 		void QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration = 0.0f);
 		void QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight);
 		void QueuePointLight(size_t inID, const SGPUPointLight& inPointLight);
@@ -132,7 +133,8 @@ namespace MAD
 		SCameraInstance m_camera[2];
 
 		eastl::vector<SDebugHandle> m_debugDrawItems;
-		eastl::hash_map<size_t, SDrawItem> m_queuedDrawItems[2];
+		eastl::hash_map<size_t, SDrawItem> m_staticQueuedItems; // Static draw items (don't need double buffer since we don't need interpolation for static objects)
+		eastl::hash_map<size_t, SDrawItem> m_queuedDrawItems[2]; // Dynamic draw items
 		eastl::hash_map<size_t, SGPUDirectionalLight> m_queuedDirLights[2];
 		eastl::hash_map<size_t, SGPUPointLight> m_queuedPointLights[2];
 		

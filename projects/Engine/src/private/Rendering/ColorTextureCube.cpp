@@ -13,6 +13,13 @@
 
 namespace MAD
 {
+	// Create a color texture cube that can be rendered to where each side is inSideTexRes width and height
+	UColorTextureCube::UColorTextureCube(uint16_t inSideTexRes)
+	{
+		UNREFERENCED_PARAMETER(inSideTexRes);
+
+	}
+
 	UColorTextureCube::UColorTextureCube(const eastl::string& inTexturePath)
 	{
 		eastl::shared_ptr<UTexture> cubeTexture = UTexture::Load(inTexturePath, true, false, D3D11_RESOURCE_MISC_TEXTURECUBE);
@@ -22,7 +29,12 @@ namespace MAD
 		MAD_ASSERT_DESC(m_textureCubeSRV, "Error with loading or creating the DX texture cube");
 	}
 
-	void UColorTextureCube::BindToPipeline(ETextureSlot inTextureSlot)
+	void UColorTextureCube::BindCubeSideAsTarget(uint8_t inCubeSide)
+	{
+		UNREFERENCED_PARAMETER(inCubeSide);
+	}
+
+	void UColorTextureCube::BindAsResource(ETextureSlot inTextureSlot)
 	{
 		auto renderContext = URenderContext::Get().GetGraphicsDriver().TEMPGetDeviceContext();
 	

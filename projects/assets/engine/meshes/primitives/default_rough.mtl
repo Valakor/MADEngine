@@ -1,19 +1,9 @@
 # default_rough.mtl
 #
 
-newmtl default
-	Ns 8.0000
-	Ni 1.000
-	d 1.0000
-	illum 2
-	Ka 0.0000 0.0000 0.0000
-	Kd 0.8000 0.8000 0.8000
-	Ks 1.0000 1.0000 1.0000
-	Ke 0.0000 0.0000 0.0000
-
 newmtl default_tex
 	Ns 8.0000
-	Ni 1.000
+	Ni 0.0
 	d 1.0000
 	illum 2
 	Ka 0.0000 0.0000 0.0000
