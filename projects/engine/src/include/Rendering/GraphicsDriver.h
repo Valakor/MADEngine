@@ -57,6 +57,7 @@ namespace MAD
 		void SetRenderTargets(const RenderTargetPtr_t* inRenderTargets, int inNumRenderTargets, const DepthStencilPtr_t inOptionalDepthStencil) const;
 		void SetDepthStencilState(DepthStencilStatePtr_t inDepthStencilState, UINT inStencilRef) const;
 		void SetViewport(float inX, float inY, float inWidth, float inHeight) const;
+		void SetViewport(const SGraphicsViewport& inViewPort) const;
 		void SetInputLayout(InputLayoutPtr_t inInputLayout) const;
 		void SetPrimitiveTopology(EPrimitiveTopology inPrimitiveTopology) const;
 		void SetVertexBuffer(BufferPtr_t inVertexBuffer, VertexBufferSlotType_t inVertexSlot, UINT inVertexSize, UINT inVertexIndexOffset) const;

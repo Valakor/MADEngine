@@ -778,6 +778,11 @@ namespace MAD
 		g_d3dDeviceContext->RSSetViewports(1, &vp);
 	}
 
+	void UGraphicsDriver::SetViewport(const SGraphicsViewport& inViewPort) const
+	{
+		g_d3dDeviceContext->RSSetViewports(1, &inViewPort);
+	}
+
 	void UGraphicsDriver::SetRenderTargets(const RenderTargetPtr_t* inRenderTargets, int inNumRenderTargets, const DepthStencilPtr_t inOptionalDepthStencil) const
 	{
 		MAD_ASSERT_DESC(inNumRenderTargets <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, "Cannot bind more than 8 render targets at once");

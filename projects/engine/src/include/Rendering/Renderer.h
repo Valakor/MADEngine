@@ -98,8 +98,8 @@ namespace MAD
 
 		void InitializeDebugGrid(uint8_t inGridDimension);
 
-		void PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray);
-		void PopulateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);
+		void GenerateViewProjectionMatrices(const Vector3& inWSPos, TextureCubeVPArray_t& inOutVPArray);
+		void GenerateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);
 
 		void BindPerFrameConstants();
 		void SetViewport(LONG inWidth, LONG inHeight);

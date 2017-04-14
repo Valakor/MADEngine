@@ -163,7 +163,7 @@ namespace MAD
 		lineDrawItem.m_vertexCount = 2;
 		lineDrawItem.m_vertexBufferOffset = 0; // No sub-meshes obviously
 
-		PopulateDebugLineVertices(inMSStart, inMSEnd, inLineColor, lineDrawItem.m_vertexBuffers);
+		GenerateDebugLineVertices(inMSStart, inMSEnd, inLineColor, lineDrawItem.m_vertexBuffers);
 
 		lineDrawItem.m_transform.SetTranslation(inWSStart);
 
@@ -393,7 +393,7 @@ namespace MAD
 		}
 	}
 
-	void URenderer::PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray)
+	void URenderer::GenerateViewProjectionMatrices(const Vector3& inWSPos, TextureCubeVPArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
 		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
@@ -401,12 +401,12 @@ namespace MAD
 		// Calculate the points to look at for each direction
 		const Vector3 wsDirectionTargets[UTextureCube::Sides] =
 		{
-			{ inWSLightPos.x + 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // +X
-			{ inWSLightPos.x - 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // -X
-			{ inWSLightPos.x       , inWSLightPos.y + 1.0f, inWSLightPos.z        }, // +Y
-			{ inWSLightPos.x       , inWSLightPos.y - 1.0f, inWSLightPos.z        }, // -Y
-			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z - 1.0f }, // +Z
-			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z + 1.0f }, // -Z
+			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z        }, // +X
+			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z        }, // -X
+			{ inWSPos.x       , inWSPos.y + 1.0f, inWSPos.z        }, // +Y
+			{ inWSPos.x       , inWSPos.y - 1.0f, inWSPos.z        }, // -Y
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z - 1.0f }, // +Z
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z + 1.0f }, // -Z
 		};
 
 		const Vector3 wsUpVectors[UTextureCube::Sides] =
@@ -421,11 +421,11 @@ namespace MAD
 
 		for (uint8_t i = 0; i < UTextureCube::Sides; ++i)
 		{
-			inOutVPArray[i] = Matrix::CreateLookAt(inWSLightPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
+			inOutVPArray[i] = Matrix::CreateLookAt(inWSPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
 		}
 	}
 
-	void URenderer::PopulateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData)
+	void URenderer::GenerateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData)
 	{
 		inOutLineVertexData.clear();
 
@@ -482,7 +482,7 @@ namespace MAD
 		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
-		m_globalEnvironmentMap.BindAsResource(ETextureSlot::CubeMap);
+		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
 		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);
@@ -498,7 +498,7 @@ namespace MAD
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		m_textBatchRenderer.FlushBatch();
 
-		m_dynamicEnvironmentMap.BindAsResource(ETextureSlot::CubeMap);
+		m_dynamicEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
 		g_graphicsDriver.StartEventGroup(L"Particle Systems");
 
@@ -691,7 +691,7 @@ namespace MAD
 			}
 
 			// TODO Inefficient, we should just calculate once for each point light once as long as it doesn't change position
-			PopulatePointShadowVPMatrices(pointLightConstants.m_pointLight.m_lightPosition, shadowMapVPMatrices);
+			GenerateViewProjectionMatrices(pointLightConstants.m_pointLight.m_lightPosition, shadowMapVPMatrices);
 
 			memcpy(pointLightConstants.m_pointLightVPMatrices, shadowMapVPMatrices.data(), shadowMapVPMatrices.size() * sizeof(Matrix));
 
@@ -734,7 +734,7 @@ namespace MAD
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 
 			// Bind the texture cube as shader resource
-			m_depthTextureCube->BindAsResource(ETextureSlot::CubeMap);
+			m_depthTextureCube->BindAsShaderResource(ETextureSlot::CubeMap);
 
 			// Transform the light's position into view space
 			pointLightConstants.m_pointLight.m_lightPosition = Vector3::Transform(pointLightConstants.m_pointLight.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);

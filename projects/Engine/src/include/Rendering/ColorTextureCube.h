@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Rendering/TextureCube.h"
+#include "Rendering/DepthTextureCube.h"
 
 namespace MAD
 {
-	// Only supports loading vertical cross cube maps
-	class UColorTextureCube : public UTextureCube
+	// Only supports loading vertical cross cube maps and rendering dynamic cube maps
+	class UColorTextureCube
 	{
 	public:
 		// Two methods of creating color texture cube:
@@ -15,12 +15,12 @@ namespace MAD
 		explicit UColorTextureCube(uint16_t inTexSideRes);
 		explicit UColorTextureCube(const eastl::string& inTexturePath);
 
-		virtual void BindCubeSideAsTarget(uint8_t inCubeSide) override;
-
-		void SetClearColor(const Color& inCubeTexClearColor) { m_clearColor = inCubeTexClearColor; }
-		const Color& GetClearColor() const { return m_clearColor; }
+		void BindAsShaderResource(ETextureSlot inTextureSlot) const;
+		void BindCubeSideAsTarget(uint8_t inCubeSide) const;
 	private:
 		bool m_bIsDynamic;
-		Color m_clearColor;
+		eastl::array<eastl::pair<DepthStencilPtr_t, RenderTargetPtr_t>, AsIntegral(ETextureCubeFace::MAX)> m_cubeOutputViews;
+		ShaderResourcePtr_t m_cubeSRV;
+		SGraphicsViewport m_viewPort;
 	};
 }

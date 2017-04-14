@@ -34,18 +34,16 @@ namespace MAD
 	}
 
 #define DECLARE_ENUM_BITWISE_OPERATOR(EnumType)																															\
+	using EnumType##TypeAlias = eastl::underlying_type<EnumType>::type;																									\
+																																										\
 	inline EnumType operator | (EnumType leftEnum, EnumType rightEnum)																									\
 	{																																									\
-		using TypeAlias = eastl::underlying_type<EnumType>::type;																										\
-																																										\
-		return static_cast<EnumType>(static_cast<TypeAlias>(leftEnum) | static_cast<TypeAlias>(rightEnum));																\
+		return static_cast<EnumType>(static_cast<EnumType##TypeAlias>(leftEnum) | static_cast<EnumType##TypeAlias>(rightEnum));											\
 	}																																									\
 																																										\
 	inline EnumType& operator|=(EnumType& targetEnum, EnumType sourceEnum)																								\
 	{																																									\
-		using TypeAlias = eastl::underlying_type<EnumType>::type;																										\
-																																										\
-		targetEnum = EnumType(static_cast<TypeAlias>(targetEnum) | static_cast<TypeAlias>(sourceEnum));																	\
+		targetEnum = EnumType(static_cast<EnumType##TypeAlias>(targetEnum) | static_cast<EnumType##TypeAlias>(sourceEnum));												\
 																																										\
 		return targetEnum;																																				\
 	}
@@ -228,6 +226,7 @@ namespace MAD
 	DECLARE_ENUM_TO_INTEGRAL(EBindFlag)
 	DECLARE_ENUM_TO_INTEGRAL(EClearFlag)
 	DECLARE_ENUM_TO_INTEGRAL(ETextureCubeFace)
+	DECLARE_ENUM_TO_INTEGRAL(EResourceMiscFlag)
 
 	DECLARE_ENUM_BITWISE_OPERATOR(ECPUAccess)
 	DECLARE_ENUM_BITWISE_OPERATOR(EBindFlag)

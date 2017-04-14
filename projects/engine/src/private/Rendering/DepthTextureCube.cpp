@@ -9,12 +9,12 @@ namespace MAD
 		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
 
 		// Create new viewport for the depth texture cube
-		m_textureViewport.TopLeftX = 0;
-		m_textureViewport.TopLeftY = 0;
-		m_textureViewport.Width = inTextureRes;
-		m_textureViewport.Height = inTextureRes;
-		m_textureViewport.MinDepth = 0.0f;
-		m_textureViewport.MaxDepth = 1.0f;
+		m_viewPort.TopLeftX = 0;
+		m_viewPort.TopLeftY = 0;
+		m_viewPort.Width = inTextureRes;
+		m_viewPort.Height = inTextureRes;
+		m_viewPort.MinDepth = 0.0f;
+		m_viewPort.MaxDepth = 1.0f;
 
 		// Create the backing texture for the texture cube
 		Texture2DPtr_t depthCubeTexture2D;
@@ -53,32 +53,33 @@ namespace MAD
 			// Create a render target view for the current face
 			depthCubeDSVDesc.Texture2DArray.FirstArraySlice = i;
 
-			m_textureResourceViews[i] = graphicsDriver.CreateDepthStencil(depthCubeTexture2D, depthCubeDSVDesc);
+			m_depthCubeDSVs[i] = graphicsDriver.CreateDepthStencil(depthCubeTexture2D, depthCubeDSVDesc);
 		}
 
 		// Create the shader resource view for the depth texture cube
-		m_textureCubeSRV = graphicsDriver.CreateShaderResource(depthCubeTexture2D, DXGI_FORMAT_R24_UNORM_X8_TYPELESS, D3D11_SRV_DIMENSION_TEXTURECUBE, 0, static_cast<uint32_t>(-1));
+		m_depthCubeSRV = graphicsDriver.CreateShaderResource(depthCubeTexture2D, DXGI_FORMAT_R24_UNORM_X8_TYPELESS, D3D11_SRV_DIMENSION_TEXTURECUBE, 0, static_cast<uint32_t>(-1));
 	}
 
-	void UDepthTextureCube::BindCubeSideAsTarget(uint8_t inCubeSide)
+	void UDepthTextureCube::BindAsShaderResource(ETextureSlot inTextureSlot) const
 	{
-		if (inCubeSide >= m_textureResourceViews.size())
+		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
+
+		graphicsDriver.SetRenderTargets(nullptr, 0, nullptr); // If we're binding the depth cube map as a shader resource, we must unbind it from the depth stencil view
+		graphicsDriver.SetPixelShaderResource(m_depthCubeSRV, inTextureSlot);
+	}
+
+	void UDepthTextureCube::BindCubeSideAsTarget(uint8_t inCubeSide) const
+	{
+		if (inCubeSide >= m_depthCubeDSVs.size())
 		{
 			return;
 		}
 
 		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
 
-		// If we're binding a cube side as a depth stencil view, we must unbind it as a shader resource
-		graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::CubeMap);
-
-		// Clear the target depth stencil view
-		graphicsDriver.ClearDepthStencil(m_textureResourceViews[inCubeSide], true, 1.0);
-
-		// Bind the depth stencil view that corresponds with the target cube side
-		graphicsDriver.SetRenderTargets(nullptr, 0, m_textureResourceViews[inCubeSide]);
-	
-		// Change the viewport to match texture cube resolution
-		graphicsDriver.SetViewport(m_textureViewport.TopLeftX, m_textureViewport.TopLeftY, m_textureViewport.Width, m_textureViewport.Height);
+		graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::CubeMap); // If we're binding a cube side as a depth stencil view, we must unbind it as a shader resource
+		graphicsDriver.ClearDepthStencil(m_depthCubeDSVs[inCubeSide], true, 1.0); // Clear the target depth stencil view
+		graphicsDriver.SetRenderTargets(nullptr, 0, m_depthCubeDSVs[inCubeSide]); // Bind the depth stencil view that corresponds with the target cube side
+		graphicsDriver.SetViewport(m_viewPort); // Change the viewport to match texture cube resolution
 	}
 }

@@ -15,8 +15,9 @@ namespace MAD
 		virtual void BindCubeSideAsTarget(uint8_t inCubeSide) = 0;
 		
 		void BindAsResource(ETextureSlot inTextureSlot);
+		ResourcePtr_t GetSideResource(uint8_t inCubeSide) { return m_textureResourceViews[inCubeSide]; }
 	protected:
-		eastl::array<ResourcePtr_t, 6> m_textureResourceViews;
+		eastl::array<ResourcePtr_t, UTextureCube::Sides> m_textureResourceViews;
 		ShaderResourcePtr_t m_textureCubeSRV;
 		SGraphicsViewport m_textureViewport;
 	};

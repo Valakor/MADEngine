@@ -17,12 +17,19 @@ namespace MAD
 		* 1 Viewport based on the resolution of the texture cube resolution
 	*/
 
-	class UDepthTextureCube : public UTextureCube
+	class UDepthTextureCube
 	{
 	public:
+		UDepthTextureCube() {}
 		explicit UDepthTextureCube(uint16_t inTextureRes);
 
+		void BindAsShaderResource(ETextureSlot inTextureSlot) const;
+
 		// Binds a cube side as the depth stencil view
-		virtual void BindCubeSideAsTarget(uint8_t inCubeSide) override;
+		void BindCubeSideAsTarget(uint8_t inCubeSide) const;
+	private:
+		eastl::array<DepthStencilPtr_t, AsIntegral(ETextureCubeFace::MAX)> m_depthCubeDSVs;
+		ShaderResourcePtr_t m_depthCubeSRV;
+		SGraphicsViewport m_viewPort;
 	};
 }
