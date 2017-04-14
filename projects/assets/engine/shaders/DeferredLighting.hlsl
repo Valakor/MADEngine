@@ -204,12 +204,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 V = normalize(-positionVS);
 	float3 H = normalize(L + V);
 
-	float3 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
-	float3 normalWS = mul(float4(N, 0.0), g_cameraInverseViewMatrix);
-	float3 cameraWS = g_cameraInverseViewMatrix[3].xyz;
-	float3 cameraReflectedWS = reflect(positionWS - cameraWS, normalWS);
-	float3 skySphereColor = g_cubeMap.Sample(g_linearSampler, cameraReflectedWS);
-
 	// Directional Phong shading
 	float3 phong = float3(0.0f, 0.0, 0.0);
 
@@ -230,9 +224,6 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 specular = materialSpecularColor * pow(NdotH, materialSpecularPower);
 
 		phong = lightIntensity * lightColor * attenuation * (diffuse + specular);
-
-		// We don't want over-saturation due to the sky sphere color contribution so we average them together based on the reflectivity
-		phong = (sampleReflectivity * skySphereColor) + ((1.0 - sampleReflectivity) * phong);
 	}
 
 	return saturate(float4(phong, 1.0f));

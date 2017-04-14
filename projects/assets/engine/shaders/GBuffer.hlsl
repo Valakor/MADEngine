@@ -22,6 +22,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 mHomogenousPos	: SV_POSITION;
+	float3 mWSPosition		: POSITION;
 	float3 mVSNormal		: NORMAL0;
 #ifdef NORMAL_MAP
 	float3 mVSTangent		: NORMAL1;
@@ -66,6 +67,7 @@ PS_INPUT VS(VS_INPUT input)
 	PS_INPUT psInput;
 
 	psInput.mHomogenousPos = mul(float4(input.mModelPos, 1.0f), g_objectToProjectionMatrix);
+	psInput.mWSPosition = mul(float4(input.mModelPos, 1.0f), g_objectToWorldMatrix).xyz;
 	psInput.mTex = input.mTex;
 	psInput.mVSNormal = mul(float4(input.mModelNormal, 0.0f), g_objectToViewMatrix).xyz;
 #ifdef NORMAL_MAP
@@ -117,6 +119,12 @@ PS_OUTPUT PS(PS_INPUT input)
 	finalSpecularColor *= specularSample.rgb;
 	finalSpecularPower *= specularSample.a;
 #endif
+
+	float3 normalWS = mul(float4(finalVSNormal, 0.0), g_cameraInverseViewMatrix);
+	float3 cameraWS = g_cameraInverseViewMatrix[3].xyz;
+	float3 cameraReflectedWS = reflect(input.mWSPosition - cameraWS, normalWS);
+	float3 skySphereColor = g_cubeMap.Sample(g_linearSampler, cameraReflectedWS);
+	finalDiffuseColor = (finalReflectivity * skySphereColor) + ((1.0 - finalReflectivity) * finalDiffuseColor);
 
 	finalAmbientColor *= finalDiffuseColor;
 	finalLightAccumulation = finalAmbientColor + finalEmissiveColor;
