@@ -13,7 +13,7 @@ namespace MAD
 
 	CMeshComponent::CMeshComponent(OGameWorld* inOwningWorld)
 		: Super_t(inOwningWorld)
-		, m_bIsDynamic(true)
+		, m_bIsDynamic(false)
 	{
 		m_meshInstance.m_bVisible = false;
 	}
@@ -23,7 +23,19 @@ namespace MAD
 		// If static object, queue up static draw item right now
 		if (!m_bIsDynamic)
 		{
+			eastl::vector<SDrawItem> constructedDrawItems;
 
+			m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, GetWorldTransform());
+
+			// Set the draw item properties
+			for (size_t i = 0; i < constructedDrawItems.size(); ++i)
+			{
+				auto& currentDrawItem = constructedDrawItems[i];
+
+				currentDrawItem.m_uniqueID = MakeDrawItemID(GetObjectID(), i);
+
+				gEngine->GetRenderer().QueueStaticDrawItem(currentDrawItem);
+			}
 		}
 	}
 
@@ -63,10 +75,6 @@ namespace MAD
 			if (m_bIsDynamic)
 			{
 				targetRenderer.QueueDynamicDrawItem(currentDrawItem);
-			}
-			else
-			{
-				targetRenderer.QueueStaticDrawItem(currentDrawItem);
 			}
 		}
 	}

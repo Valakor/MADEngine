@@ -28,19 +28,6 @@ namespace MAD
 
 		UGraphicsObject(T* inObjectPtr = nullptr) { p = inObjectPtr; }
 
-		template <typename U>
-		operator UGraphicsObject<U>()
-		{
-			return UGraphicsObject<U>(reinterpret_cast<U*>(p.Get()));
-		}
-
-		/*template <typename U>
-		UGraphicsObject<T>& UGraphicsObject(UGraphicsObject<U> inOtherGraphicsObject)
-		{
-			p = static_cast<T*>(inOtherGraphicsObject.p);
-
-			return *this;
-		}*/
 
 		void Debug_SetName(const eastl::string& inName)
 		{
@@ -54,6 +41,13 @@ namespace MAD
 		const T* Get() const { return p.Get(); }
 		T** GetAddressOf() { return p.GetAddressOf(); }
 		void Reset() { p.Reset(); }
+
+		// Implicit conversion to other instantiated types of UGraphicsObject (ex. UGraphicsObject<ID3D11ShaderResourceView> -> UGraphicsObject<ID3D11Resource>)
+		template <typename U>
+		operator UGraphicsObject<U>()
+		{
+			return UGraphicsObject<U>(reinterpret_cast<U*>(p.Get()));
+		}
 
 		// Utility operator overloads around the ComPtr for standardized use of pointer syntax
 		UGraphicsObject<T>& operator=(const UGraphicsObject<T>& inOtherObject)

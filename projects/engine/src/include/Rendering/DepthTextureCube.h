@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Rendering/GraphicsDriverTypes.h"
-#include "Rendering/RenderingCommon.h"
+#include "Rendering/TextureCube.h"
 
 #include <cstdint>
 #include <wrl/client.h>
@@ -18,24 +17,12 @@ namespace MAD
 		* 1 Viewport based on the resolution of the texture cube resolution
 	*/
 
-	class UDepthTextureCube
+	class UDepthTextureCube : public UTextureCube
 	{
-	public:
-		static const uint8_t s_numTextureCubeSides = 6;
 	public:
 		explicit UDepthTextureCube(uint16_t inTextureRes);
 
 		// Binds a cube side as the depth stencil view
-		void BindCubeSideAsTarget(uint8_t inCubeSide);
-
-		// Binds the entire texture cube as a shader resource at specified texture slot
-		void BindAsResource(ETextureSlot inTextureSlot);
-	private:
-		eastl::array<ResourcePtr_t, UDepthTextureCube::s_numTextureCubeSides> m_textureDSVs;
-
-		ShaderResourcePtr_t m_textureCubeSRV;
-		SGraphicsViewport m_textureViewport;
+		virtual void BindCubeSideAsTarget(uint8_t inCubeSide) override;
 	};
-
-	using TextureCubeVPArray_t = eastl::array<Matrix, UDepthTextureCube::s_numTextureCubeSides>;
 }

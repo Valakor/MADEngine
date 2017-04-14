@@ -353,7 +353,7 @@ namespace MAD
 				float gameTime = gEngine->GetGameTime();
 				Vector3 offset = Vector3::Up * sinf(gameTime * m_moveSpeed) * m_distance;
 
-				root->SetWorldTranslation(m_initialPosition + offset);
+				root->SetWorldTranslation(root->GetWorldTranslation() + offset);
 			}
 
 			virtual void Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj) override
@@ -364,16 +364,10 @@ namespace MAD
 				inPropertyObj.GetProperty("distance", m_distance);
 			}
 
-			virtual void OnBeginPlay() override
-			{
-				m_initialPosition = GetOwningEntity().GetRootComponent()->GetWorldTranslation();
-			}
-
 		private:
 			bool m_enabled;
 			float m_moveSpeed;
 			float m_distance;
-			Vector3 m_initialPosition;
 		};
 
 		class CCircularMoveComponent : public UComponent

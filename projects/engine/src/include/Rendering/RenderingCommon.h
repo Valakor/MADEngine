@@ -27,6 +27,12 @@ namespace MAD
 		return static_cast<eastl::underlying_type<SlotEnum>::type>(e); \
 	}
 
+#define DECLARE_TYPED_TO_RAW(SlotEnum, RawType)					\
+	inline constexpr RawType AsRawType(SlotEnum inEnum)			\
+	{															\
+		return static_cast<RawType>(inEnum);					\
+	}
+
 #define DECLARE_ENUM_BITWISE_OPERATOR(EnumType)																															\
 	inline EnumType operator | (EnumType leftEnum, EnumType rightEnum)																									\
 	{																																									\
@@ -146,6 +152,12 @@ namespace MAD
 		All = D3D11_DEPTH_WRITE_MASK_ALL
 	};
 
+	enum class EClearFlag : eastl::underlying_type<D3D11_CLEAR_FLAG>::type
+	{
+		Depth = D3D11_CLEAR_DEPTH,
+		Stencil = D3D11_CLEAR_STENCIL
+	};
+
 	enum class EResourceMap : eastl::underlying_type<D3D11_MAP>::type
 	{
 		Read = D3D11_MAP_READ,
@@ -166,14 +178,65 @@ namespace MAD
 		Texture2DMSArray = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY
 	};
 
+	enum class ERTVDimension : eastl::underlying_type<D3D11_RTV_DIMENSION>::type
+	{
+		Unknown = D3D11_RTV_DIMENSION_UNKNOWN,
+		Buffer = D3D11_RTV_DIMENSION_BUFFER,
+		Texture1D = D3D11_RTV_DIMENSION_TEXTURE1D,
+		Texture1DArray = D3D11_RTV_DIMENSION_TEXTURE1DARRAY,
+		Texture2D = D3D11_RTV_DIMENSION_TEXTURE2D,
+		Texture2DArray = D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
+		Texture2DMS = D3D11_RTV_DIMENSION_TEXTURE2DMS,
+		Texture2DMSArray = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY,
+		Texture3D = D3D11_RTV_DIMENSION_TEXTURE3D
+	};
+
+	enum class EResourceMiscFlag : eastl::underlying_type<D3D11_RESOURCE_MISC_FLAG>::type
+	{
+		GenerateMips = D3D11_RESOURCE_MISC_GENERATE_MIPS,
+		Shared = D3D11_RESOURCE_MISC_SHARED,
+		TextureCube = D3D11_RESOURCE_MISC_TEXTURECUBE,
+		DrawIndirectArgs = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS,
+		AllowRawViews = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS,
+		BufferStructured = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED,
+		ResourceClamp = D3D11_RESOURCE_MISC_RESOURCE_CLAMP,
+		SharedKeyedMutex = D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX,
+		GDICompatible = D3D11_RESOURCE_MISC_GDI_COMPATIBLE,
+		SharedNTHandle = D3D11_RESOURCE_MISC_SHARED_NTHANDLE,
+		RestrictedContent = D3D11_RESOURCE_MISC_RESTRICTED_CONTENT,
+		RestrictSharedResource = D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE,
+		RestrictSharedResourceDriver = D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE_DRIVER,
+		Guarded = D3D11_RESOURCE_MISC_GUARDED,
+		TilePool = D3D11_RESOURCE_MISC_TILE_POOL,
+		Tiled = D3D11_RESOURCE_MISC_TILED
+	};
+
+	enum class ETextureCubeFace : eastl::underlying_type<D3D11_TEXTURECUBE_FACE>::type
+	{
+		PositiveX = D3D11_TEXTURECUBE_FACE_POSITIVE_X,
+		NegativeX = D3D11_TEXTURECUBE_FACE_NEGATIVE_X,
+		PositiveY = D3D11_TEXTURECUBE_FACE_POSITIVE_Y,
+		NegativeY = D3D11_TEXTURECUBE_FACE_NEGATIVE_Y,
+		PositiveZ = D3D11_TEXTURECUBE_FACE_POSITIVE_Z,
+		NegativeZ = D3D11_TEXTURECUBE_FACE_NEGATIVE_Z,
+		MAX
+	};
+
 	DECLARE_ENUM_TO_INTEGRAL(EPrimitiveTopology)
 	DECLARE_ENUM_TO_INTEGRAL(EResourceUsage)
 	DECLARE_ENUM_TO_INTEGRAL(ECPUAccess)
 	DECLARE_ENUM_TO_INTEGRAL(EBindFlag)
+	DECLARE_ENUM_TO_INTEGRAL(EClearFlag)
+	DECLARE_ENUM_TO_INTEGRAL(ETextureCubeFace)
 
 	DECLARE_ENUM_BITWISE_OPERATOR(ECPUAccess)
 	DECLARE_ENUM_BITWISE_OPERATOR(EBindFlag)
 	DECLARE_ENUM_BITWISE_OPERATOR(EResourceMap)
+	DECLARE_ENUM_BITWISE_OPERATOR(EClearFlag)
+
+	DECLARE_TYPED_TO_RAW(EResourceUsage, D3D11_USAGE)
+	DECLARE_TYPED_TO_RAW(EDSVDimension, D3D11_DSV_DIMENSION)
+	DECLARE_TYPED_TO_RAW(ERTVDimension, D3D11_RTV_DIMENSION)
 
 	// Runtime Pipeline Enums ---------------
 	enum class EConstantBufferSlot
@@ -206,6 +269,7 @@ namespace MAD
 		DepthBuffer,
 		ReflectionBuffer,
 		CubeMap,
+		LocalCubeMap,
 
 		MAX
 	};
@@ -268,6 +332,7 @@ namespace MAD
 	// DirectX API Structs
 	struct SGraphicsViewport : D3D11_VIEWPORT {};
 	struct SDepthStencilViewDesc : D3D11_DEPTH_STENCIL_VIEW_DESC {};
+	struct SRenderTargetViewDesc : D3D11_RENDER_TARGET_VIEW_DESC {};
 	struct STexture2DDesc : D3D11_TEXTURE2D_DESC {};
 
 	// Lights -------------------------------

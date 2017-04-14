@@ -45,6 +45,7 @@ namespace MAD
 		InitializeDebugGrid(6);
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
+		m_dynamicEnvironmentMap = UColorTextureCube(256);
 		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
 
 		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
@@ -61,6 +62,11 @@ namespace MAD
 		SetViewport(newSize.x, newSize.y);
 
 		InitializeRenderPasses();
+
+		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
+		m_dynamicEnvironmentMap = UColorTextureCube(256);
+		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
+
 
 		m_textBatchRenderer.OnScreenSizeChanged();
 
@@ -91,12 +97,12 @@ namespace MAD
 	void URenderer::QueueDynamicDrawItem(const SDrawItem& inDrawItem)
 	{
 		// Queue up this draw item
-		auto result = m_queuedDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
+		auto result = m_dynamicDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
 		MAD_ASSERT_DESC(result.second, "Duplicate draw item detected. Either it was submitted twice, or there was a collision in generating its unique ID");
 
 		// Check if this draw item was submitted previously
-		auto iter = m_queuedDrawItems[1 - m_currentStateIndex].find(inDrawItem.m_uniqueID);
-		if (iter != m_queuedDrawItems[1 - m_currentStateIndex].end())
+		auto iter = m_dynamicDrawItems[1 - m_currentStateIndex].find(inDrawItem.m_uniqueID);
+		if (iter != m_dynamicDrawItems[1 - m_currentStateIndex].end())
 		{
 			result.first->second.m_previousDrawTransform = &iter->second.m_transform;
 		}
@@ -105,7 +111,7 @@ namespace MAD
 	void URenderer::QueueStaticDrawItem(const SDrawItem& inDrawItem)
 	{
 		// Queue up this draw item
-		auto result = m_staticQueuedItems.insert({ inDrawItem.m_uniqueID, inDrawItem });
+		auto result = m_staticDrawItems.insert({ inDrawItem.m_uniqueID, inDrawItem });
 		MAD_ASSERT_DESC(result.second, "Duplicate static draw item detected. Static draw items don't need to be re-queued every frame since their state should be the same across frames");
 	}
 
@@ -182,7 +188,7 @@ namespace MAD
 		ClearExpiredDebugDrawItems();
 
 		// Keep static draw items around until requested to remove, always refresh dynamic draw items however
-		m_queuedDrawItems[m_currentStateIndex].clear();
+		m_dynamicDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
 		m_queuedPointLights[m_currentStateIndex].clear();
 	}
@@ -397,7 +403,7 @@ namespace MAD
 		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
 
 		// Calculate the points to look at for each direction
-		const Vector3 wsDirectionTargets[UDepthTextureCube::s_numTextureCubeSides] =
+		const Vector3 wsDirectionTargets[UTextureCube::Sides] =
 		{
 			{ inWSLightPos.x + 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // +X
 			{ inWSLightPos.x - 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // -X
@@ -407,7 +413,7 @@ namespace MAD
 			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z + 1.0f }, // -Z
 		};
 
-		const Vector3 wsUpVectors[UDepthTextureCube::s_numTextureCubeSides] =
+		const Vector3 wsUpVectors[UTextureCube::Sides] =
 		{
 			{ 0.0f, 1.0f, 0.0f }, // +X
 			{ 0.0f, 1.0f, 0.0f },  // -X
@@ -417,7 +423,7 @@ namespace MAD
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};
 
-		for (uint8_t i = 0; i < UDepthTextureCube::s_numTextureCubeSides; ++i)
+		for (uint8_t i = 0; i < UTextureCube::Sides; ++i)
 		{
 			inOutVPArray[i] = Matrix::CreateLookAt(inWSLightPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
 		}
@@ -455,8 +461,6 @@ namespace MAD
 
 	void URenderer::BeginFrame()
 	{
-		static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
 		g_graphicsDriver.StartEventGroup(L"Clear render targets and depth");
 
 		g_graphicsDriver.ClearDepthStencil(m_gBufferPassDescriptor.m_depthStencilView, true, 1.0f);
@@ -468,7 +472,7 @@ namespace MAD
 		for (unsigned i = 1; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
 		{
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
-			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
+			g_graphicsDriver.ClearRenderTarget(renderTarget);
 		}
 
 		g_graphicsDriver.EndEventGroup();
@@ -497,6 +501,8 @@ namespace MAD
 		m_textRenderPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		m_textBatchRenderer.FlushBatch();
+
+		m_dynamicEnvironmentMap.BindAsResource(ETextureSlot::CubeMap);
 
 		g_graphicsDriver.StartEventGroup(L"Particle Systems");
 
@@ -556,16 +562,30 @@ namespace MAD
 
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
-		// Go through each draw item and bind input assembly data
-		g_graphicsDriver.StartEventGroup(L"Draw scene to GBuffer");
-		for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
+		// Go through both static and dynamic draw items and bind input assembly data
+		g_graphicsDriver.StartEventGroup(L"Draw objects in scene to GBuffer");
+
+		g_graphicsDriver.StartEventGroup(L"Static");
+		for (auto& currentStaticDrawItem : m_staticDrawItems)
 		{
 			// Before processing the draw item, we need to determine which program it should use and bind that
-			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem.second));
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentStaticDrawItem.second));
+
+			currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
+		}
+		g_graphicsDriver.EndEventGroup();
+
+		g_graphicsDriver.StartEventGroup(L"Dynamic");
+		for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+		{
+			// Before processing the draw item, we need to determine which program it should use and bind that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDynamicDrawItem.second));
 
 			// Each individual DrawItem should issue its own draw call
-			currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
+			currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
 		}
+		g_graphicsDriver.EndEventGroup();
+
 		g_graphicsDriver.EndEventGroup();
 
 		if (m_visualizeOption != EVisualizeOptions::None)
@@ -621,10 +641,20 @@ namespace MAD
 
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
 			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
-			for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
+
+			g_graphicsDriver.StartEventGroup(L"Static");
+			for (auto& currentStaticDrawItem : m_staticDrawItems)
 			{
-				currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
+			g_graphicsDriver.EndEventGroup();
+
+			g_graphicsDriver.StartEventGroup(L"Dynamic");
+			for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+			{
+				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+			}
+			g_graphicsDriver.EndEventGroup();
 
 			g_graphicsDriver.EndEventGroup();
 
@@ -677,7 +707,7 @@ namespace MAD
 			m_pointShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_pointShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
-			for (int i = 0; i < 6; ++i)
+			for (int i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
 			{
 				g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Shadow Cube Side #%d", i));
 
@@ -688,11 +718,20 @@ namespace MAD
 				pointLightConstants.m_pointLight.m_viewProjectionMatrix = shadowMapVPMatrices[i];
 				g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(pointLightConstants));
 
-				// Process all of the draw items again
-				for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
+				// Process all of the draw items (static and dynamic) again
+				g_graphicsDriver.StartEventGroup(L"Static");
+				for (auto& currentStaticDrawItem : m_staticDrawItems)
 				{
-					currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
+					currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
 				}
+				g_graphicsDriver.EndEventGroup();
+
+				g_graphicsDriver.StartEventGroup(L"Dynamic");
+				for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+				{
+					currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
+				}
+				g_graphicsDriver.EndEventGroup();
 
 				g_graphicsDriver.EndEventGroup();
 			}
@@ -774,6 +813,12 @@ namespace MAD
 		}
 
 		g_graphicsDriver.EndEventGroup();
+	}
+
+	void URenderer::DrawEnvironmentMap(float, size_t)
+	{
+		// Uses the inSourceIndex dynamic draw item as the source of the environment map
+
 	}
 
 	void URenderer::DoVisualizeGBuffer()

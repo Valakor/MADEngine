@@ -1,29 +1,26 @@
 #pragma once
 
-#include "Rendering/GraphicsDriverTypes.h"
-#include "Rendering/RenderingCommon.h"
-
-#include <EASTL/array.h>
+#include "Rendering/TextureCube.h"
 
 namespace MAD
 {
 	// Only supports loading vertical cross cube maps
-	class UColorTextureCube
+	class UColorTextureCube : public UTextureCube
 	{
 	public:
 		// Two methods of creating color texture cube:
 		// 1) load from pre-created cube map file
 		// 2) create backing texture to render to (TODO)
-		UColorTextureCube() {}
-		explicit UColorTextureCube(uint16_t inSideTexRes);
+		UColorTextureCube();
+		explicit UColorTextureCube(uint16_t inTexSideRes);
 		explicit UColorTextureCube(const eastl::string& inTexturePath);
 
-		void BindCubeSideAsTarget(uint8_t inCubeSide);
+		virtual void BindCubeSideAsTarget(uint8_t inCubeSide) override;
 
-		void BindAsResource(ETextureSlot inTextureSlot);
+		void SetClearColor(const Color& inCubeTexClearColor) { m_clearColor = inCubeTexClearColor; }
+		const Color& GetClearColor() const { return m_clearColor; }
 	private:
-		ShaderResourcePtr_t m_textureCubeSRV;
-
-		D3D11_VIEWPORT m_textureViewport;
+		bool m_bIsDynamic;
+		Color m_clearColor;
 	};
 }

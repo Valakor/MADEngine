@@ -36,6 +36,7 @@ namespace MAD
 		GeometryShaderPtr_t CreateGeometryShader(const eastl::vector<char>& inCompiledGSByteCode);
 
 		RenderTargetPtr_t CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
+		RenderTargetPtr_t CreateRenderTarget(ResourcePtr_t inBackingResource, const SRenderTargetViewDesc& inRenderTargetView) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
 		DepthStencilPtr_t CreateDepthStencil(int inWidth, int inHeight, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
@@ -73,8 +74,8 @@ namespace MAD
 
 		void SetFullScreen(bool inIsFullscreen) const;
 
-		void ClearBackBuffer(const float inColor[4]);
-		void ClearRenderTarget(RenderTargetPtr_t inRenderTarget, const float inColor[4]) const;
+		void ClearBackBuffer(const Color& inColor);
+		void ClearRenderTarget(RenderTargetPtr_t inRenderTarget, const Color& inColor = Color(0.0f, 0.0f, 0.0f, 0.0f)) const;
 		void ClearDepthStencil(DepthStencilPtr_t inDepthStencil, bool inClearDepth, float inDepth, bool inClearStencil = false, UINT8 inStencil = 0) const;
 		void Draw(int inVertexCount, int inStartVertex) const;
 		void DrawIndexed(int inIndexCount, int inStartIndex, int inBaseVertex) const;

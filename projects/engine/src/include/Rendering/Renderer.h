@@ -114,6 +114,7 @@ namespace MAD
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
 		void DrawDebugPrimitives(float inFramePerecent);
+		void DrawEnvironmentMap(float inFramePercent, size_t inSourceIndex);
 
 		void DoVisualizeGBuffer();
 
@@ -133,8 +134,8 @@ namespace MAD
 		SCameraInstance m_camera[2];
 
 		eastl::vector<SDebugHandle> m_debugDrawItems;
-		eastl::hash_map<size_t, SDrawItem> m_staticQueuedItems; // Static draw items (don't need double buffer since we don't need interpolation for static objects)
-		eastl::hash_map<size_t, SDrawItem> m_queuedDrawItems[2]; // Dynamic draw items
+		eastl::hash_map<size_t, SDrawItem> m_staticDrawItems; // Static draw items (don't need double buffer since we don't need interpolation for static objects)
+		eastl::hash_map<size_t, SDrawItem> m_dynamicDrawItems[2]; // Dynamic draw items
 		eastl::hash_map<size_t, SGPUDirectionalLight> m_queuedDirLights[2];
 		eastl::hash_map<size_t, SGPUPointLight> m_queuedPointLights[2];
 		
@@ -154,6 +155,9 @@ namespace MAD
 		UTextBatchRenderer m_textBatchRenderer;
 		UParticleSystemManager m_particleSystemManager; // Use defaults for now
 		UColorTextureCube m_globalEnvironmentMap;
+		// TEMP-------
+		UColorTextureCube m_dynamicEnvironmentMap; // For now, just render everything from some specified texture cube origin
+		// ----------
 		USkySphere m_skySphere;
 
 		EVisualizeOptions m_visualizeOption;

@@ -123,7 +123,7 @@
 							"type": "CPointLightComponent",
 							"position": [0.0, 100.0, 0.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"intensity": 15.0,
 								"innerRadius": 50.0,
@@ -404,6 +404,150 @@
 							"position": [0.0, 0.5, 0.0],
 							"properties": {
 								"enabled": false
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Moving Sphere Right",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 250.0, 0.0],
+							"rotation": [90.0, 0.0, 45.0],
+							"scale": 50.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\diffuse_sphere.obj",
+								"dynamic": true
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
+							}
+						},
+						{
+							"type": "CCircularMoveComponent",
+							"properties": {
+								"enabled": true,
+								"angular_speed": 125.0,
+								"radius": 175.0
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties":{
+								"enabled": true,
+								"speed": 4.0,
+								"distance": 50.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Moving Sphere Left",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 250.0, 0.0],
+							"rotation": [90.0, 0.0, -45.0],
+							"scale": 50.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\diffuse_sphere.obj",
+								"dynamic": true
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
+							}
+						},
+						{
+							"type": "CCircularMoveComponent",
+							"properties": {
+								"enabled": true,
+								"angular_speed": 175.0,
+								"radius": 250.0
+							}
+						},
+						{
+							"type": "CSinMoveComponent",
+							"properties":{
+								"enabled": true,
+								"speed": 10.0,
+								"distance": 50.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Moving Sphere Horizontal",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 250.0, 0.0],
+							"rotation": [90.0, 0.0, 0.0],
+							"scale": 50.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\diffuse_sphere.obj",
+								"dynamic": true
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
+							}
+						},
+						{
+							"type": "CCircularMoveComponent",
+							"properties": {
+								"enabled": true,
+								"angular_speed": 75.0,
+								"radius": 150.0
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Moving Sphere Vertical",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 250.0, 0.0],
+							"rotation": [0.0, 90.0, 0.0],
+							"scale": 50.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\diffuse_sphere.obj",
+								"dynamic": true
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
+							}
+						},
+						{
+							"type": "CCircularMoveComponent",
+							"properties": {
+								"enabled": true,
+								"angular_speed": 250.0,
+								"radius": 150.0
 							}
 						}
 					]

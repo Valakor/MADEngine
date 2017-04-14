@@ -458,6 +458,15 @@ namespace MAD
 		return renderTarget;
 	}
 
+	RenderTargetPtr_t UGraphicsDriver::CreateRenderTarget(ResourcePtr_t inBackingResource, const SRenderTargetViewDesc& inRenderTargetView) const
+	{
+		RenderTargetPtr_t outputRenderTarget;
+
+		HR_CHECK(g_d3dDevice->CreateRenderTargetView(inBackingResource.Get(), &inRenderTargetView, outputRenderTarget.GetAddressOf()), "Failed to create render target from backing resource (usually a texture)");
+
+		return outputRenderTarget;
+	}
+
 	InputLayoutPtr_t UGraphicsDriver::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const
 	{
 		return CreateInputLayout(inElements, inNumElements, inCompiledVertexShader.data(), inCompiledVertexShader.size());
@@ -944,19 +953,23 @@ namespace MAD
 		HR_CHECK(g_dxgiSwapChain->SetFullscreenState(inIsFullscreen, nullptr), "Failed to set fullscreen state");
 	}
 
-	void UGraphicsDriver::ClearBackBuffer(const float inColor[4])
+	void UGraphicsDriver::ClearBackBuffer(const Color& inColor)
 	{
 		ClearRenderTarget(m_backBuffer, inColor);
 	}
 
-	void UGraphicsDriver::ClearRenderTarget(RenderTargetPtr_t inRenderTarget, const float inColor[4]) const
+	void UGraphicsDriver::ClearRenderTarget(RenderTargetPtr_t inRenderTarget, const Color& inColor) const
 	{
+		static float s_localClearColor[4];
+
 		if (!inRenderTarget)
 		{
 			return;
 		}
 
-		g_d3dDeviceContext->ClearRenderTargetView(inRenderTarget.Get(), inColor);
+		memcpy(s_localClearColor, &inColor, sizeof(inColor));
+
+		g_d3dDeviceContext->ClearRenderTargetView(inRenderTarget.Get(), s_localClearColor);
 	}
 
 	void UGraphicsDriver::ClearDepthStencil(DepthStencilPtr_t inDepthStencil, bool inClearDepth, float inDepth, bool inClearStencil, UINT8 inStencil) const
@@ -967,8 +980,8 @@ namespace MAD
 		}
 		
 		UINT clearFlags = 0;
-		if (inClearDepth) clearFlags |= D3D11_CLEAR_DEPTH;
-		if (inClearStencil) clearFlags |= D3D11_CLEAR_STENCIL;
+		if (inClearDepth) clearFlags |= AsIntegral(EClearFlag::Depth);
+		if (inClearStencil) clearFlags |= AsIntegral(EClearFlag::Stencil);
 
 		g_d3dDeviceContext->ClearDepthStencilView(inDepthStencil.Get(), clearFlags, inDepth, inStencil);
 	}
