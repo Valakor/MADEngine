@@ -98,7 +98,7 @@ namespace MAD
 
 		void InitializeDebugGrid(uint8_t inGridDimension);
 
-		void GenerateViewProjectionMatrices(const Vector3& inWSPos, TextureCubeVPArray_t& inOutVPArray);
+		void GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeViewProjArray_t& inOutVPArray);
 		void GenerateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);
 
 		void BindPerFrameConstants();
@@ -114,7 +114,7 @@ namespace MAD
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
 		void DrawDebugPrimitives(float inFramePerecent);
-		void DrawEnvironmentMap(float inFramePercent, size_t inSourceIndex);
+		void DrawEnvironmentMap(float inFramePercent);
 
 		void DoVisualizeGBuffer();
 

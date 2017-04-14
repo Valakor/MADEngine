@@ -21,6 +21,4 @@ namespace MAD
 		ShaderResourcePtr_t m_textureCubeSRV;
 		SGraphicsViewport m_textureViewport;
 	};
-
-	using TextureCubeVPArray_t = eastl::array<Matrix, UTextureCube::Sides>;
 }

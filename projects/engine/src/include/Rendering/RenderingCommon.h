@@ -2,6 +2,7 @@
 
 #include "Core/SimpleMath.h"
 
+#include <EASTL/array.h>
 #include <EASTL/type_traits.h>
 
 namespace MAD
@@ -259,6 +260,8 @@ namespace MAD
 		EmissiveMap,
 		OpacityMask,
 		NormalMap,
+		CubeMap,
+		GlobalCubeMap,
 
 		// ------------- Defined by renderer -------------------
 		LightingBuffer,
@@ -266,8 +269,6 @@ namespace MAD
 		NormalBuffer,
 		SpecularBuffer,
 		DepthBuffer,
-		CubeMap,
-		LocalCubeMap,
 
 		MAX
 	};
@@ -331,6 +332,8 @@ namespace MAD
 	struct SDepthStencilViewDesc : D3D11_DEPTH_STENCIL_VIEW_DESC {};
 	struct SRenderTargetViewDesc : D3D11_RENDER_TARGET_VIEW_DESC {};
 	struct STexture2DDesc : D3D11_TEXTURE2D_DESC {};
+
+	using CubeViewProjArray_t = eastl::array<Matrix, AsIntegral(ETextureCubeFace::MAX)>;
 
 	// Lights -------------------------------
 	struct SGPUPointLight

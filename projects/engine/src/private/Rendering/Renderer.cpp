@@ -393,7 +393,7 @@ namespace MAD
 		}
 	}
 
-	void URenderer::GenerateViewProjectionMatrices(const Vector3& inWSPos, TextureCubeVPArray_t& inOutVPArray)
+	void URenderer::GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeViewProjArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
 		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
@@ -484,9 +484,12 @@ namespace MAD
 
 		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
+		DrawEnvironmentMap(inFramePercent);
 		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);
 		DrawPointLighting(inFramePercent);
+
+		//m_dynamicEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
 		m_skySphere.DrawSkySphere();
 
@@ -498,7 +501,6 @@ namespace MAD
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		m_textBatchRenderer.FlushBatch();
 
-		m_dynamicEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
 		g_graphicsDriver.StartEventGroup(L"Particle Systems");
 
@@ -668,7 +670,7 @@ namespace MAD
 	{
 		uint32_t currentPointLightIndex = 0;
 		SPerPointLightConstants pointLightConstants;
-		TextureCubeVPArray_t shadowMapVPMatrices;
+		CubeViewProjArray_t shadowMapVPMatrices;
 
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
 
@@ -809,10 +811,8 @@ namespace MAD
 		g_graphicsDriver.EndEventGroup();
 	}
 
-	void URenderer::DrawEnvironmentMap(float, size_t)
+	void URenderer::DrawEnvironmentMap(float)
 	{
-		// Uses the inSourceIndex dynamic draw item as the source of the environment map
-
 	}
 
 	void URenderer::DoVisualizeGBuffer()
