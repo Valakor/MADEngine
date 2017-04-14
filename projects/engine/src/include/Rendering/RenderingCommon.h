@@ -267,7 +267,6 @@ namespace MAD
 		NormalBuffer,
 		SpecularBuffer,
 		DepthBuffer,
-		ReflectionBuffer,
 		CubeMap,
 		LocalCubeMap,
 
@@ -281,7 +280,6 @@ namespace MAD
 		DiffuseBuffer,
 		NormalBuffer,
 		SpecularBuffer,
-		ReflectionBuffer,
 
 		MAX
 	};

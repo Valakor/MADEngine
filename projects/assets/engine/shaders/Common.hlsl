@@ -93,6 +93,5 @@ Texture2D	g_diffuseBuffer		: register(t6);
 Texture2D	g_normalBuffer		: register(t7);
 Texture2D	g_specularBuffer	: register(t8);
 Texture2D	g_depthBuffer		: register(t9);
-Texture2D	g_reflectionBuffer	: register(t10);
-TextureCube g_cubeMap			: register(t11);
-TextureCube g_localCubeMap		: register(t12);
+TextureCube g_cubeMap			: register(t10);
+TextureCube g_localCubeMap		: register(t11);

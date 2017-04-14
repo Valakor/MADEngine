@@ -37,7 +37,6 @@ struct PS_OUTPUT
 	float4 m_diffuse		   : SV_Target1;
 	half2  m_normal			   : SV_Target2;
 	float4 m_specular		   : SV_Target3;
-	float  m_reflectivity	   : SV_Target4;
 };
 
 // Encodes a 3-component normal using a spheremap transform into
@@ -134,7 +133,6 @@ PS_OUTPUT PS(PS_INPUT input)
 	output.m_diffuse			= float4(saturate(finalDiffuseColor), 1.0f);
 	output.m_normal				= EncodeNormal(finalVSNormal);
 	output.m_specular			= float4(saturate(finalSpecularColor), EncodeSpecPower(finalSpecularPower));
-	output.m_reflectivity		= finalReflectivity;
 
 	return output;
 }

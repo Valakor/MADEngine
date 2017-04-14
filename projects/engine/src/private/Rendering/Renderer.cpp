@@ -220,7 +220,6 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ReflectionBuffer);
 
 		for (unsigned i = 0; i < m_gBufferShaderResources.size(); ++i)
 		{
@@ -241,14 +240,12 @@ namespace MAD
 		ShaderResourcePtr_t& diffuseBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 		ShaderResourcePtr_t& normalBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 		ShaderResourcePtr_t& specularBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
-		ShaderResourcePtr_t& reflectionBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::ReflectionBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 
 		m_gBufferPassDescriptor.m_renderTargets.resize(AsIntegral(ERenderTargetSlot::MAX));
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16B16A16_FLOAT, &lightBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::DiffuseBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM, &diffuseBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16_UNORM, &normalBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM, &specularBufferSRV);
-		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::ReflectionBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16_FLOAT, &reflectionBufferSRV);
 
 #ifdef _DEBUG
 		g_graphicsDriver.SetDebugName_RenderTarget(g_graphicsDriver.GetBackBufferRenderTarget(), "Back Buffer");
@@ -256,7 +253,6 @@ namespace MAD
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::DiffuseBuffer)], "Diffuse Buffer");
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)], "Normal Buffer");
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)], "Specular Buffer");
-		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::ReflectionBuffer)], "Reflection Buffer");
 #endif
 
 		m_gBufferPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inGBufferProgramPath);
@@ -558,7 +554,6 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ReflectionBuffer);
 
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
@@ -609,7 +604,6 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::NormalBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DepthBuffer);
-		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::ReflectionBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::ReflectionBuffer);
 
 		uint32_t currentDirectionalLightIndex = 0;
 

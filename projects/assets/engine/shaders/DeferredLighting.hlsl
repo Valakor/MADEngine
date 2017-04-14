@@ -189,7 +189,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	float4 sampleSpecular = g_specularBuffer.Load(texCoord);
 	half2  sampleNormal   = g_normalBuffer.Load(texCoord).xy;
 	float  sampleDepth    = g_depthBuffer.Load(texCoord).r;
-	float  sampleReflectivity = g_reflectionBuffer.Load(texCoord).r;
 
 	// Rebuild our material properties
 	float3 materialDiffuseColor  = sampleDiffuse.rgb;
