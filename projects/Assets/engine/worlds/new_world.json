@@ -123,7 +123,7 @@
 							"type": "CPointLightComponent",
 							"position": [0.0, 100.0, 0.0],
 							"properties": {
-								"enabled": true,
+								"enabled": false,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"intensity": 15.0,
 								"innerRadius": 50.0,
@@ -169,10 +169,10 @@
 					"newComponents": [
 						{
 							"type": "CReflectionProbeComponent",
-							"position": [0.0, 250.0, 0.0],
-							"scale": 5.0,
+							"position": [0.0, 350.0, 0.0],
+							"scale": 100.0,
 							"properties": {
-								"mesh": "engine\\meshes\\primitives\\tea_pot\\utah-teapot.obj"
+								"mesh": "engine\\meshes\\primitives\\reflection_sphere.obj"
 							}
 						}
 					]
@@ -525,7 +525,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, 250.0, 0.0],
+							"position": [0.0, 350.0, 0.0],
 							"rotation": [0.0, 90.0, 0.0],
 							"scale": 50.0,
 							"properties": {

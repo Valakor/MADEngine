@@ -55,7 +55,7 @@ namespace MAD
 		InitializeDebugGrid(6);
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
-		m_dynamicEnvironmentMap = UColorTextureCube(256);
+		m_dynamicEnvironmentMap = UColorTextureCube(512);
 		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
 
 		m_dynamicEnvironmentMap.SetClearColor(m_clearColor);
@@ -463,8 +463,8 @@ namespace MAD
 		// Calculate the points to look at for each direction
 		const Vector3 wsDirectionTargets[AsIntegral(ETextureCubeFace::MAX)] =
 		{
-			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z }, // +X
-			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z }, // -X
+			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z }, // +X
+			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z }, // -X (why do these need to be flipped....)
 			{ inWSPos.x       , inWSPos.y + 1.0f, inWSPos.z }, // +Y
 			{ inWSPos.x       , inWSPos.y - 1.0f, inWSPos.z }, // -Y
 			{ inWSPos.x       , inWSPos.y       , inWSPos.z + 1.0f }, // +Z
@@ -475,8 +475,8 @@ namespace MAD
 		{
 			{ 0.0f, 1.0f, 0.0f }, // +X
 			{ 0.0f, 1.0f, 0.0f },  // -X
-			{ 0.0f, 0.0f, 1.0f },  // +Y (use a different up)
-			{ 0.0f, 0.0f, -1.0f },  // -Y (use a different up)
+			{ 0.0f, 0.0f, -1.0f },  // +Y (use a different up)
+			{ 0.0f, 0.0f, 1.0f },  // -Y (use a different up)
 			{ 0.0f, 1.0f, 0.0f },  // +Z
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};
@@ -562,7 +562,7 @@ namespace MAD
 		// After rendering into the reflection probes environment map, we need to create and add a new draw item for the reflection probe itself
 		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 		ProcessReflectionProbes(inFramePercent);
-		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
+		m_dynamicEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
 		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);
