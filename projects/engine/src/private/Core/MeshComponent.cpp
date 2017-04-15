@@ -34,7 +34,7 @@ namespace MAD
 
 				currentDrawItem.m_uniqueID = MakeDrawItemID(GetObjectID(), i);
 
-				gEngine->GetRenderer().QueueStaticDrawItem(currentDrawItem);
+				gEngine->GetRenderer().QueueStaticItem(currentDrawItem);
 			}
 		}
 	}
@@ -74,7 +74,7 @@ namespace MAD
 
 			if (m_bIsDynamic)
 			{
-				targetRenderer.QueueDynamicDrawItem(currentDrawItem);
+				targetRenderer.QueueDynamicItem(currentDrawItem);
 			}
 		}
 	}

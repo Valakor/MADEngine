@@ -67,8 +67,16 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 finalVSNormal = normalize(input.mVSNormal);
 #endif
 	float3	finalDiffuseColor = g_material.m_diffuseColor;
+	float	finalReflectivity = g_material.m_reflectivity;
 #ifdef DIFFUSE
 	finalDiffuseColor *= g_diffuseMap.Sample(g_anisotropicSampler, input.mTex).rgb;
 #endif
+
+	float3 normalWS = mul(float4(finalVSNormal, 0.0), g_cameraInverseViewMatrix);
+	float3 cameraWS = g_cameraInverseViewMatrix[3].xyz;
+	float3 cameraReflectedWS = reflect(input.mWSPosition - cameraWS, normalWS);
+	float3 skySphereColor = g_cubeMap.Sample(g_linearSampler, cameraReflectedWS);
+	finalDiffuseColor = lerp(finalDiffuseColor, skySphereColor, finalReflectivity);
+
 	return float4(finalDiffuseColor, 1.0f);
 }

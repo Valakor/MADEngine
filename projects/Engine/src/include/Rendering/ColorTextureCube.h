@@ -17,8 +17,12 @@ namespace MAD
 
 		void BindAsShaderResource(ETextureSlot inTextureSlot) const;
 		void BindCubeSideAsTarget(uint8_t inCubeSide) const;
+
+		void SetClearColor(const Color& inClearColor) { m_clearColor = inClearColor; }
+		Color GetClearColor() const { return m_clearColor; }
 	private:
 		bool m_bIsDynamic;
+		Color m_clearColor;
 		eastl::array<eastl::pair<DepthStencilPtr_t, RenderTargetPtr_t>, AsIntegral(ETextureCubeFace::MAX)> m_cubeOutputViews;
 		ShaderResourcePtr_t m_cubeSRV;
 		SGraphicsViewport m_viewPort;

@@ -333,7 +333,7 @@ namespace MAD
 	struct SRenderTargetViewDesc : D3D11_RENDER_TARGET_VIEW_DESC {};
 	struct STexture2DDesc : D3D11_TEXTURE2D_DESC {};
 
-	using CubeViewProjArray_t = eastl::array<Matrix, AsIntegral(ETextureCubeFace::MAX)>;
+	using CubeTransformArray_t = eastl::array<Matrix, AsIntegral(ETextureCubeFace::MAX)>;
 
 	// Lights -------------------------------
 	struct SGPUPointLight

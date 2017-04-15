@@ -47,9 +47,10 @@ namespace MAD
 		bool Init(UGameWindow& inWindow);
 		void Shutdown();
 
-		void QueueDynamicDrawItem(const SDrawItem& inDrawItem);
-		void QueueStaticDrawItem(const SDrawItem& inDrawItem);
-		void QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration = 0.0f);
+		void QueueDynamicItem(const SDrawItem& inDrawItem);
+		void QueueStaticItem(const SDrawItem& inDrawItem);
+		void QueueReflectionProbeItem(const SDrawItem& inDrawItem);
+		void QueueDebugItem(const SDrawItem& inDebugDrawItem, float inDuration = 0.0f);
 		void QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight);
 		void QueuePointLight(size_t inID, const SGPUPointLight& inPointLight);
 
@@ -87,6 +88,7 @@ namespace MAD
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeRenderPasses();
 
+		void InitializeReflectionPass(const eastl::string& inReflectionPassProgramPath);
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
@@ -98,11 +100,13 @@ namespace MAD
 
 		void InitializeDebugGrid(uint8_t inGridDimension);
 
-		void GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeViewProjArray_t& inOutVPArray);
+		void GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutVPArray);
+		void GenerateViewMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutViewsArray, Matrix& inOutProjectionMatrix);
 		void GenerateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);
 
 		void BindPerFrameConstants();
 		void SetViewport(LONG inWidth, LONG inHeight);
+		void SetViewport(const SGraphicsViewport& inViewport);
 
 		void BeginFrame();
 		void Draw(float inFramePercent, float inFrameTime);
@@ -114,8 +118,8 @@ namespace MAD
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
 		void DrawDebugPrimitives(float inFramePerecent);
-		void DrawEnvironmentMap(float inFramePercent);
 
+		void ProcessReflectionProbes(float inFramePercent);
 		void DoVisualizeGBuffer();
 
 		ProgramId_t DetermineProgramId(const SDrawItem& inTargetDrawItem) const;
@@ -126,6 +130,7 @@ namespace MAD
 		RenderTargetPtr_t m_backBuffer;
 		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
+		SGraphicsViewport m_screenViewport;
 		Color m_clearColor;
 		bool m_isDebugLayerEnabled;
 
@@ -134,11 +139,16 @@ namespace MAD
 		SCameraInstance m_camera[2];
 
 		eastl::vector<SDebugHandle> m_debugDrawItems;
+
 		eastl::hash_map<size_t, SDrawItem> m_staticDrawItems; // Static draw items (don't need double buffer since we don't need interpolation for static objects)
+		eastl::hash_map<size_t, SDrawItem> m_reflectionProbeDrawItems;
 		eastl::hash_map<size_t, SDrawItem> m_dynamicDrawItems[2]; // Dynamic draw items
+
+
 		eastl::hash_map<size_t, SGPUDirectionalLight> m_queuedDirLights[2];
 		eastl::hash_map<size_t, SGPUPointLight> m_queuedPointLights[2];
 		
+		SRenderPassDescriptor m_reflectionPassDescriptor;
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_dirLightingPassDescriptor;
 		SRenderPassDescriptor m_pointLightingPassDescriptor;

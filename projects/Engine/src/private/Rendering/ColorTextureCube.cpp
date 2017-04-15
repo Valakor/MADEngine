@@ -136,11 +136,11 @@ namespace MAD
 		}
 
 		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
-		DepthStencilPtr_t cubeSideDepthStencil = m_cubeOutputViews[inCubeSide].first;
-		RenderTargetPtr_t cubeSideRenderTarget = m_cubeOutputViews[inCubeSide].second;
 
 		graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::CubeMap); // If we're binding a cube side as a render target view, we must unbind it as a shader resource
-		graphicsDriver.SetRenderTargets(&cubeSideRenderTarget, 1, cubeSideDepthStencil); // Bind the render target and depth stencil view that corresponds with the target cube side
+		graphicsDriver.ClearDepthStencil(m_cubeOutputViews[inCubeSide].first, true, 1.0f);
+		graphicsDriver.ClearRenderTarget(m_cubeOutputViews[inCubeSide].second, m_clearColor);
+		graphicsDriver.SetRenderTargets(&m_cubeOutputViews[inCubeSide].second, 1, m_cubeOutputViews[inCubeSide].first); // Bind the render target and depth stencil view that corresponds with the target cube side
 		graphicsDriver.SetViewport(m_viewPort); // Change the viewport to match texture cube resolution
 	}
 }

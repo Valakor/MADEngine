@@ -168,11 +168,10 @@
 					"name": "Reflection Sphere",
 					"newComponents": [
 						{
-							"type": "CMeshComponent",
+							"type": "CReflectionProbeComponent",
 							"position": [0.0, 250.0, 0.0],
 							"scale": 5.0,
 							"properties": {
-								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\tea_pot\\utah-teapot.obj"
 							}
 						}

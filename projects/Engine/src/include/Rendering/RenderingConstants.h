@@ -6,6 +6,7 @@ namespace MAD
 {
 	namespace ShaderPaths
 	{
+		extern const eastl::string ReflectionPass;
 		extern const eastl::string GBufferPass;
 		extern const eastl::string DeferredLightingPass;
 		extern const eastl::string SkyboxPass;

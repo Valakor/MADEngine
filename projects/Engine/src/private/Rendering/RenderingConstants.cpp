@@ -4,6 +4,7 @@ namespace MAD
 {
 	namespace ShaderPaths
 	{
+		const eastl::string ReflectionPass = "engine\\shaders\\RenderEnvironmentMap.hlsl";
 		const eastl::string GBufferPass = "engine\\shaders\\GBuffer.hlsl";
 		const eastl::string DeferredLightingPass = "engine\\shaders\\DeferredLighting.hlsl";
 		const eastl::string SkyboxPass = "engine\\shaders\\RenderSkybox.hlsl";

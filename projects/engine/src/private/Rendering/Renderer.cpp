@@ -23,7 +23,13 @@ namespace MAD
 	                      , m_window(nullptr)
 	                      , m_currentStateIndex(0)
 	                      , m_visualizeOption(EVisualizeOptions::None)
-						  , m_isDebugLayerEnabled(true) { }
+						  , m_isDebugLayerEnabled(true)
+	{
+		m_screenViewport.TopLeftX = 0;
+		m_screenViewport.TopLeftY = 0;
+		m_screenViewport.MinDepth = 0.0f;
+		m_screenViewport.MaxDepth = 1.0f;
+	}
 
 	bool URenderer::Init(UGameWindow& inWindow)
 	{
@@ -39,7 +45,11 @@ namespace MAD
 		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
 
 		auto clientSize = inWindow.GetClientSize();
-		SetViewport(clientSize.x, clientSize.y);
+
+		m_screenViewport.Width = clientSize.x;
+		m_screenViewport.Height = clientSize.y;
+
+		SetViewport(m_screenViewport);
 
 		InitializeRenderPasses();
 		InitializeDebugGrid(6);
@@ -47,6 +57,8 @@ namespace MAD
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
 		m_dynamicEnvironmentMap = UColorTextureCube(256);
 		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
+
+		m_dynamicEnvironmentMap.SetClearColor(m_clearColor);
 
 		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
 
@@ -59,14 +71,18 @@ namespace MAD
 		auto newSize = m_window->GetClientSize();
 		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
 
-		SetViewport(newSize.x, newSize.y);
+		m_screenViewport.TopLeftX = 0;
+		m_screenViewport.TopLeftY = 0;
+		m_screenViewport.Width = newSize.x;
+		m_screenViewport.Height = newSize.y;
+
+		SetViewport(m_screenViewport);
 
 		InitializeRenderPasses();
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
 		m_dynamicEnvironmentMap = UColorTextureCube(256);
 		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
-
 
 		m_textBatchRenderer.OnScreenSizeChanged();
 
@@ -79,6 +95,7 @@ namespace MAD
 
 	void URenderer::InitializeRenderPasses()
 	{
+		InitializeReflectionPass(ShaderPaths::ReflectionPass);
 		InitializeGBufferPass(ShaderPaths::GBufferPass);
 		InitializeDirectionalLightingPass(ShaderPaths::DeferredLightingPass);
 		InitializePointLightingPass(ShaderPaths::DeferredLightingPass);
@@ -89,12 +106,21 @@ namespace MAD
 		InitializePointLightShadowMappingPass(ShaderPaths::DepthPass);
 	}
 
+	void URenderer::InitializeReflectionPass(const eastl::string& inReflectionPassProgramPath)
+	{
+		//m_reflectionPassDescriptor.m_depthStencilView = nullptr;
+		m_reflectionPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
+		m_reflectionPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Back);
+		m_reflectionPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inReflectionPassProgramPath);
+		m_reflectionPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+	}
+
 	void URenderer::Shutdown()
 	{
 		g_graphicsDriver.Shutdown();
 	}
 
-	void URenderer::QueueDynamicDrawItem(const SDrawItem& inDrawItem)
+	void URenderer::QueueDynamicItem(const SDrawItem& inDrawItem)
 	{
 		// Queue up this draw item
 		auto result = m_dynamicDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
@@ -108,14 +134,21 @@ namespace MAD
 		}
 	}
 
-	void URenderer::QueueStaticDrawItem(const SDrawItem& inDrawItem)
+	void URenderer::QueueStaticItem(const SDrawItem& inDrawItem)
 	{
 		// Queue up this draw item
 		auto result = m_staticDrawItems.insert({ inDrawItem.m_uniqueID, inDrawItem });
 		MAD_ASSERT_DESC(result.second, "Duplicate static draw item detected. Static draw items don't need to be re-queued every frame since their state should be the same across frames");
 	}
 
-	void URenderer::QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration /*= 0.0f*/)
+	void URenderer::QueueReflectionProbeItem(const SDrawItem& inDrawItem)
+	{
+		// Queue up this draw item
+		auto result = m_reflectionProbeDrawItems.insert({ inDrawItem.m_uniqueID, inDrawItem });
+		MAD_ASSERT_DESC(result.second, "Duplicate reflection probe draw item detected. Reflection probe draw items don't need to be re-queued every frame since their state should be the same across frames");
+	}
+
+	void URenderer::QueueDebugItem(const SDrawItem& inDebugDrawItem, float inDuration /*= 0.0f*/)
 	{
 		SDebugHandle debugHandle;
 
@@ -167,7 +200,7 @@ namespace MAD
 
 		lineDrawItem.m_transform.SetTranslation(inWSStart);
 
-		QueueDebugDrawItem(lineDrawItem, inDuration);
+		QueueDebugItem(lineDrawItem, inDuration);
 	}
 
 	void URenderer::DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY)
@@ -393,7 +426,7 @@ namespace MAD
 		}
 	}
 
-	void URenderer::GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeViewProjArray_t& inOutVPArray)
+	void URenderer::GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
 		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
@@ -419,10 +452,42 @@ namespace MAD
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};
 
-		for (uint8_t i = 0; i < UTextureCube::Sides; ++i)
+		for (uint8_t i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
 		{
 			inOutVPArray[i] = Matrix::CreateLookAt(inWSPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
 		}
+	}
+
+	void URenderer::GenerateViewMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutViewsArray, Matrix& inOutProjectionMatrix)
+	{
+		// Calculate the points to look at for each direction
+		const Vector3 wsDirectionTargets[AsIntegral(ETextureCubeFace::MAX)] =
+		{
+			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z }, // +X
+			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z }, // -X
+			{ inWSPos.x       , inWSPos.y + 1.0f, inWSPos.z }, // +Y
+			{ inWSPos.x       , inWSPos.y - 1.0f, inWSPos.z }, // -Y
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z + 1.0f }, // +Z
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z - 1.0f }, // -Z
+		};
+
+		const Vector3 wsUpVectors[AsIntegral(ETextureCubeFace::MAX)] =
+		{
+			{ 0.0f, 1.0f, 0.0f }, // +X
+			{ 0.0f, 1.0f, 0.0f },  // -X
+			{ 0.0f, 0.0f, 1.0f },  // +Y (use a different up)
+			{ 0.0f, 0.0f, -1.0f },  // -Y (use a different up)
+			{ 0.0f, 1.0f, 0.0f },  // +Z
+			{ 0.0f, 1.0f, 0.0f }   // -Z
+		};
+
+		for (uint8_t i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
+		{
+			inOutViewsArray[i] = Matrix::CreateLookAt(inWSPos, wsDirectionTargets[i], wsUpVectors[i]);
+		}
+
+		// Use the world space basis axis
+		inOutProjectionMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
 	}
 
 	void URenderer::GenerateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData)
@@ -455,6 +520,18 @@ namespace MAD
 		g_graphicsDriver.SetViewport(0, 0, w, h);
 	}
 
+	void URenderer::SetViewport(const SGraphicsViewport& inViewport)
+	{
+		float w = static_cast<float>(inViewport.Width);
+		float h = static_cast<float>(inViewport.Height);
+
+		m_perSceneConstants.m_screenDimensions.x = w;
+		m_perSceneConstants.m_screenDimensions.y = h;
+		g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerScene, &m_perSceneConstants, sizeof(m_perSceneConstants));
+
+		g_graphicsDriver.SetViewport(inViewport);
+	}
+
 	void URenderer::BeginFrame()
 	{
 		g_graphicsDriver.StartEventGroup(L"Clear render targets and depth");
@@ -482,14 +559,14 @@ namespace MAD
 		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
+		// After rendering into the reflection probes environment map, we need to create and add a new draw item for the reflection probe itself
+		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
+		ProcessReflectionProbes(inFramePercent);
 		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
-		DrawEnvironmentMap(inFramePercent);
 		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);
 		DrawPointLighting(inFramePercent);
-
-		//m_dynamicEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
 		m_skySphere.DrawSkySphere();
 
@@ -583,6 +660,17 @@ namespace MAD
 		}
 		g_graphicsDriver.EndEventGroup();
 
+		g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+		for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
+		{
+			// Before processing the draw item, we need to determine which program it should use and bind that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentProbeDrawItem.second));
+
+			// Each individual DrawItem should issue its own draw call
+			currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
+		}
+		g_graphicsDriver.EndEventGroup();
+
 		g_graphicsDriver.EndEventGroup();
 
 		if (m_visualizeOption != EVisualizeOptions::None)
@@ -652,6 +740,13 @@ namespace MAD
 			}
 			g_graphicsDriver.EndEventGroup();
 
+			g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+			for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
+			{
+				currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+			}
+			g_graphicsDriver.EndEventGroup();
+
 			g_graphicsDriver.EndEventGroup();
 
 			// Shading + lighting
@@ -670,7 +765,7 @@ namespace MAD
 	{
 		uint32_t currentPointLightIndex = 0;
 		SPerPointLightConstants pointLightConstants;
-		CubeViewProjArray_t shadowMapVPMatrices;
+		CubeTransformArray_t shadowMapVPMatrices;
 
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
 
@@ -726,6 +821,13 @@ namespace MAD
 				for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
 				{
 					currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
+				}
+				g_graphicsDriver.EndEventGroup();
+
+				g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+				for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
+				{
+					currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
 				}
 				g_graphicsDriver.EndEventGroup();
 
@@ -811,8 +913,61 @@ namespace MAD
 		g_graphicsDriver.EndEventGroup();
 	}
 
-	void URenderer::DrawEnvironmentMap(float)
+	void URenderer::ProcessReflectionProbes(float inFramePercent)
 	{
+		MAD_ASSERT_DESC(m_reflectionProbeDrawItems.size() == 1, "TODO: Only supports 1 reflection probe currently");
+		CubeTransformArray_t probeViewMatrices;
+		Matrix probeProjectionMatrix;
+
+		const SDrawItem& currentProbeItem = m_reflectionProbeDrawItems.begin()->second;
+
+		g_graphicsDriver.StartEventGroup(L"Processing reflection probes");
+
+		// Generate the environment maps for the probes (for now, assume we only have one)
+		GenerateViewMatrices(currentProbeItem.m_transform.GetTranslation(), probeViewMatrices, probeProjectionMatrix);
+
+		m_reflectionPassDescriptor.ApplyPassState(g_graphicsDriver);
+
+		for (uint8_t i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
+		{
+			SPerFrameConstants perFrameConstants = m_perFrameConstants;
+
+			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Reflection Probe Cube Side #%d", i));
+
+			// Update the view-projection matrix of the current cube side in the per point light constant buffer
+			perFrameConstants.m_cameraViewMatrix = probeViewMatrices[i];
+			perFrameConstants.m_cameraInverseViewMatrix = probeViewMatrices[i].Invert();
+			perFrameConstants.m_cameraViewProjectionMatrix = probeViewMatrices[i] * probeProjectionMatrix;
+			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerFrame, &perFrameConstants, sizeof(perFrameConstants));
+
+			m_dynamicEnvironmentMap.BindCubeSideAsTarget(i);
+
+			// Process all of the draw items (static and dynamic) again
+			g_graphicsDriver.StartEventGroup(L"Static");
+			for (auto& currentStaticDrawItem : m_staticDrawItems)
+			{
+				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentStaticDrawItem.second));
+
+				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+			}
+			g_graphicsDriver.EndEventGroup();
+
+			g_graphicsDriver.StartEventGroup(L"Dynamic");
+			for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+			{
+				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDynamicDrawItem.second));
+
+				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+			}
+			g_graphicsDriver.EndEventGroup();
+
+			g_graphicsDriver.EndEventGroup();
+		}
+
+		g_graphicsDriver.EndEventGroup();
+
+		BindPerFrameConstants();
+		SetViewport(m_screenViewport);
 	}
 
 	void URenderer::DoVisualizeGBuffer()

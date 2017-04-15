@@ -44,7 +44,7 @@ namespace MAD
 		transformDrawItem.m_transform = GetWorldTransform();
 		transformDrawItem.m_primitiveTopology = EPrimitiveTopology::LineList;
 
-		gEngine->GetRenderer().QueueDebugDrawItem(transformDrawItem);
+		gEngine->GetRenderer().QueueDebugItem(transformDrawItem);
 	}
 
 	void CDebugTransformComponent::PopulateTransformVertexArrays()
