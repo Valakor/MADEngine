@@ -56,7 +56,7 @@ namespace MAD
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
 		m_dynamicEnvironmentMap = UColorTextureCube(512);
-		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
+		m_skySphere = USkySphere(ShaderPaths::SkySpherePass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
 
 		m_dynamicEnvironmentMap.SetClearColor(m_clearColor);
 
@@ -82,7 +82,7 @@ namespace MAD
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
 		m_dynamicEnvironmentMap = UColorTextureCube(256);
-		m_skySphere = USkySphere(ShaderPaths::SkyboxPass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
+		m_skySphere = USkySphere(ShaderPaths::SkySpherePass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
 
 		m_textBatchRenderer.OnScreenSizeChanged();
 
@@ -95,12 +95,13 @@ namespace MAD
 
 	void URenderer::InitializeRenderPasses()
 	{
-		InitializeReflectionPass(ShaderPaths::ReflectionPass);
 		InitializeGBufferPass(ShaderPaths::GBufferPass);
 		InitializeDirectionalLightingPass(ShaderPaths::DeferredLightingPass);
 		InitializePointLightingPass(ShaderPaths::DeferredLightingPass);
 		InitializeDebugPass(ShaderPaths::DebugGeometryPass);
 		InitializeTextRenderPass(ShaderPaths::DebugTextPass);
+		InitializeSkySpherePass(ShaderPaths::SkySpherePass);
+		InitializeReflectionPass(ShaderPaths::ReflectionPass);
 
 		InitializeDirectionalShadowMappingPass(ShaderPaths::DepthPass);
 		InitializePointLightShadowMappingPass(ShaderPaths::DepthPass);
@@ -113,6 +114,19 @@ namespace MAD
 		m_reflectionPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Back);
 		m_reflectionPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inReflectionPassProgramPath);
 		m_reflectionPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+	}
+
+	void URenderer::InitializeSkySpherePass(const eastl::string& inSkySpherePassProgramPath)
+	{
+		// Set the light accumulation buffer as render target since we dont want that the skybox to be lit (remember to unbind the depth buffer as input incase previous steps needed it as a SRV)
+		m_skySpherePassDescriptor.m_renderTargets.clear();
+		m_skySpherePassDescriptor.m_renderTargets.emplace_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+
+		m_skySpherePassDescriptor.m_depthStencilState = m_gBufferPassDescriptor.m_depthStencilState;
+		m_skySpherePassDescriptor.m_depthStencilView = m_gBufferPassDescriptor.m_depthStencilView;
+		m_skySpherePassDescriptor.m_rasterizerState = nullptr;
+		m_skySpherePassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+		m_skySpherePassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inSkySpherePassProgramPath);
 	}
 
 	void URenderer::Shutdown()
@@ -206,6 +220,11 @@ namespace MAD
 	void URenderer::DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY)
 	{
 		m_textBatchRenderer.BatchTextInstance(inSourceString, inScreenX, inScreenY);
+	}
+
+	void URenderer::SetSkySphereItem(const SDrawItem& inSkySphereItem)
+	{
+		m_skySphereDrawItem = inSkySphereItem;
 	}
 
 	UParticleSystem* URenderer::SpawnParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams)
@@ -568,7 +587,7 @@ namespace MAD
 		DrawDirectionalLighting(inFramePercent);
 		DrawPointLighting(inFramePercent);
 
-		m_skySphere.DrawSkySphere();
+		DrawSkySphere(inFramePercent);
 
 		// Always perform the forward debug pass after the main deferred pass
 		DrawDebugPrimitives(inFramePercent);
@@ -577,7 +596,6 @@ namespace MAD
 		m_textRenderPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		m_textBatchRenderer.FlushBatch();
-
 
 		g_graphicsDriver.StartEventGroup(L"Particle Systems");
 
@@ -624,6 +642,22 @@ namespace MAD
 
 			return (currentGameTime - inDebugHandle.m_initialGameTime) > inDebugHandle.m_duration;
 		}), m_debugDrawItems.end());
+	}
+
+	void URenderer::DrawSkySphere(float inFramePercent)
+	{
+		g_graphicsDriver.StartEventGroup(L"Rendering sky sphere");
+
+		// We need to unbind the depth buffer because we're gonna be using it when rendering the skybox to make sure the depth testing is correct
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
+
+		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
+		m_skySpherePassDescriptor.ApplyPassState(g_graphicsDriver);
+		m_skySpherePassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+		m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true, EInputLayoutSemantic::Position);
+
+		g_graphicsDriver.EndEventGroup();
 	}
 
 	void URenderer::DrawGBuffer(float inFramePercent)
@@ -950,6 +984,11 @@ namespace MAD
 
 				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
 			}
+
+			/*g_graphicsDriver.SetPixelShaderResource(m_globalEnvironmentMap.GetShaderResource(), ETextureSlot::CubeMap);
+			m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(m_skySphereDrawItem));
+			m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);*/
+
 			g_graphicsDriver.EndEventGroup();
 
 			g_graphicsDriver.StartEventGroup(L"Dynamic");

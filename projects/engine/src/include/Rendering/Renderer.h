@@ -57,6 +57,7 @@ namespace MAD
 		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(1.0, 1.0, 1.0, 1.0));
 		void DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY);
 
+		void SetSkySphereItem(const SDrawItem& inSkySphereItem);
 		class UParticleSystem* SpawnParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams);
 
 		void ClearRenderItems();
@@ -89,6 +90,7 @@ namespace MAD
 		void InitializeRenderPasses();
 
 		void InitializeReflectionPass(const eastl::string& inReflectionPassProgramPath);
+		void InitializeSkySpherePass(const eastl::string& inSkySpherePassProgramPath);
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
@@ -114,6 +116,7 @@ namespace MAD
 
 		void ClearExpiredDebugDrawItems();
 
+		void DrawSkySphere(float inFramePercent);
 		void DrawGBuffer(float inFramePercent);
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
@@ -140,6 +143,7 @@ namespace MAD
 
 		eastl::vector<SDebugHandle> m_debugDrawItems;
 
+		SDrawItem m_skySphereDrawItem;
 		eastl::hash_map<size_t, SDrawItem> m_staticDrawItems; // Static draw items (don't need double buffer since we don't need interpolation for static objects)
 		eastl::hash_map<size_t, SDrawItem> m_reflectionProbeDrawItems;
 		eastl::hash_map<size_t, SDrawItem> m_dynamicDrawItems[2]; // Dynamic draw items
@@ -149,6 +153,7 @@ namespace MAD
 		eastl::hash_map<size_t, SGPUPointLight> m_queuedPointLights[2];
 		
 		SRenderPassDescriptor m_reflectionPassDescriptor;
+		SRenderPassDescriptor m_skySpherePassDescriptor;
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_dirLightingPassDescriptor;
 		SRenderPassDescriptor m_pointLightingPassDescriptor;

@@ -17,6 +17,7 @@ namespace MAD
 
 		void BindAsShaderResource(ETextureSlot inTextureSlot) const;
 		void BindCubeSideAsTarget(uint8_t inCubeSide) const;
+		ShaderResourcePtr_t GetShaderResource() const { return m_cubeSRV;}
 
 		void SetClearColor(const Color& inClearColor) { m_clearColor = inClearColor; }
 		Color GetClearColor() const { return m_clearColor; }

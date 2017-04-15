@@ -75,6 +75,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 normalWS = mul(float4(finalVSNormal, 0.0), g_cameraInverseViewMatrix);
 	float3 cameraWS = g_cameraInverseViewMatrix[3].xyz;
 	float3 cameraReflectedWS = reflect(input.mWSPosition - cameraWS, normalWS);
+	//cameraReflectedWS.z = -cameraReflectedWS.z;
 	float3 skySphereColor = g_cubeMap.Sample(g_linearSampler, cameraReflectedWS);
 	finalDiffuseColor = lerp(finalDiffuseColor, skySphereColor, finalReflectivity);
 

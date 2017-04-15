@@ -97,6 +97,15 @@ namespace MAD
 		return resultTransform;
 	}
 
+	ULinearTransform ULinearTransform::CreateScale(float inScale)
+	{
+		ULinearTransform outputScaleTransform;
+
+		outputScaleTransform.SetScale(inScale);
+
+		return outputScaleTransform;
+	}
+
 	float ClampAxis(float inAngle)
 	{
 		// returns Angle in the range (-360,360)

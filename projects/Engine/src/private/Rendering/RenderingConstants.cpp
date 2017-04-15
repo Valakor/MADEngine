@@ -7,7 +7,7 @@ namespace MAD
 		const eastl::string ReflectionPass = "engine\\shaders\\RenderEnvironmentMap.hlsl";
 		const eastl::string GBufferPass = "engine\\shaders\\GBuffer.hlsl";
 		const eastl::string DeferredLightingPass = "engine\\shaders\\DeferredLighting.hlsl";
-		const eastl::string SkyboxPass = "engine\\shaders\\RenderSkybox.hlsl";
+		const eastl::string SkySpherePass = "engine\\shaders\\RenderSkybox.hlsl";
 		const eastl::string DepthPass = "engine\\shaders\\RenderGeometryToDepth.hlsl";
 		const eastl::string BackBufferFinalizePass = "engine\\shaders\\BackBufferFinalize.hlsl";
 		const eastl::string TextureBlitPass = "engine\\shaders\\CopyTexture.hlsl";

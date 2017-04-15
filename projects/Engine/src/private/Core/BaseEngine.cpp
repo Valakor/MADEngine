@@ -22,6 +22,7 @@
 #include "Core/DebugTransformComponent.h"
 #include "Rendering/ParticleSystem/ParticleSystemComponent.h"
 #include "Rendering/ReflectionProbeComponent.h"
+#include "Rendering/SkySphereComponent.h"
 
 #include "Editor/SceneCameraCharacter.h"
 
@@ -105,6 +106,7 @@ namespace MAD
 			CDirectionalLightComponent::StaticClass();
 			CPointLightComponent::StaticClass();
 			CReflectionProbeComponent::StaticClass();
+			CSkySphereComponent::StaticClass();
 			CMoveComponent::StaticClass();
 			CDebugTransformComponent::StaticClass();
 			CParticleSystemComponent::StaticClass();
