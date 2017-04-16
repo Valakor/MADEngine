@@ -179,7 +179,7 @@
 						{
 							"type": "CReflectionProbeComponent",
 							"position": [0.0, 350.0, 0.0],
-							"scale": 100.0,
+							"scale": 150.0,
 							"properties": {
 								"mesh": "engine\\meshes\\primitives\\reflection_sphere.obj"
 							}
@@ -355,9 +355,9 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, 0.0, 250.0],
-							"rotation": [45.0, -90.0, 15.0],
-							"scale": 100.0,
+							"position": [0.0, 0.0, 350.0],
+							"rotation": [0.0, -90.0, 0.0],
+							"scale": 200.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\skinny_shelf\\skinny_shelf.obj"
@@ -378,7 +378,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [0.0, 0.0, -250.0],
+							"position": [0.0, 0.0, -350.0],
 							"scale": 100.0,
 							"properties": {
 								"visible": true,
@@ -396,15 +396,38 @@
 				},
 				{
 					"type": "AEntity",
-					"name": "Wooden Chair",
+					"name": "Skinny Pillar",
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [-100.0, 0.0, 0.0],
-							"scale": 1.0,
+							"position": [-300.0, 0.0, 0.0],
+							"scale": 450.0,
 							"properties": {
 								"visible": true,
-								"mesh": "engine\\meshes\\primitives\\wooden_chair\\chair.obj"
+								"mesh": "engine\\meshes\\primitives\\skinny_pillar\\pillar.obj"
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Samurai Sword",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [350.0, 200.0, 0.0],
+							"rotation": [90.0, -90.0, 0.0],
+							"scale": 20.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\samurai_sword\\sword.obj"
 							}
 						},
 						{
@@ -443,7 +466,7 @@
 							"properties": {
 								"enabled": true,
 								"angular_speed": 125.0,
-								"radius": 175.0
+								"radius": 200.0
 							}
 						},
 						{

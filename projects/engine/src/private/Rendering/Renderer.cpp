@@ -482,20 +482,20 @@ namespace MAD
 		// Calculate the points to look at for each direction
 		const Vector3 wsDirectionTargets[AsIntegral(ETextureCubeFace::MAX)] =
 		{
-			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z }, // +X
-			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z }, // -X (why do these need to be flipped....)
+			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z }, // +X
+			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z }, // -X
 			{ inWSPos.x       , inWSPos.y + 1.0f, inWSPos.z }, // +Y
 			{ inWSPos.x       , inWSPos.y - 1.0f, inWSPos.z }, // -Y
-			{ inWSPos.x       , inWSPos.y       , inWSPos.z + 1.0f }, // +Z
-			{ inWSPos.x       , inWSPos.y       , inWSPos.z - 1.0f }, // -Z
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z - 1.0f }, // +Z
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z + 1.0f }, // -Z
 		};
 
 		const Vector3 wsUpVectors[AsIntegral(ETextureCubeFace::MAX)] =
 		{
 			{ 0.0f, 1.0f, 0.0f }, // +X
 			{ 0.0f, 1.0f, 0.0f },  // -X
-			{ 0.0f, 0.0f, -1.0f },  // +Y (use a different up)
-			{ 0.0f, 0.0f, 1.0f },  // -Y (use a different up)
+			{ 0.0f, 0.0f, 1.0f },  // +Y (use a different up)
+			{ 0.0f, 0.0f, -1.0f },  // -Y (use a different up)
 			{ 0.0f, 1.0f, 0.0f },  // +Z
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};
@@ -578,7 +578,6 @@ namespace MAD
 		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
-		// After rendering into the reflection probes environment map, we need to create and add a new draw item for the reflection probe itself
 		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 		ProcessReflectionProbes(inFramePercent);
 		m_dynamicEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
@@ -646,7 +645,7 @@ namespace MAD
 
 	void URenderer::DrawSkySphere(float inFramePercent)
 	{
-		g_graphicsDriver.StartEventGroup(L"Rendering sky sphere");
+		g_graphicsDriver.StartEventGroup(L"Rendering Sky Sphere");
 
 		// We need to unbind the depth buffer because we're gonna be using it when rendering the skybox to make sure the depth testing is correct
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
@@ -949,13 +948,23 @@ namespace MAD
 
 	void URenderer::ProcessReflectionProbes(float inFramePercent)
 	{
+		static const wchar_t* CubeSideNames[] =
+		{
+			L"Positive X",
+			L"Negative X",
+			L"Positive Y",
+			L"Negative Y",
+			L"Positive Z",
+			L"Negative Z"
+		};
+
 		MAD_ASSERT_DESC(m_reflectionProbeDrawItems.size() == 1, "TODO: Only supports 1 reflection probe currently");
 		CubeTransformArray_t probeViewMatrices;
 		Matrix probeProjectionMatrix;
 
 		const SDrawItem& currentProbeItem = m_reflectionProbeDrawItems.begin()->second;
 
-		g_graphicsDriver.StartEventGroup(L"Processing reflection probes");
+		g_graphicsDriver.StartEventGroup(L"Processing Reflection Probes");
 
 		// Generate the environment maps for the probes (for now, assume we only have one)
 		GenerateViewMatrices(currentProbeItem.m_transform.GetTranslation(), probeViewMatrices, probeProjectionMatrix);
@@ -966,7 +975,7 @@ namespace MAD
 		{
 			SPerFrameConstants perFrameConstants = m_perFrameConstants;
 
-			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Reflection Probe Cube Side #%d", i));
+			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Reflection Probe Cube Side: %s", CubeSideNames[i]));
 
 			// Update the view-projection matrix of the current cube side in the per point light constant buffer
 			perFrameConstants.m_cameraViewMatrix = probeViewMatrices[i];
@@ -976,6 +985,12 @@ namespace MAD
 
 			m_dynamicEnvironmentMap.BindCubeSideAsTarget(i);
 
+			g_graphicsDriver.StartEventGroup(L"Sky Sphere");
+			g_graphicsDriver.SetPixelShaderResource(m_globalEnvironmentMap.GetShaderResource(), ETextureSlot::CubeMap);
+			m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(m_skySphereDrawItem));
+			m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+			g_graphicsDriver.EndEventGroup();
+
 			// Process all of the draw items (static and dynamic) again
 			g_graphicsDriver.StartEventGroup(L"Static");
 			for (auto& currentStaticDrawItem : m_staticDrawItems)
@@ -984,10 +999,6 @@ namespace MAD
 
 				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
 			}
-
-			/*g_graphicsDriver.SetPixelShaderResource(m_globalEnvironmentMap.GetShaderResource(), ETextureSlot::CubeMap);
-			m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(m_skySphereDrawItem));
-			m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);*/
 
 			g_graphicsDriver.EndEventGroup();
 

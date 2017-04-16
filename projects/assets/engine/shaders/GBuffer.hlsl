@@ -122,6 +122,7 @@ PS_OUTPUT PS(PS_INPUT input)
 	float3 normalWS = mul(float4(finalVSNormal, 0.0), g_cameraInverseViewMatrix);
 	float3 cameraWS = g_cameraInverseViewMatrix[3].xyz;
 	float3 cameraReflectedWS = reflect(input.mWSPosition - cameraWS, normalWS);
+	cameraReflectedWS.z = -cameraReflectedWS.z; // Flip the z coordinate when sampling from environment map because our positive z is the negative z of DirectX (left handed vs. right handed)
 	float3 skySphereColor = g_cubeMap.Sample(g_pointSampler, cameraReflectedWS);
 	finalDiffuseColor = lerp(finalDiffuseColor, skySphereColor, finalReflectivity);
 

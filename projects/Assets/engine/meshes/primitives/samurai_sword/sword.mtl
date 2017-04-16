@@ -1,0 +1,69 @@
+newmtl lambert3SG
+illum 2
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+map_Kd samuraisword1.jpg
+
+newmtl lambert5SG
+illum 2
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 0.50 0.50 0.50
+Ns 18.00
+map_Kd samuraisword2.jpg
+
+newmtl phong1SG
+illum 2
+Kd 0.59 0.59 0.59
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 12.96
+
+newmtl phongE2SG
+illum 2
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd woodbow.jpg
+Ni 0.00
+Ks 0.0 0.0 0.0
+
+newmtl phongE4SG
+illum 2
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd samuraisword3.jpg
+Ni 0.00
+Ks 0.50 0.50 0.50
+Ns 6.48
+
+newmtl phongE5SG
+illum 2
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd samuraisword3b.jpg
+Ni 0.00
+Ks 0.50 0.50 0.50
+
+newmtl sword3_phongE1SG
+illum 2
+Kd 0.11 0.11 0.11
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 0.50 0.50 0.50
+
+newmtl useBackground1SG
+illum 2
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
