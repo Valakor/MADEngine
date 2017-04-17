@@ -30,6 +30,19 @@ namespace MAD
 		}
 	}
 
+	void UParticleSystem::OnScreenSizeChanged()
+	{
+		auto& renderer = URenderContext::Get().GetRenderer();
+		auto& graphicsDriver = URenderContext::Get().GetGraphicsDriver();
+		const auto& gBufferPassDesc = renderer.GetGBufferPassDescriptor();
+
+		m_renderPassDescriptor.m_renderTargets.clear();
+		m_renderPassDescriptor.m_renderTargets.push_back(gBufferPassDesc.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+
+		m_renderPassDescriptor.m_depthStencilState = graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Always);
+		m_renderPassDescriptor.m_depthStencilView = gBufferPassDesc.m_depthStencilView;
+	}
+
 	bool UParticleSystem::ActivateEmitter(const SParticleEmitterSpawnParams& inSpawnParams)
 	{
 		if (m_firstInactiveEmitter == UParticleSystem::s_maxNumEmitters)

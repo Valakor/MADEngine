@@ -15,8 +15,9 @@ namespace MAD
 	public:
 		UParticleSystemManager();
 
-		void UpdateParticleSystems(float inDeltaTime);
+		void OnScreenSizeChanged();
 
+		void UpdateParticleSystems(float inDeltaTime);
 		UParticleSystem* ActivateParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams);
 		bool DeactivateParticleSystem(const UParticleSystem* inTargetParticleSystem);
 	private:

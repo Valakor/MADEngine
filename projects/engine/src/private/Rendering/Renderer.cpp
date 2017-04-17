@@ -55,8 +55,7 @@ namespace MAD
 		InitializeDebugGrid(6);
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
-		m_dynamicEnvironmentMap = UColorTextureCube(512);
-		m_skySphere = USkySphere(ShaderPaths::SkySpherePass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
+		m_dynamicEnvironmentMap = UColorTextureCube(RenderConstants::DynamicEnvironmentMapRes);
 
 		m_dynamicEnvironmentMap.SetClearColor(m_clearColor);
 
@@ -81,9 +80,9 @@ namespace MAD
 		InitializeRenderPasses();
 
 		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
-		m_dynamicEnvironmentMap = UColorTextureCube(256);
-		m_skySphere = USkySphere(ShaderPaths::SkySpherePass, TexturePaths::EnvironmentMapTexture, Vector3(5000, 5000, 5000));
+		m_dynamicEnvironmentMap = UColorTextureCube(RenderConstants::DynamicEnvironmentMapRes);
 
+		m_particleSystemManager.OnScreenSizeChanged();
 		m_textBatchRenderer.OnScreenSizeChanged();
 
 		m_backBuffer.Reset(); // When we resize the window, we need to make sure we release all references to the back buffer (the graphics driver and renderer both have a reference)
@@ -109,7 +108,6 @@ namespace MAD
 
 	void URenderer::InitializeReflectionPass(const eastl::string& inReflectionPassProgramPath)
 	{
-		//m_reflectionPassDescriptor.m_depthStencilView = nullptr;
 		m_reflectionPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 		m_reflectionPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Back);
 		m_reflectionPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inReflectionPassProgramPath);
@@ -386,7 +384,7 @@ namespace MAD
 	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
 	{
 		g_graphicsDriver.DestroyDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView);
-		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(4096, 4096, &m_shadowMapSRV);
+		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(RenderConstants::ShadowMapRes, RenderConstants::ShadowMapRes, &m_shadowMapSRV);
 		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 
 		m_dirShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
@@ -401,7 +399,7 @@ namespace MAD
 
 	void URenderer::InitializePointLightShadowMappingPass(const eastl::string& inProgramPath)
 	{
-		m_depthTextureCube = eastl::make_unique<UDepthTextureCube>(static_cast<uint16_t>(4096));
+		m_depthTextureCube = eastl::make_unique<UDepthTextureCube>(static_cast<uint16_t>(RenderConstants::ShadowMapRes));
 
 		g_graphicsDriver.DestroyDepthStencil(m_pointShadowMappingPassDescriptor.m_depthStencilView);
 		m_pointShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);

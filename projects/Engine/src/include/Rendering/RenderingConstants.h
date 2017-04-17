@@ -4,6 +4,12 @@
 
 namespace MAD
 {
+	namespace RenderConstants
+	{
+		extern const uint32_t DynamicEnvironmentMapRes;
+		extern const uint32_t ShadowMapRes;
+	}
+
 	namespace ShaderPaths
 	{
 		extern const eastl::string ReflectionPass;

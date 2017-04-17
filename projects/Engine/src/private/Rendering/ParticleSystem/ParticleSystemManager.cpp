@@ -16,6 +16,14 @@ namespace MAD
 		srand(time(nullptr));
 	}
 
+	void UParticleSystemManager::OnScreenSizeChanged()
+	{
+		for (size_t i = 0; i < m_firstInactiveParticleSystem; ++i)
+		{
+			m_particleSystemPool[i].OnScreenSizeChanged();
+		}
+	}
+
 	void UParticleSystemManager::UpdateParticleSystems(float inDeltaTime)
 	{
 		for (size_t i = 0; i < m_firstInactiveParticleSystem; ++i)

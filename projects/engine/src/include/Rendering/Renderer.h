@@ -168,13 +168,9 @@ namespace MAD
 		eastl::unique_ptr<UDepthTextureCube> m_depthTextureCube;
 
 		UTextBatchRenderer m_textBatchRenderer;
-		UParticleSystemManager m_particleSystemManager; // Use defaults for now
+		UParticleSystemManager m_particleSystemManager;
 		UColorTextureCube m_globalEnvironmentMap;
-		// TEMP-------
-		UColorTextureCube m_dynamicEnvironmentMap; // For now, just render everything from some specified texture cube origin
-		// ----------
-		USkySphere m_skySphere;
-
+		UColorTextureCube m_dynamicEnvironmentMap;
 		EVisualizeOptions m_visualizeOption;
 	};
 }

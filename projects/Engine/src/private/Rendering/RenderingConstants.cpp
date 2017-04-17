@@ -2,6 +2,12 @@
 
 namespace MAD
 {
+	namespace RenderConstants
+	{
+		const uint32_t DynamicEnvironmentMapRes = 512;
+		const uint32_t ShadowMapRes = 4096;
+	}
+
 	namespace ShaderPaths
 	{
 		const eastl::string ReflectionPass = "engine\\shaders\\RenderEnvironmentMap.hlsl";
