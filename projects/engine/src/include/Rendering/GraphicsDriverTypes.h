@@ -28,6 +28,7 @@ namespace MAD
 
 		UGraphicsObject(T* inObjectPtr = nullptr) { p = inObjectPtr; }
 
+
 		void Debug_SetName(const eastl::string& inName)
 		{
 			auto obj = static_cast<ID3D11DeviceChild*>(p.Get());
@@ -37,8 +38,16 @@ namespace MAD
 
 		// Utility wrapper functions around the ComPtr (most used)
 		T* Get() { return p.Get(); }
+		const T* Get() const { return p.Get(); }
 		T** GetAddressOf() { return p.GetAddressOf(); }
 		void Reset() { p.Reset(); }
+
+		// Implicit conversion to other instantiated types of UGraphicsObject (ex. UGraphicsObject<ID3D11ShaderResourceView> -> UGraphicsObject<ID3D11Resource>)
+		template <typename U>
+		operator UGraphicsObject<U>()
+		{
+			return UGraphicsObject<U>(reinterpret_cast<U*>(p.Get()));
+		}
 
 		// Utility operator overloads around the ComPtr for standardized use of pointer syntax
 		UGraphicsObject<T>& operator=(const UGraphicsObject<T>& inOtherObject)
@@ -77,7 +86,6 @@ namespace MAD
 		}
 	};
 
-
 	using VertexShaderPtr_t = UGraphicsObject<ID3D11VertexShader>;
 	using GeometryShaderPtr_t = UGraphicsObject<ID3D11GeometryShader>;
 	using PixelShaderPtr_t = UGraphicsObject<ID3D11PixelShader>;
@@ -90,4 +98,6 @@ namespace MAD
 	using RasterizerStatePtr_t = UGraphicsObject<ID3D11RasterizerState1>;
 	using ShaderResourcePtr_t = UGraphicsObject<ID3D11ShaderResourceView>;
 	using BufferPtr_t = UGraphicsObject<ID3D11Buffer>;
+	using Texture2DPtr_t = UGraphicsObject<ID3D11Texture2D>;
+	using ResourcePtr_t = UGraphicsObject<ID3D11Resource>;
 }

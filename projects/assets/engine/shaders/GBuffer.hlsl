@@ -22,6 +22,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 mHomogenousPos	: SV_POSITION;
+	float3 mWSPosition		: POSITION;
 	float3 mVSNormal		: NORMAL0;
 #ifdef NORMAL_MAP
 	float3 mVSTangent		: NORMAL1;
@@ -65,6 +66,7 @@ PS_INPUT VS(VS_INPUT input)
 	PS_INPUT psInput;
 
 	psInput.mHomogenousPos = mul(float4(input.mModelPos, 1.0f), g_objectToProjectionMatrix);
+	psInput.mWSPosition = mul(float4(input.mModelPos, 1.0f), g_objectToWorldMatrix).xyz;
 	psInput.mTex = input.mTex;
 	psInput.mVSNormal = mul(float4(input.mModelNormal, 0.0f), g_objectToViewMatrix).xyz;
 #ifdef NORMAL_MAP
@@ -96,11 +98,12 @@ PS_OUTPUT PS(PS_INPUT input)
 
 	float3 finalLightAccumulation;
 
-	float3 finalAmbientColor  = g_ambientColor.rgb;
-	float3 finalEmissiveColor = g_material.m_emissiveColor;
-	float3 finalDiffuseColor  = g_material.m_diffuseColor;
-	float3 finalSpecularColor = g_material.m_specularColor;
-	float  finalSpecularPower = g_material.m_specularPower;
+	float3	finalAmbientColor	= g_ambientColor.rgb;
+	float3	finalEmissiveColor	= g_material.m_emissiveColor;
+	float3	finalDiffuseColor	= g_material.m_diffuseColor;
+	float3	finalSpecularColor	= g_material.m_specularColor;
+	float	finalSpecularPower	= g_material.m_specularPower;
+	float	finalReflectivity	= g_material.m_reflectivity;
 
 #ifdef EMISSIVE
 	finalEmissiveColor *= g_emissiveMap.Sample(g_anisotropicSampler, input.mTex).rgb;
@@ -116,14 +119,21 @@ PS_OUTPUT PS(PS_INPUT input)
 	finalSpecularPower *= specularSample.a;
 #endif
 
+	float3 normalWS = mul(float4(finalVSNormal, 0.0), g_cameraInverseViewMatrix);
+	float3 cameraWS = g_cameraInverseViewMatrix[3].xyz;
+	float3 cameraReflectedWS = reflect(input.mWSPosition - cameraWS, normalWS);
+	cameraReflectedWS.z = -cameraReflectedWS.z; // Flip the z coordinate when sampling from environment map because our positive z is the negative z of DirectX (left handed vs. right handed)
+	float3 skySphereColor = g_cubeMap.Sample(g_pointSampler, cameraReflectedWS);
+	finalDiffuseColor = lerp(finalDiffuseColor, skySphereColor, finalReflectivity);
+
 	finalAmbientColor *= finalDiffuseColor;
 	finalLightAccumulation = finalAmbientColor + finalEmissiveColor;
 
 	PS_OUTPUT output;
-	output.m_lightAccumulation = float4(saturate(finalLightAccumulation), 1.0f);
-	output.m_diffuse           = float4(saturate(finalDiffuseColor), 1.0f);
-	output.m_normal            = EncodeNormal(finalVSNormal);
-	output.m_specular          = float4(saturate(finalSpecularColor), EncodeSpecPower(finalSpecularPower));
+	output.m_lightAccumulation	= float4(saturate(finalLightAccumulation), 1.0f);
+	output.m_diffuse			= float4(saturate(finalDiffuseColor), 1.0f);
+	output.m_normal				= EncodeNormal(finalVSNormal);
+	output.m_specular			= float4(saturate(finalSpecularColor), EncodeSpecPower(finalSpecularPower));
 
 	return output;
 }

@@ -3,6 +3,7 @@
 //=>:(Usage, VS, vs_5_0)
 //=>:(Usage, PS, ps_5_0)
 //=>:(Permute, POINT_LIGHT)
+//=>:(Permute, DIRECTIONAL_LIGHT)
 
 // Input structs for vertex and pixel shader
 struct VS_INPUT
@@ -99,8 +100,8 @@ float CalculateShadowFactor(float3 positionVS)
 		}
 	}
 	
-	return g_shadowCube.SampleCmpLevelZero(g_shadowMapSampler, sampleVec, calculatedDepth).r;
-#else
+	return g_cubeMap.SampleCmpLevelZero(g_shadowMapSampler, sampleVec, calculatedDepth).r;
+#elif DIRECTIONAL_LIGHT
 	float4 positionWS = mul(float4(positionVS, 1.0), g_cameraInverseViewMatrix);
 	float4 positionLS = mul(positionWS, g_directionalLight.m_viewProjectionMatrix);
 	positionLS.xyz /= positionLS.w;
@@ -128,10 +129,12 @@ float CalculateShadowFactor(float3 positionVS)
 	[unroll]
 	for (int i = 0; i < 5; ++i)
 	{
-		shadowFactor += g_shadowMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy + offsets[i], positionLS.z).r;
+		shadowFactor += g_diffuseMap.SampleCmpLevelZero(g_shadowMapSampler, positionLS.xy + offsets[i], positionLS.z).r;
 	}
 
 	return shadowFactor / 5.0;
+#else
+	return 1.0;
 #endif
 }
 
@@ -148,10 +151,14 @@ void GetLightIrradianceProperties(float3 positionVS, out float attenuation, out 
 
 	lightColor = g_pointLight.m_lightColor;
 	lightIntensity = g_pointLight.m_lightIntensity;
-#else
+#elif DIRECTIONAL_LIGHT
 	attenuation = 1.0;
 	lightColor = g_directionalLight.m_lightColor;
 	lightIntensity = g_directionalLight.m_lightIntensity;
+#else
+	attenuation = 1.0;
+	lightColor = float4(1.0, 1.0, 1.0, 1.0);
+	lightIntensity = 1.0;
 #endif
 
 	attenuation *= shadowFactor;
@@ -218,5 +225,5 @@ float4 PS(PS_INPUT input) : SV_Target
 		phong = lightIntensity * lightColor * attenuation * (diffuse + specular);
 	}
 
-	return float4(phong, 1.0f);
+	return saturate(float4(phong, 1.0f));
 }

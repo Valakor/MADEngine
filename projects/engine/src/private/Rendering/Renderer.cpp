@@ -8,6 +8,7 @@
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/InputLayoutCache.h"
 #include "Rendering/ParticleSystem/ParticleSystem.h"
+#include "Rendering/RenderingConstants.h"
 
 namespace MAD
 {
@@ -22,7 +23,13 @@ namespace MAD
 	                      , m_window(nullptr)
 	                      , m_currentStateIndex(0)
 	                      , m_visualizeOption(EVisualizeOptions::None)
-						  , m_isDebugLayerEnabled(true) { }
+						  , m_isDebugLayerEnabled(true)
+	{
+		m_screenViewport.TopLeftX = 0;
+		m_screenViewport.TopLeftY = 0;
+		m_screenViewport.MinDepth = 0.0f;
+		m_screenViewport.MaxDepth = 1.0f;
+	}
 
 	bool URenderer::Init(UGameWindow& inWindow)
 	{
@@ -38,10 +45,19 @@ namespace MAD
 		m_backBuffer = g_graphicsDriver.GetBackBufferRenderTarget();
 
 		auto clientSize = inWindow.GetClientSize();
-		SetViewport(clientSize.x, clientSize.y);
+
+		m_screenViewport.Width = clientSize.x;
+		m_screenViewport.Height = clientSize.y;
+
+		SetViewport(m_screenViewport);
 
 		InitializeRenderPasses();
 		InitializeDebugGrid(6);
+
+		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
+		m_dynamicEnvironmentMap = UColorTextureCube(RenderConstants::DynamicEnvironmentMapRes);
+
+		m_dynamicEnvironmentMap.SetClearColor(m_clearColor);
 
 		m_textBatchRenderer.Init("engine\\fonts\\cambria_font.json", 1028);
 
@@ -54,10 +70,19 @@ namespace MAD
 		auto newSize = m_window->GetClientSize();
 		LOG(LogRenderer, Log, "OnScreenSizeChanged: { %i, %i }\n", newSize.x, newSize.y);
 
-		SetViewport(newSize.x, newSize.y);
+		m_screenViewport.TopLeftX = 0;
+		m_screenViewport.TopLeftY = 0;
+		m_screenViewport.Width = newSize.x;
+		m_screenViewport.Height = newSize.y;
+
+		SetViewport(m_screenViewport);
 
 		InitializeRenderPasses();
 
+		m_globalEnvironmentMap = UColorTextureCube(TexturePaths::EnvironmentMapTexture);
+		m_dynamicEnvironmentMap = UColorTextureCube(RenderConstants::DynamicEnvironmentMapRes);
+
+		m_particleSystemManager.OnScreenSizeChanged();
 		m_textBatchRenderer.OnScreenSizeChanged();
 
 		m_backBuffer.Reset(); // When we resize the window, we need to make sure we release all references to the back buffer (the graphics driver and renderer both have a reference)
@@ -69,14 +94,37 @@ namespace MAD
 
 	void URenderer::InitializeRenderPasses()
 	{
-		InitializeGBufferPass("engine\\shaders\\GBuffer.hlsl");
-		InitializeDirectionalLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializePointLightingPass("engine\\shaders\\DeferredLighting.hlsl");
-		InitializeDebugPass("engine\\shaders\\RenderDebugPrimitives.hlsl");
-		InitializeTextRenderPass("engine\\shaders\\RenderDebugText.hlsl");
+		InitializeGBufferPass(ShaderPaths::GBufferPass);
+		InitializeDirectionalLightingPass(ShaderPaths::DeferredLightingPass);
+		InitializePointLightingPass(ShaderPaths::DeferredLightingPass);
+		InitializeDebugPass(ShaderPaths::DebugGeometryPass);
+		InitializeTextRenderPass(ShaderPaths::DebugTextPass);
+		InitializeSkySpherePass(ShaderPaths::SkySpherePass);
+		InitializeReflectionPass(ShaderPaths::ReflectionPass);
 
-		InitializeDirectionalShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
-		InitializePointLightShadowMappingPass("engine\\shaders\\RenderGeometryToDepth.hlsl");
+		InitializeDirectionalShadowMappingPass(ShaderPaths::DepthPass);
+		InitializePointLightShadowMappingPass(ShaderPaths::DepthPass);
+	}
+
+	void URenderer::InitializeReflectionPass(const eastl::string& inReflectionPassProgramPath)
+	{
+		m_reflectionPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
+		m_reflectionPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Back);
+		m_reflectionPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inReflectionPassProgramPath);
+		m_reflectionPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+	}
+
+	void URenderer::InitializeSkySpherePass(const eastl::string& inSkySpherePassProgramPath)
+	{
+		// Set the light accumulation buffer as render target since we dont want that the skybox to be lit (remember to unbind the depth buffer as input incase previous steps needed it as a SRV)
+		m_skySpherePassDescriptor.m_renderTargets.clear();
+		m_skySpherePassDescriptor.m_renderTargets.emplace_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
+
+		m_skySpherePassDescriptor.m_depthStencilState = m_gBufferPassDescriptor.m_depthStencilState;
+		m_skySpherePassDescriptor.m_depthStencilView = m_gBufferPassDescriptor.m_depthStencilView;
+		m_skySpherePassDescriptor.m_rasterizerState = nullptr;
+		m_skySpherePassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
+		m_skySpherePassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inSkySpherePassProgramPath);
 	}
 
 	void URenderer::Shutdown()
@@ -84,21 +132,35 @@ namespace MAD
 		g_graphicsDriver.Shutdown();
 	}
 
-	void URenderer::QueueDrawItem(const SDrawItem& inDrawItem)
+	void URenderer::QueueDynamicItem(const SDrawItem& inDrawItem)
 	{
 		// Queue up this draw item
-		auto result = m_queuedDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
+		auto result = m_dynamicDrawItems[m_currentStateIndex].insert({ inDrawItem.m_uniqueID, inDrawItem });
 		MAD_ASSERT_DESC(result.second, "Duplicate draw item detected. Either it was submitted twice, or there was a collision in generating its unique ID");
 
 		// Check if this draw item was submitted previously
-		auto iter = m_queuedDrawItems[1 - m_currentStateIndex].find(inDrawItem.m_uniqueID);
-		if (iter != m_queuedDrawItems[1 - m_currentStateIndex].end())
+		auto iter = m_dynamicDrawItems[1 - m_currentStateIndex].find(inDrawItem.m_uniqueID);
+		if (iter != m_dynamicDrawItems[1 - m_currentStateIndex].end())
 		{
 			result.first->second.m_previousDrawTransform = &iter->second.m_transform;
 		}
 	}
 
-	void URenderer::QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration /*= 0.0f*/)
+	void URenderer::QueueStaticItem(const SDrawItem& inDrawItem)
+	{
+		// Queue up this draw item
+		auto result = m_staticDrawItems.insert({ inDrawItem.m_uniqueID, inDrawItem });
+		MAD_ASSERT_DESC(result.second, "Duplicate static draw item detected. Static draw items don't need to be re-queued every frame since their state should be the same across frames");
+	}
+
+	void URenderer::QueueReflectionProbeItem(const SDrawItem& inDrawItem)
+	{
+		// Queue up this draw item
+		auto result = m_reflectionProbeDrawItems.insert({ inDrawItem.m_uniqueID, inDrawItem });
+		MAD_ASSERT_DESC(result.second, "Duplicate reflection probe draw item detected. Reflection probe draw items don't need to be re-queued every frame since their state should be the same across frames");
+	}
+
+	void URenderer::QueueDebugItem(const SDrawItem& inDebugDrawItem, float inDuration /*= 0.0f*/)
 	{
 		SDebugHandle debugHandle;
 
@@ -141,22 +203,26 @@ namespace MAD
 		SDrawItem lineDrawItem;
 
 		lineDrawItem.m_transform = ULinearTransform(); // Start with identity
-		lineDrawItem.m_drawCommand = EDrawCommand::VertexDraw;
 		lineDrawItem.m_rasterizerState = m_debugPassDescriptor.m_rasterizerState;
-		lineDrawItem.m_primitiveTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
+		lineDrawItem.m_primitiveTopology = EPrimitiveTopology::LineList;
 		lineDrawItem.m_vertexCount = 2;
 		lineDrawItem.m_vertexBufferOffset = 0; // No sub-meshes obviously
 
-		PopulateDebugLineVertices(inMSStart, inMSEnd, inLineColor, lineDrawItem.m_vertexBuffers);
+		GenerateDebugLineVertices(inMSStart, inMSEnd, inLineColor, lineDrawItem.m_vertexBuffers);
 
 		lineDrawItem.m_transform.SetTranslation(inWSStart);
 
-		QueueDebugDrawItem(lineDrawItem, inDuration);
+		QueueDebugItem(lineDrawItem, inDuration);
 	}
 
 	void URenderer::DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY)
 	{
 		m_textBatchRenderer.BatchTextInstance(inSourceString, inScreenX, inScreenY);
+	}
+
+	void URenderer::SetSkySphereItem(const SDrawItem& inSkySphereItem)
+	{
+		m_skySphereDrawItem = inSkySphereItem;
 	}
 
 	UParticleSystem* URenderer::SpawnParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams)
@@ -171,7 +237,8 @@ namespace MAD
 		// Clear out the expired debug draw items
 		ClearExpiredDebugDrawItems();
 
-		m_queuedDrawItems[m_currentStateIndex].clear();
+		// Keep static draw items around until requested to remove, always refresh dynamic draw items however
+		m_dynamicDrawItems[m_currentStateIndex].clear();
 		m_queuedDirLights[m_currentStateIndex].clear();
 		m_queuedPointLights[m_currentStateIndex].clear();
 	}
@@ -203,6 +270,7 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
+
 		for (unsigned i = 0; i < m_gBufferShaderResources.size(); ++i)
 		{
 			g_graphicsDriver.DestroyShaderResource(m_gBufferShaderResources[i]);
@@ -211,7 +279,7 @@ namespace MAD
 		g_graphicsDriver.DestroyDepthStencil(m_gBufferPassDescriptor.m_depthStencilView);
 		ShaderResourcePtr_t& depthBufferSRV = m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)];
 		m_gBufferPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(clientSize.x, clientSize.y, &depthBufferSRV);
-		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+		m_gBufferPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 
 		for (unsigned i = 0; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
 		{
@@ -228,6 +296,7 @@ namespace MAD
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::DiffuseBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM, &diffuseBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::NormalBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R16G16_UNORM, &normalBufferSRV);
 		m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::SpecularBuffer)] = g_graphicsDriver.CreateRenderTarget(clientSize.x, clientSize.y, DXGI_FORMAT_R8G8B8A8_UNORM, &specularBufferSRV);
+
 #ifdef _DEBUG
 		g_graphicsDriver.SetDebugName_RenderTarget(g_graphicsDriver.GetBackBufferRenderTarget(), "Back Buffer");
 		g_graphicsDriver.SetDebugName_RenderTarget(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)], "Light Accumulation Buffer");
@@ -244,13 +313,13 @@ namespace MAD
 	void URenderer::InitializeDirectionalLightingPass(const eastl::string& inDirLightingPassProgramPath)
 	{
 		m_dirLightingPassDescriptor.m_depthStencilView = nullptr;
-		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+		m_dirLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, EComparisonFunc::Always);
 
 		m_dirLightingPassDescriptor.m_renderTargets.clear();
 		m_dirLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 		m_dirLightingPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 
-		m_dirLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+		m_dirLightingPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Front);
 
 		m_dirLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inDirLightingPassProgramPath);
 
@@ -260,13 +329,13 @@ namespace MAD
 	void URenderer::InitializePointLightingPass(const eastl::string& inLightingPassProgramPath)
 	{
 		m_pointLightingPassDescriptor.m_depthStencilView = nullptr;
-		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, D3D11_COMPARISON_ALWAYS);
+		m_pointLightingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(false, EComparisonFunc::Always);
 
 		m_pointLightingPassDescriptor.m_renderTargets.clear();
 		m_pointLightingPassDescriptor.m_renderTargets.push_back(m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 		m_pointLightingPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)] = m_gBufferPassDescriptor.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)];
 
-		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+		m_pointLightingPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::Front);
 
 		m_pointLightingPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inLightingPassProgramPath);
 
@@ -287,7 +356,7 @@ namespace MAD
 		if (!m_debugPassDescriptor.m_rasterizerState)
 		{
 			// Since we only want to draw lines/points, our rasterizer state needs to rasterizer using wireframe
-			m_debugPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_WIREFRAME, D3D11_CULL_NONE);
+			m_debugPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::WireFrame, ECullMode::None);
 		}
 
 		m_debugPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
@@ -305,7 +374,7 @@ namespace MAD
 
 		if (!m_textRenderPassDescriptor.m_rasterizerState)
 		{
-			m_textRenderPassDescriptor.m_rasterizerState = GetRasterizerState(D3D11_FILL_SOLID, D3D11_CULL_NONE);
+			m_textRenderPassDescriptor.m_rasterizerState = GetRasterizerState(EFillMode::Solid, ECullMode::None);
 		}
 
 		m_textRenderPassDescriptor.m_renderPassProgram = URenderPassProgram::Load(inProgramPath);
@@ -315,8 +384,8 @@ namespace MAD
 	void URenderer::InitializeDirectionalShadowMappingPass(const eastl::string& inProgramPath)
 	{
 		g_graphicsDriver.DestroyDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView);
-		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(4096, 4096, &m_shadowMapSRV);
-		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+		m_dirShadowMappingPassDescriptor.m_depthStencilView = g_graphicsDriver.CreateDepthStencil(RenderConstants::ShadowMapRes, RenderConstants::ShadowMapRes, &m_shadowMapSRV);
+		m_dirShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 
 		m_dirShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
 
@@ -330,10 +399,10 @@ namespace MAD
 
 	void URenderer::InitializePointLightShadowMappingPass(const eastl::string& inProgramPath)
 	{
-		m_depthTextureCube = eastl::make_unique<UDepthTextureCube>(static_cast<uint16_t>(4096));
+		m_depthTextureCube = eastl::make_unique<UDepthTextureCube>(static_cast<uint16_t>(RenderConstants::ShadowMapRes));
 
 		g_graphicsDriver.DestroyDepthStencil(m_pointShadowMappingPassDescriptor.m_depthStencilView);
-		m_pointShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, D3D11_COMPARISON_LESS);
+		m_pointShadowMappingPassDescriptor.m_depthStencilState = g_graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less);
 		m_pointShadowMappingPassDescriptor.m_blendState = g_graphicsDriver.CreateBlendState(false);
 
 		if (!m_pointShadowMappingPassDescriptor.m_rasterizerState)
@@ -374,23 +443,23 @@ namespace MAD
 		}
 	}
 
-	void URenderer::PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray)
+	void URenderer::GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutVPArray)
 	{
 		// Use the world space basis axis
 		const Matrix  perspectiveProjMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
 
 		// Calculate the points to look at for each direction
-		const Vector3 wsDirectionTargets[UDepthTextureCube::s_numTextureCubeSides] =
+		const Vector3 wsDirectionTargets[UTextureCube::Sides] =
 		{
-			{ inWSLightPos.x + 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // +X
-			{ inWSLightPos.x - 1.0f, inWSLightPos.y       , inWSLightPos.z        }, // -X
-			{ inWSLightPos.x       , inWSLightPos.y + 1.0f, inWSLightPos.z        }, // +Y
-			{ inWSLightPos.x       , inWSLightPos.y - 1.0f, inWSLightPos.z        }, // -Y
-			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z - 1.0f }, // +Z
-			{ inWSLightPos.x       , inWSLightPos.y       , inWSLightPos.z + 1.0f }, // -Z
+			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z        }, // +X
+			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z        }, // -X
+			{ inWSPos.x       , inWSPos.y + 1.0f, inWSPos.z        }, // +Y
+			{ inWSPos.x       , inWSPos.y - 1.0f, inWSPos.z        }, // -Y
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z - 1.0f }, // +Z
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z + 1.0f }, // -Z
 		};
 
-		const Vector3 wsUpVectors[UDepthTextureCube::s_numTextureCubeSides] =
+		const Vector3 wsUpVectors[UTextureCube::Sides] =
 		{
 			{ 0.0f, 1.0f, 0.0f }, // +X
 			{ 0.0f, 1.0f, 0.0f },  // -X
@@ -400,13 +469,45 @@ namespace MAD
 			{ 0.0f, 1.0f, 0.0f }   // -Z
 		};
 
-		for (uint8_t i = 0; i < UDepthTextureCube::s_numTextureCubeSides; ++i)
+		for (uint8_t i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
 		{
-			inOutVPArray[i] = Matrix::CreateLookAt(inWSLightPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
+			inOutVPArray[i] = Matrix::CreateLookAt(inWSPos, wsDirectionTargets[i], wsUpVectors[i]) * perspectiveProjMatrix;
 		}
 	}
 
-	void URenderer::PopulateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData)
+	void URenderer::GenerateViewMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutViewsArray, Matrix& inOutProjectionMatrix)
+	{
+		// Calculate the points to look at for each direction
+		const Vector3 wsDirectionTargets[AsIntegral(ETextureCubeFace::MAX)] =
+		{
+			{ inWSPos.x + 1.0f, inWSPos.y       , inWSPos.z }, // +X
+			{ inWSPos.x - 1.0f, inWSPos.y       , inWSPos.z }, // -X
+			{ inWSPos.x       , inWSPos.y + 1.0f, inWSPos.z }, // +Y
+			{ inWSPos.x       , inWSPos.y - 1.0f, inWSPos.z }, // -Y
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z - 1.0f }, // +Z
+			{ inWSPos.x       , inWSPos.y       , inWSPos.z + 1.0f }, // -Z
+		};
+
+		const Vector3 wsUpVectors[AsIntegral(ETextureCubeFace::MAX)] =
+		{
+			{ 0.0f, 1.0f, 0.0f }, // +X
+			{ 0.0f, 1.0f, 0.0f },  // -X
+			{ 0.0f, 0.0f, 1.0f },  // +Y (use a different up)
+			{ 0.0f, 0.0f, -1.0f },  // -Y (use a different up)
+			{ 0.0f, 1.0f, 0.0f },  // +Z
+			{ 0.0f, 1.0f, 0.0f }   // -Z
+		};
+
+		for (uint8_t i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
+		{
+			inOutViewsArray[i] = Matrix::CreateLookAt(inWSPos, wsDirectionTargets[i], wsUpVectors[i]);
+		}
+
+		// Use the world space basis axis
+		inOutProjectionMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 50.0f, 100000.0f); // We have to make sure that the near and far planes are proportional to the world units
+	}
+
+	void URenderer::GenerateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData)
 	{
 		inOutLineVertexData.clear();
 
@@ -436,10 +537,20 @@ namespace MAD
 		g_graphicsDriver.SetViewport(0, 0, w, h);
 	}
 
+	void URenderer::SetViewport(const SGraphicsViewport& inViewport)
+	{
+		float w = static_cast<float>(inViewport.Width);
+		float h = static_cast<float>(inViewport.Height);
+
+		m_perSceneConstants.m_screenDimensions.x = w;
+		m_perSceneConstants.m_screenDimensions.y = h;
+		g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerScene, &m_perSceneConstants, sizeof(m_perSceneConstants));
+
+		g_graphicsDriver.SetViewport(inViewport);
+	}
+
 	void URenderer::BeginFrame()
 	{
-		static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
 		g_graphicsDriver.StartEventGroup(L"Clear render targets and depth");
 
 		g_graphicsDriver.ClearDepthStencil(m_gBufferPassDescriptor.m_depthStencilView, true, 1.0f);
@@ -451,7 +562,7 @@ namespace MAD
 		for (unsigned i = 1; i < m_gBufferPassDescriptor.m_renderTargets.size(); ++i)
 		{
 			auto renderTarget = m_gBufferPassDescriptor.m_renderTargets[i];
-			g_graphicsDriver.ClearRenderTarget(renderTarget, zero);
+			g_graphicsDriver.ClearRenderTarget(renderTarget);
 		}
 
 		g_graphicsDriver.EndEventGroup();
@@ -465,39 +576,15 @@ namespace MAD
 		m_perFrameConstants.m_frameTime = inFrameTime;
 		BindPerFrameConstants();
 
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
+		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
+		ProcessReflectionProbes(inFramePercent);
+		m_dynamicEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
 
-		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
-
-		// Go through each draw item and bind input assembly data
-		g_graphicsDriver.StartEventGroup(L"Draw scene to GBuffer");
-		for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
-		{
-			// Before processing the draw item, we need to determine which program it should use and bind that
-			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDrawItem.second));
-
-			// Each individual DrawItem should issue its own draw call
-			currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
-		}
-		g_graphicsDriver.EndEventGroup();
-
-		if (m_visualizeOption != EVisualizeOptions::None)
-		{
-			g_graphicsDriver.StartEventGroup(L"Visualize GBuffer");
-			DoVisualizeGBuffer();
-			g_graphicsDriver.EndEventGroup();
-			return;
-		}
-
-		// Do directional lighting
+		DrawGBuffer(inFramePercent);
 		DrawDirectionalLighting(inFramePercent);
-
-		// Do point lighting
 		DrawPointLighting(inFramePercent);
+
+		DrawSkySphere(inFramePercent);
 
 		// Always perform the forward debug pass after the main deferred pass
 		DrawDebugPrimitives(inFramePercent);
@@ -520,7 +607,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
 		if (!loadedBackBufferProgram)
 		{
-			backBufferProgram = URenderPassProgram::Load("engine\\shaders\\BackBufferFinalize.hlsl");
+			backBufferProgram = URenderPassProgram::Load(ShaderPaths::BackBufferFinalizePass);
 			loadedBackBufferProgram = true;
 		}
 
@@ -554,11 +641,84 @@ namespace MAD
 		}), m_debugDrawItems.end());
 	}
 
+	void URenderer::DrawSkySphere(float inFramePercent)
+	{
+		g_graphicsDriver.StartEventGroup(L"Rendering Sky Sphere");
+
+		// We need to unbind the depth buffer because we're gonna be using it when rendering the skybox to make sure the depth testing is correct
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
+
+		m_globalEnvironmentMap.BindAsShaderResource(ETextureSlot::CubeMap);
+		m_skySpherePassDescriptor.ApplyPassState(g_graphicsDriver);
+		m_skySpherePassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+		m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true, EInputLayoutSemantic::Position);
+
+		g_graphicsDriver.EndEventGroup();
+	}
+
+	void URenderer::DrawGBuffer(float inFramePercent)
+	{
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::SpecularBuffer);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
+
+		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
+
+		// Go through both static and dynamic draw items and bind input assembly data
+		g_graphicsDriver.StartEventGroup(L"Draw objects in scene to GBuffer");
+
+		g_graphicsDriver.StartEventGroup(L"Static");
+		for (auto& currentStaticDrawItem : m_staticDrawItems)
+		{
+			// Before processing the draw item, we need to determine which program it should use and bind that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentStaticDrawItem.second));
+
+			currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
+		}
+		g_graphicsDriver.EndEventGroup();
+
+		g_graphicsDriver.StartEventGroup(L"Dynamic");
+		for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+		{
+			// Before processing the draw item, we need to determine which program it should use and bind that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDynamicDrawItem.second));
+
+			// Each individual DrawItem should issue its own draw call
+			currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
+		}
+		g_graphicsDriver.EndEventGroup();
+
+		g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+		for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
+		{
+			// Before processing the draw item, we need to determine which program it should use and bind that
+			m_gBufferPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentProbeDrawItem.second));
+
+			// Each individual DrawItem should issue its own draw call
+			currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
+		}
+		g_graphicsDriver.EndEventGroup();
+
+		g_graphicsDriver.EndEventGroup();
+
+		if (m_visualizeOption != EVisualizeOptions::None)
+		{
+			g_graphicsDriver.StartEventGroup(L"Visualize GBuffer");
+			DoVisualizeGBuffer();
+			g_graphicsDriver.EndEventGroup();
+			return;
+		}
+
+	}
+
 	void URenderer::DrawDirectionalLighting(float inFramePercent)
 	{
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred directional lighting");
 
-		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowMap);
+		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 
 		m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DiffuseBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DiffuseBuffer);
@@ -590,23 +750,40 @@ namespace MAD
 
 			// Render shadow map
 			g_graphicsDriver.StartEventGroup(L"Draw scene to shadow map");
-			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowMap);
+			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
 
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
 			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
-			for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
+
+			g_graphicsDriver.StartEventGroup(L"Static");
+			for (auto& currentStaticDrawItem : m_staticDrawItems)
 			{
-				currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
+			g_graphicsDriver.EndEventGroup();
+
+			g_graphicsDriver.StartEventGroup(L"Dynamic");
+			for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+			{
+				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+			}
+			g_graphicsDriver.EndEventGroup();
+
+			g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+			for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
+			{
+				currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
+			}
+			g_graphicsDriver.EndEventGroup();
 
 			g_graphicsDriver.EndEventGroup();
 
 			// Shading + lighting
 			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
-			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::ShadowMap);
-			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
+			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::DiffuseMap);
+			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 			g_graphicsDriver.DrawFullscreenQuad();
 
@@ -619,7 +796,7 @@ namespace MAD
 	{
 		uint32_t currentPointLightIndex = 0;
 		SPerPointLightConstants pointLightConstants;
-		TextureCubeVPArray_t shadowMapVPMatrices;
+		CubeTransformArray_t shadowMapVPMatrices;
 
 		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
 
@@ -642,17 +819,17 @@ namespace MAD
 			}
 
 			// TODO Inefficient, we should just calculate once for each point light once as long as it doesn't change position
-			PopulatePointShadowVPMatrices(pointLightConstants.m_pointLight.m_lightPosition, shadowMapVPMatrices);
+			GenerateViewProjectionMatrices(pointLightConstants.m_pointLight.m_lightPosition, shadowMapVPMatrices);
 
 			memcpy(pointLightConstants.m_pointLightVPMatrices, shadowMapVPMatrices.data(), shadowMapVPMatrices.size() * sizeof(Matrix));
 
 			// Clear the resource slot for the texture cube
-			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::ShadowCube);
+			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::CubeMap);
 
 			m_pointShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_pointShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
-			for (int i = 0; i < 6; ++i)
+			for (int i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
 			{
 				g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Shadow Cube Side #%d", i));
 
@@ -663,11 +840,27 @@ namespace MAD
 				pointLightConstants.m_pointLight.m_viewProjectionMatrix = shadowMapVPMatrices[i];
 				g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(pointLightConstants));
 
-				// Process all of the draw items again
-				for (auto& currentDrawItem : m_queuedDrawItems[m_currentStateIndex])
+				// Process all of the draw items (static and dynamic) again
+				g_graphicsDriver.StartEventGroup(L"Static");
+				for (auto& currentStaticDrawItem : m_staticDrawItems)
 				{
-					currentDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
+					currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
 				}
+				g_graphicsDriver.EndEventGroup();
+
+				g_graphicsDriver.StartEventGroup(L"Dynamic");
+				for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+				{
+					currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
+				}
+				g_graphicsDriver.EndEventGroup();
+
+				g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+				for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
+				{
+					currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
+				}
+				g_graphicsDriver.EndEventGroup();
 
 				g_graphicsDriver.EndEventGroup();
 			}
@@ -676,7 +869,7 @@ namespace MAD
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 
 			// Bind the texture cube as shader resource
-			m_depthTextureCube->BindAsResource(ETextureSlot::ShadowCube);
+			m_depthTextureCube->BindAsShaderResource(ETextureSlot::CubeMap);
 
 			// Transform the light's position into view space
 			pointLightConstants.m_pointLight.m_lightPosition = Vector3::Transform(pointLightConstants.m_pointLight.m_lightPosition, m_perFrameConstants.m_cameraViewMatrix);
@@ -751,13 +944,87 @@ namespace MAD
 		g_graphicsDriver.EndEventGroup();
 	}
 
+	void URenderer::ProcessReflectionProbes(float inFramePercent)
+	{
+		static const wchar_t* CubeSideNames[] =
+		{
+			L"Positive X",
+			L"Negative X",
+			L"Positive Y",
+			L"Negative Y",
+			L"Positive Z",
+			L"Negative Z"
+		};
+
+		MAD_ASSERT_DESC(m_reflectionProbeDrawItems.size() == 1, "TODO: Only supports 1 reflection probe currently");
+		CubeTransformArray_t probeViewMatrices;
+		Matrix probeProjectionMatrix;
+
+		const SDrawItem& currentProbeItem = m_reflectionProbeDrawItems.begin()->second;
+
+		g_graphicsDriver.StartEventGroup(L"Processing Reflection Probes");
+
+		// Generate the environment maps for the probes (for now, assume we only have one)
+		GenerateViewMatrices(currentProbeItem.m_transform.GetTranslation(), probeViewMatrices, probeProjectionMatrix);
+
+		m_reflectionPassDescriptor.ApplyPassState(g_graphicsDriver);
+
+		for (uint8_t i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
+		{
+			SPerFrameConstants perFrameConstants = m_perFrameConstants;
+
+			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Reflection Probe Cube Side: %s", CubeSideNames[i]));
+
+			// Update the view-projection matrix of the current cube side in the per point light constant buffer
+			perFrameConstants.m_cameraViewMatrix = probeViewMatrices[i];
+			perFrameConstants.m_cameraInverseViewMatrix = probeViewMatrices[i].Invert();
+			perFrameConstants.m_cameraViewProjectionMatrix = probeViewMatrices[i] * probeProjectionMatrix;
+			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerFrame, &perFrameConstants, sizeof(perFrameConstants));
+
+			m_dynamicEnvironmentMap.BindCubeSideAsTarget(i);
+
+			g_graphicsDriver.StartEventGroup(L"Sky Sphere");
+			g_graphicsDriver.SetPixelShaderResource(m_globalEnvironmentMap.GetShaderResource(), ETextureSlot::CubeMap);
+			m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(m_skySphereDrawItem));
+			m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+			g_graphicsDriver.EndEventGroup();
+
+			// Process all of the draw items (static and dynamic) again
+			g_graphicsDriver.StartEventGroup(L"Static");
+			for (auto& currentStaticDrawItem : m_staticDrawItems)
+			{
+				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentStaticDrawItem.second));
+
+				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+			}
+
+			g_graphicsDriver.EndEventGroup();
+
+			g_graphicsDriver.StartEventGroup(L"Dynamic");
+			for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
+			{
+				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDynamicDrawItem.second));
+
+				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+			}
+			g_graphicsDriver.EndEventGroup();
+
+			g_graphicsDriver.EndEventGroup();
+		}
+
+		g_graphicsDriver.EndEventGroup();
+
+		BindPerFrameConstants();
+		SetViewport(m_screenViewport);
+	}
+
 	void URenderer::DoVisualizeGBuffer()
 	{
 		static bool loadedCopyTextureProgram = false;
 		static eastl::shared_ptr<URenderPassProgram> copyTextureProgram;
 		if (!loadedCopyTextureProgram)
 		{
-			copyTextureProgram = URenderPassProgram::Load("engine\\shaders\\CopyTexture.hlsl");
+			copyTextureProgram = URenderPassProgram::Load(ShaderPaths::TextureBlitPass);
 			loadedCopyTextureProgram = true;
 		}
 
@@ -765,7 +1032,7 @@ namespace MAD
 		static eastl::shared_ptr<URenderPassProgram> depthProgram;
 		if (!loadedDepthProgram)
 		{
-			depthProgram = URenderPassProgram::Load("engine\\shaders\\RenderDepth.hlsl");
+			depthProgram = URenderPassProgram::Load(ShaderPaths::DepthPass);
 			loadedDepthProgram = true;
 		}
 
@@ -865,7 +1132,7 @@ namespace MAD
 		m_perFrameConstants.m_cameraExposure = currentCamera.m_exposure;
 	}
 
-	void URenderer::SetWorldAmbientColor(Color inColor)
+	void URenderer::SetWorldAmbientColor(const Color& inColor)
 	{
 		// Convert from sRGB space to linear color space.
 		// This is then converted back to sRGB space when rendering to the back buffer
@@ -878,7 +1145,7 @@ namespace MAD
 		g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerScene, &m_perSceneConstants, sizeof(m_perSceneConstants));
 	}
 
-	void URenderer::SetBackBufferClearColor(Color inColor)
+	void URenderer::SetBackBufferClearColor(const Color& inColor)
 	{
 		m_clearColor.x = powf(inColor.x, 2.2f);
 		m_clearColor.y = powf(inColor.y, 2.2f);
@@ -891,11 +1158,11 @@ namespace MAD
 		return g_graphicsDriver;
 	}
 
-	RasterizerStatePtr_t URenderer::GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const
+	RasterizerStatePtr_t URenderer::GetRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const
 	{
 		static eastl::hash_map<uint32_t, RasterizerStatePtr_t> s_stateCache;
 
-		uint32_t hash = inFillMode + inCullMode * 17;
+		uint32_t hash = static_cast<uint32_t>(inFillMode) + static_cast<uint32_t>(inCullMode) * 17;
 		auto iter = s_stateCache.find(hash);
 		if (iter != s_stateCache.end())
 		{

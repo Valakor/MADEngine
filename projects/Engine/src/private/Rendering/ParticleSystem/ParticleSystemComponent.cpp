@@ -60,42 +60,13 @@ namespace MAD
 			for (SizeType i = 0; i < numEmitters; ++i)
 			{
 				UObjectValue currentEmitter = emitterArray[i];
-
-				UObjectValue emitObject;
-				eastl::string property1;
-				eastl::string property2;
 				uint32_t emitRate = 0;
 				float emitDuration = 0.0f;
 
 				currentEmitter.GetProperty("emit_rate", emitRate);
 				currentEmitter.GetProperty("emit_duration", emitDuration);
 
-				emitterSpawnParams.emplace_back(emitRate, emitDuration); // repeat at 500 particles/second
-
-				if (currentEmitter.GetProperty("emit_object", emitObject))
-				{
-					UArrayValue propertyListArray;
-
-					emitObject.GetProperty("property1", property1);
-					emitObject.GetProperty("property2", property2);
-
-					if (emitObject.GetProperty("propertyList", propertyListArray))
-					{
-						UObjectValue currentPropertyObj;
-
-						for (SizeType j = 0; j < propertyListArray.Size(); ++j)
-						{
-							if (propertyListArray[j].Get(currentPropertyObj))
-							{
-								Vector3 propertyA;
-								eastl::string propertyB;
-
-								currentPropertyObj.GetProperty("propertyA", propertyA);
-								currentPropertyObj.GetProperty("propertyB", propertyB);
-							}
-						}
-					}
-				}
+				emitterSpawnParams.emplace_back(emitRate, emitDuration);
 			}
 		}
 
@@ -116,9 +87,8 @@ namespace MAD
 	{
 		// Update particle system's positional/rotational information
 		const Matrix& cameraViewMatrix = URenderContext::Get().GetRenderer().GetPerFrameConstants().m_cameraViewMatrix;
-		const Vector3& entityWorldTranslation = GetOwningEntity().GetWorldTranslation();
 
-		return Vector3::Transform(entityWorldTranslation, cameraViewMatrix);
+		return Vector3::Transform(GetWorldTranslation(), cameraViewMatrix);
 	}
 
 }

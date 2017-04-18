@@ -12,7 +12,9 @@
 #include "Rendering/DrawItem.h"
 #include "Rendering/CameraInstance.h"
 #include "Rendering/DepthTextureCube.h"
+#include "Rendering/ColorTextureCube.h"
 #include "Rendering/TextBatchRenderer.h"
+#include "Rendering/SkySphere.h"
 
 #include "Rendering/ParticleSystem/ParticleSystemManager.h"
 
@@ -45,14 +47,17 @@ namespace MAD
 		bool Init(UGameWindow& inWindow);
 		void Shutdown();
 
-		void QueueDrawItem(const SDrawItem& inDrawItem);
-		void QueueDebugDrawItem(const SDrawItem& inDebugDrawItem, float inDuration = 0.0f);
+		void QueueDynamicItem(const SDrawItem& inDrawItem);
+		void QueueStaticItem(const SDrawItem& inDrawItem);
+		void QueueReflectionProbeItem(const SDrawItem& inDrawItem);
+		void QueueDebugItem(const SDrawItem& inDebugDrawItem, float inDuration = 0.0f);
 		void QueueDirectionalLight(size_t inID, const SGPUDirectionalLight& inDirectionalLight);
 		void QueuePointLight(size_t inID, const SGPUPointLight& inPointLight);
 
 		void DrawDebugLine(const Vector3& inWSStart, const Vector3& inWSEnd, float inDuration, const Color& inLineColor = Color(1.0, 1.0, 1.0, 1.0));
 		void DrawOnScreenText(const eastl::string& inSourceString, float inScreenX, float inScreenY);
 
+		void SetSkySphereItem(const SDrawItem& inSkySphereItem);
 		class UParticleSystem* SpawnParticleSystem(const SParticleSystemSpawnParams& inSpawnParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams);
 
 		void ClearRenderItems();
@@ -65,8 +70,8 @@ namespace MAD
 
 		void UpdateCameraConstants(const struct SCameraInstance& inCameraInstance);
 		void CalculateCameraConstants(float inFramePercent);
-		void SetWorldAmbientColor(Color inColor);
-		void SetBackBufferClearColor(Color inColor);
+		void SetWorldAmbientColor(const Color& inColor);
+		void SetBackBufferClearColor(const Color& inColor);
 
 		// TODO Refactor the Renderer to allow for a better interface than this? Separate graphics sub-systems will need to be able to
 		// retrieve pass information (such as the g-buffer pass information)
@@ -74,7 +79,7 @@ namespace MAD
 		class UGraphicsDriver& GetGraphicsDriver();
 		const SPerFrameConstants& GetPerFrameConstants() const { return m_perFrameConstants; }
 
-		RasterizerStatePtr_t GetRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		RasterizerStatePtr_t GetRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const;
 		void SetGBufferVisualizeOption(EVisualizeOptions inOption) { m_visualizeOption = inOption; }
 		void ToggleDebugLayerEnabled() { m_isDebugLayerEnabled = !m_isDebugLayerEnabled; }
 		void ToggleTextBatching();
@@ -84,6 +89,8 @@ namespace MAD
 		// TODO: Eventually be able to initiliaze/load them from file
 		void InitializeRenderPasses();
 
+		void InitializeReflectionPass(const eastl::string& inReflectionPassProgramPath);
+		void InitializeSkySpherePass(const eastl::string& inSkySpherePassProgramPath);
 		void InitializeGBufferPass(const eastl::string& inGBufferPassProgramPath);
 		void InitializeDirectionalLightingPass(const eastl::string& inLightingPassProgramPath);
 		void InitializePointLightingPass(const eastl::string& inLightingPassProgramPath);
@@ -95,11 +102,13 @@ namespace MAD
 
 		void InitializeDebugGrid(uint8_t inGridDimension);
 
-		void PopulatePointShadowVPMatrices(const Vector3& inWSLightPos, TextureCubeVPArray_t& inOutVPArray);
-		void PopulateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);
+		void GenerateViewProjectionMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutVPArray);
+		void GenerateViewMatrices(const Vector3& inWSPos, CubeTransformArray_t& inOutViewsArray, Matrix& inOutProjectionMatrix);
+		void GenerateDebugLineVertices(const Vector3& inMSStart, const Vector3& inMSEnd, const Color& inLineColor, eastl::vector<UVertexArray>& inOutLineVertexData);
 
 		void BindPerFrameConstants();
 		void SetViewport(LONG inWidth, LONG inHeight);
+		void SetViewport(const SGraphicsViewport& inViewport);
 
 		void BeginFrame();
 		void Draw(float inFramePercent, float inFrameTime);
@@ -107,10 +116,13 @@ namespace MAD
 
 		void ClearExpiredDebugDrawItems();
 
+		void DrawSkySphere(float inFramePercent);
+		void DrawGBuffer(float inFramePercent);
 		void DrawDirectionalLighting(float inFramePercent);
 		void DrawPointLighting(float inFramePercent);
 		void DrawDebugPrimitives(float inFramePerecent);
 
+		void ProcessReflectionProbes(float inFramePercent);
 		void DoVisualizeGBuffer();
 
 		ProgramId_t DetermineProgramId(const SDrawItem& inTargetDrawItem) const;
@@ -121,6 +133,7 @@ namespace MAD
 		RenderTargetPtr_t m_backBuffer;
 		SPerSceneConstants m_perSceneConstants;
 		SPerFrameConstants m_perFrameConstants;
+		SGraphicsViewport m_screenViewport;
 		Color m_clearColor;
 		bool m_isDebugLayerEnabled;
 
@@ -130,10 +143,17 @@ namespace MAD
 
 		eastl::vector<SDebugHandle> m_debugDrawItems;
 
-		eastl::hash_map<size_t, SDrawItem> m_queuedDrawItems[2];
+		SDrawItem m_skySphereDrawItem;
+		eastl::hash_map<size_t, SDrawItem> m_staticDrawItems; // Static draw items (don't need double buffer since we don't need interpolation for static objects)
+		eastl::hash_map<size_t, SDrawItem> m_reflectionProbeDrawItems;
+		eastl::hash_map<size_t, SDrawItem> m_dynamicDrawItems[2]; // Dynamic draw items
+
+
 		eastl::hash_map<size_t, SGPUDirectionalLight> m_queuedDirLights[2];
 		eastl::hash_map<size_t, SGPUPointLight> m_queuedPointLights[2];
 		
+		SRenderPassDescriptor m_reflectionPassDescriptor;
+		SRenderPassDescriptor m_skySpherePassDescriptor;
 		SRenderPassDescriptor m_gBufferPassDescriptor;
 		SRenderPassDescriptor m_dirLightingPassDescriptor;
 		SRenderPassDescriptor m_pointLightingPassDescriptor;
@@ -148,8 +168,9 @@ namespace MAD
 		eastl::unique_ptr<UDepthTextureCube> m_depthTextureCube;
 
 		UTextBatchRenderer m_textBatchRenderer;
-		UParticleSystemManager m_particleSystemManager; // Use defaults for now
-
+		UParticleSystemManager m_particleSystemManager;
+		UColorTextureCube m_globalEnvironmentMap;
+		UColorTextureCube m_dynamicEnvironmentMap;
 		EVisualizeOptions m_visualizeOption;
 	};
 }

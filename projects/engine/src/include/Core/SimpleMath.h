@@ -96,6 +96,7 @@ namespace MAD
 			Calculates the transform that results from transforming inAbsoluteTransformA by inAbsoluteTransformB
 		*/
 		static ULinearTransform TransformAbsolute(const ULinearTransform& inAbsoluteTransformA, const ULinearTransform& inAbsoluteTransformB);
+		static ULinearTransform CreateScale(float inScale);
 	private:
 		void UpdateCachedTransform();
 	private:

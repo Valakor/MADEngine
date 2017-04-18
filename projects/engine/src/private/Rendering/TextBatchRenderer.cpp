@@ -44,8 +44,8 @@ namespace MAD
 		memset(initialVertexPosData.data(), 0, totalPosDataSize);
 		memset(initialVertexUVData.data(), 0, totalUVDataSize);
 
-		m_textBatchPosVB = graphicsDriver.CreateVertexBuffer(initialVertexPosData.data(), totalPosDataSize, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		m_textBatchTexVB = graphicsDriver.CreateVertexBuffer(initialVertexUVData.data(), totalUVDataSize, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_textBatchPosVB = graphicsDriver.CreateVertexBuffer(initialVertexPosData.data(), totalPosDataSize, EResourceUsage::Dynamic, ECPUAccess::Write);
+		m_textBatchTexVB = graphicsDriver.CreateVertexBuffer(initialVertexUVData.data(), totalUVDataSize, EResourceUsage::Dynamic, ECPUAccess::Write);
 	}
 
 	void UTextBatchRenderer::BatchTextInstance(const eastl::string& inSourceString, float inScreenX, float inScreenY)
@@ -69,12 +69,12 @@ namespace MAD
 
 	void UTextBatchRenderer::FlushBatch()
 	{
+		// Flushes all of the batched text instances
 		if (!m_isBatchRendererEnabled)
 		{
 			return;
 		}
 
-		// Flushes all of the batched text instances
 		size_t totalVertexCount = 0;
 
 		// Reserve enough vertices for the entire batch upfront
@@ -87,7 +87,7 @@ namespace MAD
 
 		for (auto& currentTextInstance : m_queuedTextInstances)
 		{
-			ProcessTextInstance(currentTextInstance);
+			UpdateCPUTextData(currentTextInstance);
 		}
 
 		BindToPipeline();
@@ -102,46 +102,35 @@ namespace MAD
 		const UINT textVertPosSize = sizeof(Vector3);
 		const UINT textVertUVSize = sizeof(Vector2);
 		SPerDrawConstants updatedPerDrawContants;
-		UINT byteOffset = 0;
-		
-		auto& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
-		auto renderContext = graphicsDriver.TEMPGetDeviceContext();
 
+		auto& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
 		memset(&updatedPerDrawContants, 0, sizeof(updatedPerDrawContants));
 
 		graphicsDriver.StartEventGroup(L"Drawing Text Batch");
 
-		auto textInputLayout = UInputLayoutCache::GetInputLayout(EInputLayoutSemantic::Position | EInputLayoutSemantic::UV);
-
-		renderContext->IASetInputLayout(textInputLayout.Get());
-
-		// Update and bind the vertex buffers for the text quads
+		graphicsDriver.SetInputLayout(UInputLayoutCache::GetInputLayout(EInputLayoutSemantic::Position | EInputLayoutSemantic::UV));
+		graphicsDriver.SetPrimitiveTopology(EPrimitiveTopology::TriangleList);
 		graphicsDriver.UpdateBuffer(m_textBatchPosVB, m_runningVBPosData.data(), m_runningVBPosData.size() * textVertPosSize);
 		graphicsDriver.UpdateBuffer(m_textBatchTexVB, m_runningVBUVData.data(), m_runningVBUVData.size() * textVertUVSize);
-
-		renderContext->IASetVertexBuffers(AsIntegral(EVertexBufferSlot::Position), 1, m_textBatchPosVB.GetAddressOf(), &textVertPosSize, &byteOffset);
-		renderContext->IASetVertexBuffers(AsIntegral(EVertexBufferSlot::UV), 1, m_textBatchTexVB.GetAddressOf(), &textVertUVSize, &byteOffset);
-
-		renderContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		renderContext->PSSetShaderResources(AsIntegral(ETextureSlot::FontMap), 1, m_textFontFamily->GetFontTextureResource().GetAddressOf());
+		graphicsDriver.SetVertexBuffer(m_textBatchPosVB, EVertexBufferSlot::Position, textVertPosSize, 0);
+		graphicsDriver.SetVertexBuffer(m_textBatchTexVB, EVertexBufferSlot::UV, textVertUVSize, 0);
+		graphicsDriver.SetPixelShaderResource(m_textFontFamily->GetFontTextureResource(), ETextureSlot::DiffuseMap);
 
 		// Set the appropriate constant buffer values (for world-view-projection matrix)
 		updatedPerDrawContants.m_objectToProjectionMatrix = m_textProjectionMatrix;
 		
 		graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDraw, &updatedPerDrawContants, sizeof(updatedPerDrawContants));
 
-		// TODO Why did I not use indexed rendering...? Probably should convert this to DrawIndexed
-		renderContext->Draw(static_cast<UINT>(m_runningVBPosData.size()), 0);
+		// Can't used index drawing because shared vertices between letters can't share UV data (since they are most likely different letters)
+		graphicsDriver.Draw(static_cast<UINT>(m_runningVBPosData.size()), 0);
 
 		// Unbind the font map as a shader resource (just in case, there is another use for the texture slot)
-		ShaderResourcePtr_t nullShaderResource = nullptr;
-		renderContext->PSSetShaderResources(AsIntegral(ETextureSlot::FontMap), 1, nullShaderResource.GetAddressOf());
+		graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 
 		graphicsDriver.EndEventGroup();
 	}
 
-	void UTextBatchRenderer::ProcessTextInstance(const STextInstance& inTextInstance)
+	void UTextBatchRenderer::UpdateCPUTextData(const STextInstance& inTextInstance)
 	{
 		// For each text instance, we need to produce the vertex data for the entire string
 		float runningLocalX = inTextInstance.LocalCoordX;

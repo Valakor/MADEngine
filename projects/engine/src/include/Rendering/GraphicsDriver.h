@@ -27,7 +27,7 @@ namespace MAD
 
 		// Don't use this directly, use the AssetCache interface, e.g.
 		//     AssetCache.Load<UTexture>(...);
-		ShaderResourcePtr_t CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips) const;
+		ShaderResourcePtr_t CreateTextureFromFile(const eastl::string& inPath, uint64_t& outWidth, uint64_t& outHeight, bool inForceSRGB, bool inGenerateMips, int32_t inMiscFlags = 0) const;
 		
 		bool CompileShaderFromFile(const eastl::string& inFileName, const eastl::string& inShaderEntryPoint, const eastl::string& inShaderModel, eastl::vector<char>& inOutCompileByteCode, const D3D_SHADER_MACRO* inShaderMacroDefines = nullptr);
 
@@ -36,15 +36,20 @@ namespace MAD
 		GeometryShaderPtr_t CreateGeometryShader(const eastl::vector<char>& inCompiledGSByteCode);
 
 		RenderTargetPtr_t CreateRenderTarget(UINT inWidth, UINT inHeight, DXGI_FORMAT inFormat, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
+		RenderTargetPtr_t CreateRenderTarget(ResourcePtr_t inBackingResource, const SRenderTargetViewDesc& inRenderTargetView) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const eastl::vector<char>& inCompiledVertexShader) const;
 		InputLayoutPtr_t CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* inElements, UINT inNumElements, const void* inCompiledVSByteCode, size_t inByteCodeSize) const;
 		DepthStencilPtr_t CreateDepthStencil(int inWidth, int inHeight, ShaderResourcePtr_t* outOptionalShaderResource = nullptr) const;
-		DepthStencilStatePtr_t CreateDepthStencilState(bool inDepthTestEnable, D3D11_COMPARISON_FUNC inComparisonFunc, D3D11_DEPTH_WRITE_MASK inDepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL) const;
-		RasterizerStatePtr_t CreateRasterizerState(D3D11_FILL_MODE inFillMode, D3D11_CULL_MODE inCullMode) const;
+		DepthStencilPtr_t CreateDepthStencil(ResourcePtr_t inResource, const SDepthStencilViewDesc& inDepthStencilDesc) const;
+		DepthStencilStatePtr_t CreateDepthStencilState(bool inDepthTestEnable, EComparisonFunc inComparisonFunc, EDepthWriteMask inDepthWriteMask = EDepthWriteMask::All) const;
+		Texture2DPtr_t CreateTexture2D(const STexture2DDesc& inTextureDesc, const void* inInitialData = nullptr);
+		ShaderResourcePtr_t CreateShaderResource(ResourcePtr_t inResource, DXGI_FORMAT inFormat, D3D11_SRV_DIMENSION inSRVDimension, uint32_t inMostDetailedMip, uint32_t inMipLevels) const;
+		RasterizerStatePtr_t CreateRasterizerState(EFillMode inFillMode, ECullMode inCullMode) const;
 		RasterizerStatePtr_t CreateDepthRasterizerState() const;
-		BlendStatePtr_t CreateBlendState(bool inEnableBlend, D3D11_BLEND inSrcBlend = D3D11_BLEND_ONE, D3D11_BLEND inDestBlend = D3D11_BLEND_ONE, D3D11_BLEND_OP inBlendOp = D3D11_BLEND_OP_ADD, D3D11_BLEND inSrcAlphaBlend = D3D11_BLEND_ONE, D3D11_BLEND inDestAlphaBlend = D3D11_BLEND_ZERO, D3D11_BLEND_OP inAlphaBlendOp = D3D11_BLEND_OP_ADD) const;
+		BlendStatePtr_t CreateBlendState(bool inEnableBlend, EBlendFactor inSrcBlend = EBlendFactor::One, EBlendFactor inDestBlend = EBlendFactor::One, EBlendOp inBlendOp = EBlendOp::Add,
+										 EBlendFactor inSrcAlphaBlend = EBlendFactor::One, EBlendFactor inDestAlphaBlend = EBlendFactor::Zero, EBlendOp inAlphaBlendOp = EBlendOp::Add) const;
 
-		BufferPtr_t CreateVertexBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsageFlags = D3D11_USAGE_IMMUTABLE, UINT inCPUAccessFlags = 0) const;
+		BufferPtr_t CreateVertexBuffer(const void* inData, UINT inDataSize, EResourceUsage inUsageFlags = EResourceUsage::Immutable, ECPUAccess inCPUAccessFlags = ECPUAccess::None) const;
 		BufferPtr_t CreateIndexBuffer(const void* inData, UINT inDataSize) const;
 
 		void UpdateBuffer(EConstantBufferSlot inSlot, const void* inData, size_t inDataSize) const;
@@ -52,8 +57,9 @@ namespace MAD
 		void SetRenderTargets(const RenderTargetPtr_t* inRenderTargets, int inNumRenderTargets, const DepthStencilPtr_t inOptionalDepthStencil) const;
 		void SetDepthStencilState(DepthStencilStatePtr_t inDepthStencilState, UINT inStencilRef) const;
 		void SetViewport(float inX, float inY, float inWidth, float inHeight) const;
+		void SetViewport(const SGraphicsViewport& inViewPort) const;
 		void SetInputLayout(InputLayoutPtr_t inInputLayout) const;
-		void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY inPrimitiveTopology) const;
+		void SetPrimitiveTopology(EPrimitiveTopology inPrimitiveTopology) const;
 		void SetVertexBuffer(BufferPtr_t inVertexBuffer, VertexBufferSlotType_t inVertexSlot, UINT inVertexSize, UINT inVertexIndexOffset) const;
 		void SetIndexBuffer(BufferPtr_t inIndexBuffer, UINT inIndexOffset) const;
 		void SetVertexShader(VertexShaderPtr_t inVertexShader) const;
@@ -69,8 +75,8 @@ namespace MAD
 
 		void SetFullScreen(bool inIsFullscreen) const;
 
-		void ClearBackBuffer(const float inColor[4]);
-		void ClearRenderTarget(RenderTargetPtr_t inRenderTarget, const float inColor[4]) const;
+		void ClearBackBuffer(const Color& inColor);
+		void ClearRenderTarget(RenderTargetPtr_t inRenderTarget, const Color& inColor = Color(0.0f, 0.0f, 0.0f, 0.0f)) const;
 		void ClearDepthStencil(DepthStencilPtr_t inDepthStencil, bool inClearDepth, float inDepth, bool inClearStencil = false, UINT8 inStencil = 0) const;
 		void Draw(int inVertexCount, int inStartVertex) const;
 		void DrawIndexed(int inIndexCount, int inStartIndex, int inBaseVertex) const;
@@ -100,7 +106,7 @@ namespace MAD
 		SamplerStatePtr_t CreateSamplerState(D3D11_FILTER inFilterMode, UINT inMaxAnisotropy = 0, D3D11_TEXTURE_ADDRESS_MODE inAddressMode = D3D11_TEXTURE_ADDRESS_WRAP, Color inBorderColor = Color()) const;
 		void SetPixelSamplerState(SamplerStatePtr_t inSamplerState, UINT inSlot) const;
 
-		BufferPtr_t CreateBuffer(const void* inData, UINT inDataSize, D3D11_USAGE inUsage, UINT inBindFlags, UINT inCpuAccessFlags) const;
+		BufferPtr_t CreateBuffer(const void* inData, UINT inDataSize, EResourceUsage inUsage, EBindFlag inBindFlags, ECPUAccess inCpuAccessFlags) const;
 		BufferPtr_t CreateConstantBuffer(const void* inData, UINT inDataSize) const;
 
 		void* MapBuffer(BufferPtr_t inBuffer) const;

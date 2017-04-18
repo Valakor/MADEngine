@@ -27,8 +27,8 @@ namespace MAD
 		UParticleSystem() {}
 
 		void Initialize(const SParticleSystemSpawnParams& inSystemParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams);
+		void OnScreenSizeChanged();
 		bool ActivateEmitter(const SParticleEmitterSpawnParams& inSpawnParams);
-
 		void TickSystem(float inDeltaTime);
 
 		void TransformParticles(const Vector3& newInitPos/*, const Vector3& newInitVel*/);

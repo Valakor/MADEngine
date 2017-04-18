@@ -8,7 +8,7 @@
 
 namespace MAD
 {
-	eastl::shared_ptr<UTexture> UTexture::Load(const eastl::string& inRelativePath, bool inLoadAsSRGB, bool inGenerateMips)
+	eastl::shared_ptr<UTexture> UTexture::Load(const eastl::string& inRelativePath, bool inLoadAsSRGB, bool inGenerateMips, int32_t inMiscFlags)
 	{
 		if (auto cachedTexture = UAssetCache::GetCachedResource<UTexture>(inRelativePath))
 		{
@@ -18,7 +18,7 @@ namespace MAD
 		eastl::string fullPath = UAssetCache::GetAssetRoot() + inRelativePath;
 
 		uint64_t width, height;
-		auto tex = gEngine->GetRenderer().GetGraphicsDriver().CreateTextureFromFile(fullPath, width, height, inLoadAsSRGB, inGenerateMips);
+		auto tex = gEngine->GetRenderer().GetGraphicsDriver().CreateTextureFromFile(fullPath, width, height, inLoadAsSRGB, inGenerateMips, inMiscFlags);
 		if (!tex)
 		{
 			LOG(LogDefault, Warning, "Failed to load texture: `%s`. Falling back to default checker.png", inRelativePath.c_str());

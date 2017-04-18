@@ -152,6 +152,7 @@ namespace MAD
 				programMacroDefines.push_back({ nullptr, nullptr }); // Sentinel value necessary to determine when we are at end of macro define list
 				
 				// For each set of usage descriptions, we need to create a new entry within the output shader permutations
+				outPermutations[currentProgramId] = eastl::make_shared<UPassProgram>();
 
 				for (const auto& currentUsageDescription : inUsageDescriptions)
 				{
@@ -166,19 +167,19 @@ namespace MAD
 					{
 						if (graphicsDriver.CompileShaderFromFile(inShaderFilePath, currentUsageDescription.ShaderEntryName, currentUsageDescription.ShaderModelName, compiledProgramByteCode, (programMacroDefines.size() > 1) ? programMacroDefines.data() : nullptr))
 						{
-							ProgramShaderTuple_t& currentProgramIDTuple = outPermutations[currentProgramId];
+							eastl::shared_ptr<UPassProgram> currentPassProgram = outPermutations[currentProgramId];
 
 							// Compilation successful (check what type of shader it is so we can set it properly in the program ID entry)
 							switch (usageShaderType)
 							{
 							case EProgramShaderType::EProgramShaderType_VS:
-								SetPtrToShaderTuple<EProgramShaderType::EProgramShaderType_VS>(currentProgramIDTuple, graphicsDriver.CreateVertexShader(compiledProgramByteCode));
+								currentPassProgram->SetVS(graphicsDriver.CreateVertexShader(compiledProgramByteCode));
 								break;
 							case EProgramShaderType::EProgramShaderType_GS:
-								SetPtrToShaderTuple<EProgramShaderType::EProgramShaderType_GS>(currentProgramIDTuple, graphicsDriver.CreateGeometryShader(compiledProgramByteCode));/* create geometry shader here eventually */
+								currentPassProgram->SetGS(graphicsDriver.CreateGeometryShader(compiledProgramByteCode));
 								break;
 							case EProgramShaderType::EProgramShaderType_PS:
-								SetPtrToShaderTuple<EProgramShaderType::EProgramShaderType_PS>(currentProgramIDTuple, graphicsDriver.CreatePixelShader(compiledProgramByteCode));
+								currentPassProgram->SetPS(graphicsDriver.CreatePixelShader(compiledProgramByteCode));
 								break;
 							}
 

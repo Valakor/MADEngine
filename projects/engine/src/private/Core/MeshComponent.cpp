@@ -13,21 +13,42 @@ namespace MAD
 
 	CMeshComponent::CMeshComponent(OGameWorld* inOwningWorld)
 		: Super_t(inOwningWorld)
+		, m_bIsDynamic(false)
 	{
 		m_meshInstance.m_bVisible = false;
 	}
 
-	void CMeshComponent::UpdateComponent(float inDeltaTime)
+	void CMeshComponent::PostInitializeComponents()
 	{
-		(void)inDeltaTime;
+		// If static object, queue up static draw item right now
+		if (!m_bIsDynamic)
+		{
+			eastl::vector<SDrawItem> constructedDrawItems;
 
-		//LOG(LogTransformComponent, Log, "Updating Mesh Component for %s #%d\n", GetOwner().GetTypeInfo()->GetTypeName(), GetOwner().GetObjectID());
-		
+			m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, GetWorldTransform());
+
+			// Set the draw item properties
+			for (size_t i = 0; i < constructedDrawItems.size(); ++i)
+			{
+				auto& currentDrawItem = constructedDrawItems[i];
+
+				currentDrawItem.m_uniqueID = MakeDrawItemID(GetObjectID(), i);
+
+				gEngine->GetRenderer().QueueStaticItem(currentDrawItem);
+			}
+		}
+	}
+
+	void CMeshComponent::UpdateComponent(float)
+	{
 		// Have the owning SMeshInstance create a draw item to submit to renderer
 		if (m_meshInstance.m_bVisible && m_meshInstance.m_mesh)
 		{
-			// Only create the draw item if our mesh instance is initialized properly with a mesh and direct transform
-			ConstructDrawItem();
+			if (m_bIsDynamic)
+			{
+				// Only create the draw item if our mesh instance is initialized properly with a mesh and direct transform and the mesh is dynamic (moving around)
+				ConstructDrawItem();
+			}
 		}
 	}
 
@@ -50,7 +71,11 @@ namespace MAD
 			auto& currentDrawItem = constructedDrawItems[i];
 
 			currentDrawItem.m_uniqueID = MakeDrawItemID(GetObjectID(), i);
-			targetRenderer.QueueDrawItem(currentDrawItem);
+
+			if (m_bIsDynamic)
+			{
+				targetRenderer.QueueDynamicItem(currentDrawItem);
+			}
 		}
 	}
 
@@ -65,16 +90,20 @@ namespace MAD
 		return a;
 	}
 
-	void CMeshComponent::Load(const UGameWorldLoader& inLoader, const UObjectValue& inPropertyObj)
+	void CMeshComponent::Load(const UGameWorldLoader&, const UObjectValue& inPropertyObj)
 	{
-		UNREFERENCED_PARAMETER(inLoader);
-
 		inPropertyObj.GetProperty("visible", m_meshInstance.m_bVisible);
 
 		eastl::string meshName;
 		if (inPropertyObj.GetProperty("mesh", meshName))
 		{
 			m_meshInstance.m_mesh = UMesh::Load(meshName);
+		}
+
+		bool isDynamic = false;
+		if (inPropertyObj.GetProperty("dynamic", isDynamic))
+		{
+			m_bIsDynamic = isDynamic;
 		}
 	}
 
