@@ -39,7 +39,7 @@ namespace MAD
 		m_renderPassDescriptor.m_renderTargets.clear();
 		m_renderPassDescriptor.m_renderTargets.push_back(gBufferPassDesc.m_renderTargets[AsIntegral(ERenderTargetSlot::LightingBuffer)]);
 
-		m_renderPassDescriptor.m_depthStencilState = graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Always);
+		m_renderPassDescriptor.m_depthStencilState = graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less, EDepthWriteMask::Zero);
 		m_renderPassDescriptor.m_depthStencilView = gBufferPassDesc.m_depthStencilView;
 	}
 
@@ -126,7 +126,7 @@ namespace MAD
 
 		// Reuse the G-Buffer depth stencil view so that our particles obey regular occlusion logic with existing objects in scene
 		// We can't use the G-buffer depth stencil state though beacuse we don't want any depth writes on the particles since we want blending ontop of each other
-		m_renderPassDescriptor.m_depthStencilState = graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Always);
+		m_renderPassDescriptor.m_depthStencilState = graphicsDriver.CreateDepthStencilState(true, EComparisonFunc::Less, EDepthWriteMask::Zero);
 		m_renderPassDescriptor.m_depthStencilView = gBufferPassDesc.m_depthStencilView;
 
 		m_renderPassDescriptor.m_rasterizerState = graphicsDriver.CreateRasterizerState(EFillMode::Solid, ECullMode::Back);

@@ -20,36 +20,41 @@ namespace MAD
 
 	void CMeshComponent::PostInitializeComponents()
 	{
-		// If static object, queue up static draw item right now
-		if (!m_bIsDynamic)
+		if (!m_meshInstance.m_mesh || !m_meshInstance.m_bVisible)
 		{
-			eastl::vector<SDrawItem> constructedDrawItems;
+			return;
+		}
 
-			m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, GetWorldTransform());
+		if (m_bIsDynamic)
+		{
+			return;
+		}
 
-			// Set the draw item properties
-			for (size_t i = 0; i < constructedDrawItems.size(); ++i)
-			{
-				auto& currentDrawItem = constructedDrawItems[i];
+		// If static object, queue up static draw item right now
+		eastl::vector<SDrawItem> constructedDrawItems;
 
-				currentDrawItem.m_uniqueID = MakeDrawItemID(GetObjectID(), i);
+		m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, GetWorldTransform());
 
-				gEngine->GetRenderer().QueueStaticItem(currentDrawItem);
-			}
+		// Set the draw item properties
+		for (size_t i = 0; i < constructedDrawItems.size(); ++i)
+		{
+			auto& currentDrawItem = constructedDrawItems[i];
+
+			currentDrawItem.m_uniqueID = MakeDrawItemID(GetObjectID(), i);
+
+			gEngine->GetRenderer().QueueStaticItem(currentDrawItem);
 		}
 	}
 
 	void CMeshComponent::UpdateComponent(float)
 	{
-		// Have the owning SMeshInstance create a draw item to submit to renderer
-		if (m_meshInstance.m_bVisible && m_meshInstance.m_mesh)
+		// Only create the draw item if our mesh instance is initialized properly with a mesh and direct transform and the mesh is dynamic (moving around)
+		if (!m_meshInstance.m_mesh || !m_meshInstance.m_bVisible)
 		{
-			if (m_bIsDynamic)
-			{
-				// Only create the draw item if our mesh instance is initialized properly with a mesh and direct transform and the mesh is dynamic (moving around)
-				ConstructDrawItem();
-			}
+			return;
 		}
+
+		ConstructDrawItem();
 	}
 
 	bool CMeshComponent::LoadFrom(const eastl::string& inAssetName)
@@ -63,6 +68,7 @@ namespace MAD
 		URenderer& targetRenderer = gEngine->GetRenderer();
 		eastl::vector<SDrawItem> constructedDrawItems;
 
+		// Have the owning SMeshInstance create a draw item to submit to renderer
 		m_meshInstance.m_mesh->BuildDrawItems(constructedDrawItems, GetWorldTransform());
 
 		// Set the draw item properties

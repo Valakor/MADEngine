@@ -41,9 +41,15 @@ namespace MAD
 		return Clamp(x, 0.0f, 1.0f);
 	}
 
-	inline float Lerp(float a, float b, float t)
+	/*inline float Lerp(float a, float b, float t)
 	{
 		return a + (b - a) * Saturate(t);
+	}*/
+
+	template <typename T>
+	inline T Lerp(const T& inA, const T& inB, float inT)
+	{
+		return inA + (inB - inA) * Saturate(inT);
 	}
 
 	float ClampAxis(float inAngle);
