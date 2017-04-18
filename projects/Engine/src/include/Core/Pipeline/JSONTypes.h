@@ -98,7 +98,10 @@ namespace MAD
 	template <> bool UGenericValue::Get<bool>(bool& outBool) const;
 	template <> bool UGenericValue::IsA<bool>() const;
 
+	template <> bool UGenericValue::Get<Vector2>(Vector2& outVector2) const;
 	template <> bool UGenericValue::Get<Vector3>(Vector3& outVector3) const;
+
+	template <> bool UGenericValue::IsA<Vector2>() const;
 	template <> bool UGenericValue::IsA<Vector3>() const;
 	template <> bool UGenericValue::IsA<Vector4>() const;
 

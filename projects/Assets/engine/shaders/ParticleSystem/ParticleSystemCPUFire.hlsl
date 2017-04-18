@@ -77,5 +77,5 @@ void GS(point ParticleVSOut gsIn[1], inout TriangleStream<ParticleVertexGSOut> p
 
 float4 PS(ParticleVertexGSOut inGSOut) : SV_Target
 {
-	return g_diffuseMap.Sample(g_linearSampler, inGSOut.ParticleUV);
+	return inGSOut.ParticleColor * g_diffuseMap.Sample(g_linearSampler, inGSOut.ParticleUV);
 }

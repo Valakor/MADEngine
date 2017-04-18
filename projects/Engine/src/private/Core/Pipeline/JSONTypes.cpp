@@ -99,6 +99,22 @@ namespace MAD
 	}
 
 	template <>
+	bool UGenericValue::Get<Vector2>(Vector2& outVector2) const
+	{
+		if (!IsA<Vector2>())
+		{
+			return false;
+		}
+
+		UArrayValue valueArray(m_value);
+
+		valueArray[0].Get(outVector2.x);
+		valueArray[1].Get(outVector2.y);
+
+		return true;
+	}
+
+	template <>
 	bool UGenericValue::Get(Vector3& outVector3) const
 	{
 		if (!IsA<Vector3>())
@@ -111,6 +127,27 @@ namespace MAD
 		valueArray[0].Get(outVector3.x);
 		valueArray[1].Get(outVector3.y);
 		valueArray[2].Get(outVector3.z);
+
+		return true;
+	}
+
+	template <>
+	bool UGenericValue::IsA<Vector2>() const
+	{
+		if (!m_value->IsArray() || m_value->Size() != 2)
+		{
+			return false;
+		}
+
+		UArrayValue valueArray(m_value);
+
+		for (SizeType i = 0; i < 2; ++i)
+		{
+			if (!valueArray[i].IsA<double>())
+			{
+				return false;
+			}
+		}
 
 		return true;
 	}

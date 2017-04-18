@@ -60,13 +60,42 @@ namespace MAD
 			for (SizeType i = 0; i < numEmitters; ++i)
 			{
 				UObjectValue currentEmitter = emitterArray[i];
-				uint32_t emitRate = 0;
-				float emitDuration = 0.0f;
+				SParticleEmitterSpawnParams currentEmitterParams;
 
-				currentEmitter.GetProperty("emit_rate", emitRate);
-				currentEmitter.GetProperty("emit_duration", emitDuration);
+				currentEmitter.GetProperty("emit_rate", currentEmitterParams.EmitRate);
+				currentEmitter.GetProperty("emit_duration", currentEmitterParams.EmitDuration);
+				currentEmitter.GetProperty("emit_start_color", currentEmitterParams.StartColor);
 
-				emitterSpawnParams.emplace_back(emitRate, emitDuration);
+				if (!currentEmitter.GetProperty("emit_end_color", currentEmitterParams.EndColor))
+				{
+					currentEmitterParams.EndColor = currentEmitterParams.StartColor;
+				}
+
+				currentEmitter.GetProperty("emit_start_size", currentEmitterParams.StartSize);
+
+				if (!currentEmitter.GetProperty("emit_end_size", currentEmitterParams.EndSize))
+				{
+					currentEmitterParams.EndSize = currentEmitterParams.StartSize;
+				}
+
+				currentEmitter.GetProperty("emit_min_angle", currentEmitterParams.ConeMinAngle);
+				currentEmitter.GetProperty("emit_max_angle", currentEmitterParams.ConeMaxAngle);
+
+				currentEmitter.GetProperty("emit_min_radius", currentEmitterParams.ConeMinRadius);
+				if (!currentEmitter.GetProperty("emit_max_radius", currentEmitterParams.ConeMaxRadius))
+				{
+					currentEmitterParams.ConeMaxRadius = currentEmitterParams.ConeMinRadius;
+				}
+
+				currentEmitter.GetProperty("emit_particle_lifetime", currentEmitterParams.ParticleLifetime);
+
+				Vector3 eulerRotationAngles;
+				if (currentEmitter.GetProperty("emit_rotation", eulerRotationAngles))
+				{
+					currentEmitterParams.EmitRotation = Matrix::CreateFromYawPitchRoll(eulerRotationAngles.y, eulerRotationAngles.x, eulerRotationAngles.z);
+				}
+
+				emitterSpawnParams.push_back(currentEmitterParams);
 			}
 		}
 

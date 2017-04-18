@@ -8,10 +8,20 @@ namespace MAD
 {
 	struct SParticleEmitterSpawnParams
 	{
-		SParticleEmitterSpawnParams(float inRate, float inDuration);
+		SParticleEmitterSpawnParams();
 
-		int32_t EmitRate;
+		uint32_t EmitRate;
 		float EmitDuration;
+		Color StartColor;
+		Color EndColor;
+		Vector2 StartSize;
+		Vector2 EndSize;
+		float ParticleLifetime;
+		float ConeMinAngle;
+		float ConeMaxAngle;
+		float ConeMinRadius;
+		float ConeMaxRadius;
+		Matrix EmitRotation;
 	};
 
 	class UParticleSystemEmitter
@@ -28,6 +38,16 @@ namespace MAD
 		float m_emitDuration;
 		float m_rateAccumulator;
 		float m_runningEmitDuration;
+		Color m_startColor;
+		Color m_endColor;
+		Vector2 m_startSize;
+		Vector2 m_endSize;
+		float m_particleLifetime;
+		float m_coneMinAngle;
+		float m_coneMinRadius;
+		float m_coneMaxAngle;
+		float m_coneMaxRadius;
+		Matrix m_particleRotation;
 		bool m_bRepeat;
 	};
 }
