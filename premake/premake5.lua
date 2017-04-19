@@ -6,20 +6,31 @@ workspace "MAD"
 	location "../projects"
 	language "C++"
 	architecture "x86_64"
-	configurations { "Debug", "Release" }
+	configurations { "DebugEditor", "DebugGame", "ReleaseEditor", "ReleaseGame" }
 	flags { "FloatFast", "EnableSSE2", "StaticRuntime", "MultiProcessorCompile" }
 	
-	filter { "configurations:Debug" }
-		defines { "_DEBUG", "DEBUG" }
+	filter { "configurations:DebugEditor" }
+		defines { "_DEBUG", "DEBUG", "MAD_EDITOR" }
 		symbols "On"
 		optimize "Off"
 		inlining "Disabled"
 	
-	filter { "configurations:Release" }
-		defines { "NDEBUG" }
+	filter { "configurations:DebugGame" }
+		defines { "_DEBUG", "DEBUG"}
+		symbols "On"
+		optimize "Off"
+		inlining "Disabled"
+
+	filter { "configurations:ReleaseEditor" }
+		defines { "NDEBUG", "MAD_EDITOR" }
 		optimize "Speed"
 		inlining "Auto"
 	
+	filter { "configurations:ReleaseGame" }
+		defines { "NDEBUG" }
+		optimize "Speed"
+		inlining "Auto"
+
 	filter { }
 	
 	targetdir ("%{prj.location}/build/bin/%{cfg.longname}")
@@ -71,9 +82,9 @@ group "ThirdParty"
 			release_libs = debug_libs
 		end
 
-		filter { "configurations:Debug" }
+		filter { "configurations:DebugEditor or DebugGame" }
 			links { "yojimbo", debug_libs }
-		filter { "configurations:Release" }
+		filter { "configurations:ReleaseEditor or ReleaseGame" }
 			links { "yojimbo", release_libs }
 
 		filter { }
@@ -85,10 +96,10 @@ function useAssimp()
 	libdirs { "../ThirdParty/assimp/lib" }
 	includedirs { "../ThirdParty/assimp/include" }
 
-	filter { "configurations:Debug" }
+	filter { "configurations:DebugEditor or DebugGame" }
 		links { "zlibstaticD", "assimpD" }
 
-	filter { "configurations:Release" }
+	filter { "configurations:ReleaseEditor or ReleaseGame" }
 		links { "zlibstatic", "assimp" }
 
 	filter { }
@@ -102,10 +113,10 @@ function useDirectXTK()
 	libdirs { "../ThirdParty/DirectXTK/lib" }
 	includedirs { "../ThirdParty/DirectXTK/include" }
 
-	filter { "configurations:Debug" }
+	filter { "configurations:DebugEditor or DebugGame" }
 		links { "DirectXTKD" }
 
-	filter { "configurations:Release" }
+	filter { "configurations:ReleaseEditor or ReleaseGame" }
 		links { "DirectXTK" }
 
 	filter { }
@@ -117,7 +128,7 @@ function useQT()
 	qtgenerateddir "../projects/AngerManagement/GeneratedFiles"
 	qtprefix "Qt5"
 	qtmodules { "core", "gui", "widgets" }
-	filter { "configurations:Debug"}
+	filter { "configurations:DebugEditor or DebugGame"}
 		qtsuffix "d"
 	filter {}
 end
@@ -160,7 +171,6 @@ project "AngerManagement"
 	-- Figure if there is a way of specifying the AngerManagement project to inherit include directories from the Engine project (?)
 	commonSetup()
 
-	defines { "_EDITOR" }
 	postbuildcommands { "call \"$(SolutionDir)..\\premake\\MADStage.bat\" \"%{prj.name}\" \"$(TargetDir)\" \"$(SolutionDir)\"" }
 
 project "Game"

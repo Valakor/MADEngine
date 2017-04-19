@@ -13,7 +13,7 @@ namespace MAD
 
 	CMeshComponent::CMeshComponent(OGameWorld* inOwningWorld)
 		: Super_t(inOwningWorld)
-		, m_bIsDynamic(true)
+		, m_bIsDynamic(false)
 	{
 		m_meshInstance.m_bVisible = false;
 	}
@@ -106,11 +106,15 @@ namespace MAD
 			m_meshInstance.m_mesh = UMesh::Load(meshName);
 		}
 
+#ifdef MAD_EDITOR
+		m_bIsDynamic = true;
+#else
 		bool isDynamic = false;
 		if (inPropertyObj.GetProperty("dynamic", isDynamic))
 		{
 			m_bIsDynamic = isDynamic;
 		}
+#endif
 	}
 
 }
