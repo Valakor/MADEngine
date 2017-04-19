@@ -82,8 +82,8 @@ namespace MAD
 		bool ReloadWorld(const eastl::string& inWorldName);
 	protected:
 		const int MAX_SIMULATION_STEPS = 10;
-		//const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
-		const double TARGET_DELTA_TIME = 0.05; // 20 FPS
+		const double TARGET_DELTA_TIME = 0.016666666666666666; // 60 FPS
+		//const double TARGET_DELTA_TIME = 0.05; // 20 FPS
 
 		bool m_bIsInitialized;
 		bool m_bContinue;

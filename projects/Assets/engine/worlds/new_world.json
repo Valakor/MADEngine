@@ -53,10 +53,10 @@
 						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.86602540378, -0.17],
-								"intensity": 5.0
+								"intensity": 3.0
 							}
 						},
 						{
@@ -116,10 +116,10 @@
 						{
 							"type": "CDirectionalLightComponent",
 							"properties": {
-								"enabled": false,
+								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
 								"direction": [0.0, -0.707107, -0.707107],
-								"intensity": 50.0
+								"intensity": 3.0
 							}
 						}
 					]
@@ -131,6 +131,7 @@
 						{
 							"type": "CPointLightComponent",
 							"position": [0.0, 100.0, 0.0],
+							"rotation": [90.0, 0.0, 0.0],
 							"properties": {
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
@@ -143,8 +144,17 @@
 							"type": "CMeshComponent",
 							"scale": 10.0,
 							"properties": {
-								"visible": false,
+								"visible": true,
+								"dynamic": true,
 								"mesh": "engine\\meshes\\primitives\\cube.obj"
+							}
+						},
+						{
+							"type": "CCircularMoveComponent",
+							"properties": {
+								"enabled": true,
+								"angular_speed": 125.0,
+								"radius": 200.0
 							}
 						},
 						{
@@ -155,6 +165,7 @@
 								"debug_scale": 10.0
 							}
 						}
+
 					]
 				},
 				{
@@ -256,7 +267,7 @@
 						},
 						{
 							"type": "CParticleSystemComponent",
-							"position": [-200.0, 50.0, 150.0],
+							"position": [-200.0, 100.0, 150.0],
 							"properties": {
 								"name": "Jet Trail Effect",
 								"enabled": true,
@@ -280,7 +291,7 @@
 						},
 						{
 							"type": "CParticleSystemComponent",
-							"position": [150.0, 150.0, -150.0],
+							"position": [150.0, 150.0, -250.0],
 							"properties": {
 								"name": "Regular Fire Effect",
 								"enabled": true,
@@ -407,6 +418,29 @@
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\samurai_sword\\sword.obj"
+							}
+						},
+						{
+							"type": "CDebugTransformComponent",
+							"position": [0.0, 0.5, 0.0],
+							"properties": {
+								"enabled": false
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "AK-74",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [0.0, 35.0, 0.0],
+							"rotation": [0.0, -90.0, 0.0],
+							"scale": 1.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\ak-74\\ak-74.obj"
 							}
 						},
 						{

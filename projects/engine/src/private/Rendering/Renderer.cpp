@@ -959,6 +959,11 @@ namespace MAD
 		MAD_ASSERT_DESC(m_reflectionProbeDrawItems.size() == 1, "TODO: Only supports 1 reflection probe currently");
 		CubeTransformArray_t probeViewMatrices;
 		Matrix probeProjectionMatrix;
+		InputLayoutFlags_t reflectionInputLayoutOverride = 0;
+
+		reflectionInputLayoutOverride |= EInputLayoutSemantic::Position;
+		reflectionInputLayoutOverride |= EInputLayoutSemantic::Normal;
+		reflectionInputLayoutOverride |= EInputLayoutSemantic::UV;
 
 		const SDrawItem& currentProbeItem = m_reflectionProbeDrawItems.begin()->second;
 
@@ -995,7 +1000,7 @@ namespace MAD
 			{
 				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentStaticDrawItem.second));
 
-				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true, reflectionInputLayoutOverride);
 			}
 
 			g_graphicsDriver.EndEventGroup();
@@ -1005,7 +1010,7 @@ namespace MAD
 			{
 				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDynamicDrawItem.second));
 
-				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
+				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true, reflectionInputLayoutOverride);
 			}
 			g_graphicsDriver.EndEventGroup();
 

@@ -3,7 +3,7 @@
 
 newmtl leaf
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -21,7 +21,7 @@ newmtl leaf
 
 newmtl vase_round
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -38,7 +38,7 @@ newmtl vase_round
 
 newmtl Material__57
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -53,7 +53,7 @@ newmtl Material__57
 
 newmtl Material__298
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -69,7 +69,7 @@ newmtl Material__298
 
 newmtl bricks
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -86,7 +86,7 @@ newmtl bricks
 
 newmtl arch
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -103,7 +103,7 @@ newmtl arch
 
 newmtl ceiling
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -120,7 +120,7 @@ newmtl ceiling
 
 newmtl column_a
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -137,7 +137,7 @@ newmtl column_a
 
 newmtl floor
 	Ns 4.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -154,7 +154,7 @@ newmtl floor
 
 newmtl column_c
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -171,7 +171,7 @@ newmtl column_c
 
 newmtl details
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -186,7 +186,7 @@ newmtl details
 
 newmtl column_b
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -203,7 +203,7 @@ newmtl column_b
 
 newmtl Material__47
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -215,7 +215,7 @@ newmtl Material__47
 
 newmtl flagpole
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -230,7 +230,7 @@ newmtl flagpole
 
 newmtl fabric_e
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -245,7 +245,7 @@ newmtl fabric_e
 
 newmtl fabric_d
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -260,7 +260,7 @@ newmtl fabric_d
 
 newmtl fabric_a
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -275,7 +275,7 @@ newmtl fabric_a
 
 newmtl fabric_g
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -290,7 +290,7 @@ newmtl fabric_g
 
 newmtl fabric_c
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -305,7 +305,7 @@ newmtl fabric_c
 
 newmtl fabric_f
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -320,7 +320,7 @@ newmtl fabric_f
 
 newmtl chain
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -337,7 +337,7 @@ newmtl chain
 
 newmtl vase_hanging
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -352,7 +352,7 @@ newmtl vase_hanging
 
 newmtl vase
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -367,7 +367,7 @@ newmtl vase
 
 newmtl Material__25
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 
@@ -383,7 +383,7 @@ newmtl Material__25
 
 newmtl roof
 	Ns 10.0000
-	Ni 1.5000
+	Ni 0.0
 	d 1.0000
 	Tr 0.0000
 	Tf 1.0000 1.0000 1.0000 

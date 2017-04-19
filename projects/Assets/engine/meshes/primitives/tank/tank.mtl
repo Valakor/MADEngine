@@ -1,0 +1,24 @@
+# Blender MTL File: 'Tiger_I.blend'
+# Material Count: 2
+
+newmtl body_material
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ni 0.0
+d 1.0
+illum 2
+map_Kd tank_body_diffuse.dds
+map_Ks tank_body_specular.dds
+
+newmtl track_material
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ni 0.0
+d 1.0
+illum 2
+map_Kd tank_track_diffuse.dds
+map_Ks tank_track_specular.dds
