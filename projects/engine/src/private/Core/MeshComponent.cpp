@@ -13,7 +13,7 @@ namespace MAD
 
 	CMeshComponent::CMeshComponent(OGameWorld* inOwningWorld)
 		: Super_t(inOwningWorld)
-		, m_bIsDynamic(false)
+		, m_bIsDynamic(true)
 	{
 		m_meshInstance.m_bVisible = false;
 	}
