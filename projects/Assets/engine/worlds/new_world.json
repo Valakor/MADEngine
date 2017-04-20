@@ -428,9 +428,9 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [350.0, 200.0, 0.0],
+							"position": [350.0, 100.0, 0.0],
 							"rotation": [90.0, -90.0, 0.0],
-							"scale": 20.0,
+							"scale": 10.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\samurai_sword\\sword.obj"
