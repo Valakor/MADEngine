@@ -960,10 +960,14 @@ namespace MAD
 		CubeTransformArray_t probeViewMatrices;
 		Matrix probeProjectionMatrix;
 		InputLayoutFlags_t reflectionInputLayoutOverride = 0;
+		ProgramId_t programIdOverride = 0;
 
 		reflectionInputLayoutOverride |= EInputLayoutSemantic::Position;
 		reflectionInputLayoutOverride |= EInputLayoutSemantic::Normal;
 		reflectionInputLayoutOverride |= EInputLayoutSemantic::UV;
+
+		programIdOverride |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_Diffuse);
+		programIdOverride |= static_cast<ProgramId_t>(EProgramIdMask::GBuffer_OpacityMask);
 
 		const SDrawItem& currentProbeItem = m_reflectionProbeDrawItems.begin()->second;
 
@@ -998,7 +1002,7 @@ namespace MAD
 			g_graphicsDriver.StartEventGroup(L"Static");
 			for (auto& currentStaticDrawItem : m_staticDrawItems)
 			{
-				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentStaticDrawItem.second));
+				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, programIdOverride & DetermineProgramId(currentStaticDrawItem.second));
 
 				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true, reflectionInputLayoutOverride);
 			}
@@ -1008,7 +1012,7 @@ namespace MAD
 			g_graphicsDriver.StartEventGroup(L"Dynamic");
 			for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
 			{
-				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(currentDynamicDrawItem.second));
+				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, programIdOverride & DetermineProgramId(currentDynamicDrawItem.second));
 
 				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true, reflectionInputLayoutOverride);
 			}

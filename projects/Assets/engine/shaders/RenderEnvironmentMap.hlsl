@@ -17,7 +17,7 @@ struct PS_INPUT
 {
 	float4 mHomogenousPos	: SV_POSITION;
 	float3 mWSPosition		: POSITION;
-	float3 mVSNormal		: NORMAL0;
+	float3 mVSNormal		: NORMAL;
 	float2 mTex				: TEXCOORD;
 };
 

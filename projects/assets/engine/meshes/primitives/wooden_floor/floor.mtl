@@ -1,11 +1,9 @@
-# Blender MTL File: 'None'
-# Material Count: 1
-
 newmtl floor_mtl
 Ns 500.0
 Ka 0.000000 0.000000 0.000000
 Kd 1.000000 1.000000 1.000000
-Ks 1.000000 1.000000 1.000000
+Ks 0.1 0.1 0.1
 Ni 0.0
 illum 2
-map_Kd woodfloor.jpg
+map_Kd planks_diffuse.png
+map_bump planks_normal.png

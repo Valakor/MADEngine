@@ -135,7 +135,7 @@
 							"properties": {
 								"enabled": true,
 								"color": [1.0, 1.0, 1.0, 1.0],
-								"intensity": 10.0,
+								"intensity": 5.0,
 								"innerRadius": 50.0,
 								"outerRadius": 1000.0
 							}
@@ -175,10 +175,26 @@
 						{
 							"type": "CMeshComponent",
 							"position": [0.0, 0.0, 0.0],
-							"scale": 75.0,
+							"scale": 45.0,
 							"properties": {
 								"visible": true,
 								"mesh": "engine\\meshes\\primitives\\wooden_floor\\floor.obj"
+							}
+						}
+					]
+				},
+				{
+					"type": "AEntity",
+					"name": "Concrete Fence",
+					"newComponents": [
+						{
+							"type": "CMeshComponent",
+							"position": [-300.0, 0.0, 200.0],
+							"rotation": [0.0, 90.0, 0.0],
+							"scale": 75.0,
+							"properties": {
+								"visible": true,
+								"mesh": "engine\\meshes\\primitives\\concrete_fence\\concrete_fence.obj"
 							}
 						}
 					]
@@ -210,7 +226,7 @@
 								"effect_shader": "engine\\shaders\\ParticleSystem\\ParticleSystemCPURain.hlsl",
 								"emitters": [
 									{
-										"emit_rate": 20,
+										"emit_rate": 30,
 										"emit_duration": -1.0,
 										"emit_start_color": [0.0117, 0.2901, 0.9254, 1.0],
 										"emit_particle_lifetime": 10.0,
@@ -219,7 +235,7 @@
 										"emit_min_radius": 100.0
 									},
 									{
-										"emit_rate": 15,
+										"emit_rate": 30,
 										"emit_duration": -1.0,
 										"emit_start_color": [0.0117, 0.2901, 0.9254, 1.0],
 										"emit_particle_lifetime": 10.0,
@@ -267,7 +283,7 @@
 						},
 						{
 							"type": "CParticleSystemComponent",
-							"position": [-200.0, 100.0, 150.0],
+							"position": [-300.0, 100.0, 0.0],
 							"properties": {
 								"name": "Jet Trail Effect",
 								"enabled": true,
@@ -390,7 +406,7 @@
 					"newComponents": [
 						{
 							"type": "CMeshComponent",
-							"position": [-300.0, 0.0, 0.0],
+							"position": [-300.0, 0.0, -200.0],
 							"scale": 450.0,
 							"properties": {
 								"visible": true,

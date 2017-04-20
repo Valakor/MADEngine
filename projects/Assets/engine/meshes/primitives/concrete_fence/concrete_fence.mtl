@@ -1,0 +1,10 @@
+newmtl concrete_fence
+Ns 50.0
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ni 0.0
+illum 2
+map_Kd fence_diffuse.png
+map_Ks fence_specular.png
+map_bump fence_normal.png

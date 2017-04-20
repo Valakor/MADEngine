@@ -11,4 +11,5 @@ newmtl default
 	Ke 0.0000 0.0000 0.0000
 	map_Kd ak-74_diffuse.jpg
 	map_Ks ak-74_specular.jpg
-	map_bump -bm 0.3000 ak-74_normal.jpg
+	map_bump ak-74_normal.jpg
+	bump ak-74_normal.jpg
