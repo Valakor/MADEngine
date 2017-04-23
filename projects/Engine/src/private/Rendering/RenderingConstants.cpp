@@ -5,7 +5,7 @@ namespace MAD
 	namespace RenderConstants
 	{
 		const uint32_t DynamicEnvironmentMapRes = 512;
-		const uint32_t ShadowMapRes = 4096;
+		const uint32_t ShadowMapRes = 512;
 	}
 
 	namespace ShaderPaths
