@@ -5,6 +5,7 @@
 #include "Rendering/GraphicsDriver.h"
 
 #include "Misc/utf8conv.h"
+#include "Misc/Remotery.h"
 
 namespace MAD
 {
@@ -22,14 +23,20 @@ namespace MAD
 
 	void UParticleSystemManager::UpdateParticleSystems(float inDeltaTime)
 	{
+		rmt_ScopedCPUSample(UParticleSystemManager_UpdateParticleSystems, 0);
+
+		GPU_EVENT_START(&URenderContext::Get().GetGraphicsDriver(), Particles);
+
 		for (size_t i = 0; i < m_firstInactiveParticleSystem; ++i)
 		{
-			URenderContext::Get().GetGraphicsDriver().StartEventGroup(utf8util::UTF16FromUTF8(m_particleSystemPool[i].GetSystemName().c_str()));
+			GPU_EVENT_START_STR(&URenderContext::Get().GetGraphicsDriver(), Particle_System, utf8util::UTF16FromUTF8(m_particleSystemPool[i].GetSystemName().c_str()));
 
 			m_particleSystemPool[i].TickSystem(inDeltaTime);
 
-			URenderContext::Get().GetGraphicsDriver().EndEventGroup();
+			GPU_EVENT_END(&URenderContext::Get().GetGraphicsDriver());
 		}
+
+		GPU_EVENT_END(&URenderContext::Get().GetGraphicsDriver());
 	}
 
 	UParticleSystem* UParticleSystemManager::ActivateParticleSystem(const SParticleSystemSpawnParams& inSystemParams, const eastl::vector<SParticleEmitterSpawnParams>& inEmitterParams)
@@ -37,7 +44,7 @@ namespace MAD
 		if (m_firstInactiveParticleSystem == UParticleSystemManager::s_maxParticleSystems)
 		{
 			MAD_ASSERT_DESC(false, "Max active particle systems has been met!");
-			return false;
+			return nullptr;
 		}
 
 		UParticleSystem* activatedSystem = &m_particleSystemPool[m_firstInactiveParticleSystem];

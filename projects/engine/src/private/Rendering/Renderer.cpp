@@ -5,6 +5,7 @@
 #include "Core/GameWindow.h"
 #include "Misc/ProgramPermutor.h"
 #include "Misc/Logging.h"
+#include "Misc/Remotery.h"
 #include "Rendering/GraphicsDriver.h"
 #include "Rendering/InputLayoutCache.h"
 #include "Rendering/ParticleSystem/ParticleSystem.h"
@@ -245,8 +246,12 @@ namespace MAD
 
 	void URenderer::Frame(float inFramePercent, float inFrameTime)
 	{
+		rmt_ScopedCPUSample(Renderer_Frame, 0);
+
 		m_frame++;
 		MAD_ASSERT_DESC(m_frame != eastl::numeric_limits<decltype(m_frame)>::max(), "");
+
+		GPU_EVENT_START(&g_graphicsDriver, Frame);
 		
 		BeginFrame();
 
@@ -257,6 +262,8 @@ namespace MAD
 		}
 		
 		EndFrame();
+
+		GPU_EVENT_END(&g_graphicsDriver);
 	}
 
 	void URenderer::InitializeGBufferPass(const eastl::string& inGBufferProgramPath)
@@ -551,7 +558,9 @@ namespace MAD
 
 	void URenderer::BeginFrame()
 	{
-		g_graphicsDriver.StartEventGroup(L"Clear render targets and depth");
+		rmt_ScopedCPUSample(Renderer_BeginFrame, 0);
+
+		GPU_EVENT_START(&g_graphicsDriver, Begin_Frame);
 
 		g_graphicsDriver.ClearDepthStencil(m_gBufferPassDescriptor.m_depthStencilView, true, 1.0f);
 
@@ -565,11 +574,13 @@ namespace MAD
 			g_graphicsDriver.ClearRenderTarget(renderTarget);
 		}
 
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 	}
 
 	void URenderer::Draw(float inFramePercent, float inFrameTime)
 	{
+		rmt_ScopedCPUSample(Renderer_Draw, 0);
+
 		// Bind per-frame constants
 		CalculateCameraConstants(inFramePercent);
 		m_perFrameConstants.m_gameTime = gEngine->GetGameTime();
@@ -594,15 +605,13 @@ namespace MAD
 		m_textRenderPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		m_textBatchRenderer.FlushBatch();
 
-		g_graphicsDriver.StartEventGroup(L"Particle Systems");
-
 		m_particleSystemManager.UpdateParticleSystems(inFrameTime);
-
-		g_graphicsDriver.EndEventGroup();
 	}
 
 	void URenderer::EndFrame()
 	{
+		rmt_ScopedCPUSample(Renderer_EndFrame, 0);
+
 		static bool loadedBackBufferProgram = false;
 		static eastl::shared_ptr<URenderPassProgram> backBufferProgram;
 		if (!loadedBackBufferProgram)
@@ -611,7 +620,7 @@ namespace MAD
 			loadedBackBufferProgram = true;
 		}
 
-		g_graphicsDriver.StartEventGroup(L"Copy lighting accumulation to back buffer");
+		GPU_EVENT_START(&g_graphicsDriver, EndFrame);
 
 		// Copy the finalized linear lighting buffer to the back buffer
 		// This (will) perform HDR lighting corrections and already performs gamma correction
@@ -621,9 +630,11 @@ namespace MAD
 		backBufferProgram->SetProgramActive(g_graphicsDriver, 0);
 		g_graphicsDriver.DrawFullscreenQuad();
 
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 
+		GPU_EVENT_START(&g_graphicsDriver, Present);
 		g_graphicsDriver.Present();
+		GPU_EVENT_END(&g_graphicsDriver);
 	}
 
 	void URenderer::ClearExpiredDebugDrawItems()
@@ -643,7 +654,9 @@ namespace MAD
 
 	void URenderer::DrawSkySphere(float inFramePercent)
 	{
-		g_graphicsDriver.StartEventGroup(L"Rendering Sky Sphere");
+		rmt_ScopedCPUSample(Renderer_DrawSkySphere, 0);
+
+		GPU_EVENT_START(&g_graphicsDriver, Render_Sky_Sphere);
 
 		// We need to unbind the depth buffer because we're gonna be using it when rendering the skybox to make sure the depth testing is correct
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
@@ -654,11 +667,13 @@ namespace MAD
 		m_skySpherePassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, 0);
 		m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true, EInputLayoutSemantic::Position);
 
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 	}
 
 	void URenderer::DrawGBuffer(float inFramePercent)
 	{
+		rmt_ScopedCPUSample(Renderer_DrawGBuffer, 0);
+
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::LightingBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseBuffer);
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::NormalBuffer);
@@ -668,9 +683,9 @@ namespace MAD
 		m_gBufferPassDescriptor.ApplyPassState(g_graphicsDriver);
 
 		// Go through both static and dynamic draw items and bind input assembly data
-		g_graphicsDriver.StartEventGroup(L"Draw objects in scene to GBuffer");
+		GPU_EVENT_START(&g_graphicsDriver, GBuffer);
 
-		g_graphicsDriver.StartEventGroup(L"Static");
+		GPU_EVENT_START(&g_graphicsDriver, Static);
 		for (auto& currentStaticDrawItem : m_staticDrawItems)
 		{
 			// Before processing the draw item, we need to determine which program it should use and bind that
@@ -678,9 +693,9 @@ namespace MAD
 
 			currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
 		}
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 
-		g_graphicsDriver.StartEventGroup(L"Dynamic");
+		GPU_EVENT_START(&g_graphicsDriver, Dynamic);
 		for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
 		{
 			// Before processing the draw item, we need to determine which program it should use and bind that
@@ -689,9 +704,9 @@ namespace MAD
 			// Each individual DrawItem should issue its own draw call
 			currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
 		}
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 
-		g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+		GPU_EVENT_START(&g_graphicsDriver, Reflection_Probes);
 		for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
 		{
 			// Before processing the draw item, we need to determine which program it should use and bind that
@@ -700,15 +715,15 @@ namespace MAD
 			// Each individual DrawItem should issue its own draw call
 			currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, true);
 		}
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 
 		if (m_visualizeOption != EVisualizeOptions::None)
 		{
-			g_graphicsDriver.StartEventGroup(L"Visualize GBuffer");
+			GPU_EVENT_START(&g_graphicsDriver, Visualize_GBuffer);
 			DoVisualizeGBuffer();
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 			return;
 		}
 
@@ -716,7 +731,9 @@ namespace MAD
 
 	void URenderer::DrawDirectionalLighting(float inFramePercent)
 	{
-		g_graphicsDriver.StartEventGroup(L"Accumulate deferred directional lighting");
+		rmt_ScopedCPUSample(Renderer_DrawDirectionalLighting, 0);
+
+		GPU_EVENT_START(&g_graphicsDriver, Deferred_Directional_Lighting);
 
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 
@@ -726,12 +743,10 @@ namespace MAD
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::SpecularBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::SpecularBuffer);
 		g_graphicsDriver.SetPixelShaderResource(m_gBufferShaderResources[AsIntegral(ETextureSlot::DepthBuffer) - AsIntegral(ETextureSlot::LightingBuffer)], ETextureSlot::DepthBuffer);
 
-		uint32_t currentDirectionalLightIndex = 0;
-
 		SGPUDirectionalLight directionalLightConstants;
 		for (const auto& currentDirLight : m_queuedDirLights[m_currentStateIndex])
 		{
-			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Directional light #%d", ++currentDirectionalLightIndex));
+			GPU_EVENT_START(&g_graphicsDriver, Directional_Light);
 
 			// Interpolate the light's properties
 			const auto previousDirLight = m_queuedDirLights[1 - m_currentStateIndex].find(currentDirLight.first);
@@ -749,7 +764,7 @@ namespace MAD
 			g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerDirectionalLight, &directionalLightConstants, sizeof(SGPUDirectionalLight));
 
 			// Render shadow map
-			g_graphicsDriver.StartEventGroup(L"Draw scene to shadow map");
+			GPU_EVENT_START(&g_graphicsDriver, Draw_to_Shadowmap);
 			g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 			m_dirShadowMappingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			m_dirShadowMappingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
@@ -757,55 +772,60 @@ namespace MAD
 			g_graphicsDriver.ClearDepthStencil(m_dirShadowMappingPassDescriptor.m_depthStencilView, true, 1.0);
 			g_graphicsDriver.SetViewport(0, 0, 4096, 4096);
 
-			g_graphicsDriver.StartEventGroup(L"Static");
+			GPU_EVENT_START(&g_graphicsDriver, Static);
 			for (auto& currentStaticDrawItem : m_staticDrawItems)
 			{
 				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 
-			g_graphicsDriver.StartEventGroup(L"Dynamic");
+			GPU_EVENT_START(&g_graphicsDriver, Dynamic);
 			for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
 			{
 				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 
-			g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+			GPU_EVENT_START(&g_graphicsDriver, Reflection_Probes);
 			for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
 			{
 				currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_dirShadowMappingPassDescriptor.m_rasterizerState);
 			}
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 
 			// Shading + lighting
+			GPU_EVENT_START(&g_graphicsDriver, Lighting);
+
 			m_dirLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 			g_graphicsDriver.SetPixelShaderResource(m_shadowMapSRV, ETextureSlot::DiffuseMap);
 			m_dirLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_DirectionalLight));
 			g_graphicsDriver.SetViewport(0, 0, m_perSceneConstants.m_screenDimensions.x, m_perSceneConstants.m_screenDimensions.y);
 			g_graphicsDriver.DrawFullscreenQuad();
 
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
+
+			GPU_EVENT_END(&g_graphicsDriver);
 		}
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 	}
 
 	void URenderer::DrawPointLighting(float inFramePercent)
 	{
-		uint32_t currentPointLightIndex = 0;
+		rmt_ScopedCPUSample(Renderer_DrawPointLighting, 0);
+
 		SPerPointLightConstants pointLightConstants;
 		CubeTransformArray_t shadowMapVPMatrices;
 
-		g_graphicsDriver.StartEventGroup(L"Accumulate deferred point lighting");
+		GPU_EVENT_START(&g_graphicsDriver, Deferred_Point_Lighting);
 
 		m_pointLightingPassDescriptor.ApplyPassState(g_graphicsDriver);
 		m_pointLightingPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, static_cast<ProgramId_t>(EProgramIdMask::Lighting_PointLight));
 
 		for (const auto& currentPointLight : m_queuedPointLights[m_currentStateIndex])
 		{
-			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Point light #%d", ++currentPointLightIndex));
+			GPU_EVENT_START(&g_graphicsDriver, Point_Light);
 
 			// Interpolate the light's properties
 			const auto previousPointLight = m_queuedPointLights[1 - m_currentStateIndex].find(currentPointLight.first);
@@ -831,7 +851,7 @@ namespace MAD
 
 			for (int i = 0; i < AsIntegral(ETextureCubeFace::MAX); ++i)
 			{
-				g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Shadow Cube Side #%d", i));
+				GPU_EVENT_START_STR(&g_graphicsDriver, Shadow_Cube_Side, eastl::wstring(eastl::wstring::CtorSprintf(), L"Shadow Cube Side #%d", i));
 
 				// Bind the current side of the shadow texture cube
 				m_depthTextureCube->BindCubeSideAsTarget(i);
@@ -841,28 +861,28 @@ namespace MAD
 				g_graphicsDriver.UpdateBuffer(EConstantBufferSlot::PerPointLight, &pointLightConstants, sizeof(pointLightConstants));
 
 				// Process all of the draw items (static and dynamic) again
-				g_graphicsDriver.StartEventGroup(L"Static");
+				GPU_EVENT_START(&g_graphicsDriver, Static);
 				for (auto& currentStaticDrawItem : m_staticDrawItems)
 				{
 					currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
 				}
-				g_graphicsDriver.EndEventGroup();
+				GPU_EVENT_END(&g_graphicsDriver);
 
-				g_graphicsDriver.StartEventGroup(L"Dynamic");
+				GPU_EVENT_START(&g_graphicsDriver, Dynamic);
 				for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
 				{
 					currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
 				}
-				g_graphicsDriver.EndEventGroup();
+				GPU_EVENT_END(&g_graphicsDriver);
 
-				g_graphicsDriver.StartEventGroup(L"Reflection Probes");
+				GPU_EVENT_START(&g_graphicsDriver, Reflection_Probes);
 				for (auto& currentProbeDrawItem : m_reflectionProbeDrawItems)
 				{
 					currentProbeDrawItem.second.Draw(g_graphicsDriver, inFramePercent, m_perFrameConstants, false, EInputLayoutSemantic::Position, m_pointShadowMappingPassDescriptor.m_rasterizerState);
 				}
-				g_graphicsDriver.EndEventGroup();
+				GPU_EVENT_END(&g_graphicsDriver);
 
-				g_graphicsDriver.EndEventGroup();
+				GPU_EVENT_END(&g_graphicsDriver);
 			}
 
 			// Reset the viewport back to normal
@@ -903,6 +923,8 @@ namespace MAD
 			// lead to a 0 w-value (in viewspace) since the projection value produces a w value equal to -z
 			if (lightMinPosHS.w != 0.0f && lightMaxPosHS.w != 0.0f)
 			{
+				GPU_EVENT_START(&g_graphicsDriver, Lighting);
+
 				// Perspective divide from clip into NDC space
 				lightMinPosHS /= lightMinPosHS.w;
 				lightMaxPosHS /= lightMaxPosHS.w;
@@ -912,12 +934,14 @@ namespace MAD
 
 				// Light quad extents are in NDC
 				g_graphicsDriver.DrawSubscreenQuad(lightMinPosHS, lightMaxPosHS);
+
+				GPU_EVENT_END(&g_graphicsDriver);
 			}
 
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 		}
 
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 	}
 
 	void URenderer::DrawDebugPrimitives(float inFramePerecent)
@@ -927,7 +951,9 @@ namespace MAD
 			return;
 		}
 
-		g_graphicsDriver.StartEventGroup(L"Debug Pass Layer");
+		rmt_ScopedCPUSample(Renderer_DrawDebugPrimitives, 0);
+
+		GPU_EVENT_START(&g_graphicsDriver, Debug_Layer);
 
 		// Make sure the g buffer depth stencil shader resource view is not bound because we're using it as our depth stencil view here
 		g_graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DepthBuffer);
@@ -941,11 +967,13 @@ namespace MAD
 			currentDebugDrawItem.m_debugDrawItem.Draw(g_graphicsDriver, inFramePerecent, m_perFrameConstants, false);
 		}
 
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 	}
 
 	void URenderer::ProcessReflectionProbes(float inFramePercent)
 	{
+		rmt_ScopedCPUSample(Renderer_ProcessReflectionProbes, 0);
+
 		static const wchar_t* CubeSideNames[] =
 		{
 			L"Positive X",
@@ -971,7 +999,7 @@ namespace MAD
 
 		const SDrawItem& currentProbeItem = m_reflectionProbeDrawItems.begin()->second;
 
-		g_graphicsDriver.StartEventGroup(L"Processing Reflection Probes");
+		GPU_EVENT_START(&g_graphicsDriver, Process_Reflection_Probes);
 
 		// Generate the environment maps for the probes (for now, assume we only have one)
 		GenerateViewMatrices(currentProbeItem.m_transform.GetTranslation(), probeViewMatrices, probeProjectionMatrix);
@@ -982,7 +1010,7 @@ namespace MAD
 		{
 			SPerFrameConstants perFrameConstants = m_perFrameConstants;
 
-			g_graphicsDriver.StartEventGroup(eastl::wstring(eastl::wstring::CtorSprintf(), L"Reflection Probe Cube Side: %s", CubeSideNames[i]));
+			GPU_EVENT_START_STR(&g_graphicsDriver, Reflection_Probe_Side, eastl::wstring(eastl::wstring::CtorSprintf(), L"Reflection Probe Cube Side: %s", CubeSideNames[i]));
 
 			// Update the view-projection matrix of the current cube side in the per point light constant buffer
 			perFrameConstants.m_cameraViewMatrix = probeViewMatrices[i];
@@ -992,14 +1020,14 @@ namespace MAD
 
 			m_dynamicEnvironmentMap.BindCubeSideAsTarget(i);
 
-			g_graphicsDriver.StartEventGroup(L"Sky Sphere");
+			GPU_EVENT_START(&g_graphicsDriver, Sky_Sphere);
 			g_graphicsDriver.SetPixelShaderResource(m_globalEnvironmentMap.GetShaderResource(), ETextureSlot::CubeMap);
 			m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, DetermineProgramId(m_skySphereDrawItem));
 			m_skySphereDrawItem.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true);
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 
 			// Process all of the draw items (static and dynamic) again
-			g_graphicsDriver.StartEventGroup(L"Static");
+			GPU_EVENT_START(&g_graphicsDriver, Static);
 			for (auto& currentStaticDrawItem : m_staticDrawItems)
 			{
 				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, programIdOverride & DetermineProgramId(currentStaticDrawItem.second));
@@ -1007,21 +1035,21 @@ namespace MAD
 				currentStaticDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true, reflectionInputLayoutOverride);
 			}
 
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 
-			g_graphicsDriver.StartEventGroup(L"Dynamic");
+			GPU_EVENT_START(&g_graphicsDriver, Dynamic);
 			for (auto& currentDynamicDrawItem : m_dynamicDrawItems[m_currentStateIndex])
 			{
 				m_reflectionPassDescriptor.m_renderPassProgram->SetProgramActive(g_graphicsDriver, programIdOverride & DetermineProgramId(currentDynamicDrawItem.second));
 
 				currentDynamicDrawItem.second.Draw(g_graphicsDriver, inFramePercent, perFrameConstants, true, reflectionInputLayoutOverride);
 			}
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 
-			g_graphicsDriver.EndEventGroup();
+			GPU_EVENT_END(&g_graphicsDriver);
 		}
 
-		g_graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&g_graphicsDriver);
 
 		BindPerFrameConstants();
 		SetViewport(m_screenViewport);

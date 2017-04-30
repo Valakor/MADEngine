@@ -33,7 +33,7 @@ namespace MAD
 		const static eastl::string s_defaultLevelPath;
 	public:
 		UBaseEngine();
-		virtual ~UBaseEngine() {}
+		virtual ~UBaseEngine();
 
 		bool Init(eastl::shared_ptr<class UGameWindow> inGameWindow);
 		void Stop();
@@ -73,8 +73,8 @@ namespace MAD
 		void ExecuteEngineTests();
 	protected:
 		virtual bool Init_Internal(eastl::shared_ptr<class UGameWindow> inGameWindow) = 0;
-		virtual void PreTick_Internal(float) {};
-		virtual void PostTick_Internal(float) {};
+		virtual void PreTick_Internal(float) {}
+		virtual void PostTick_Internal(float) {}
 		virtual void InitializeEngineContext() = 0;
 
 		// TODO Reloading world doesn't totally work with the network because we don't respawn the player again

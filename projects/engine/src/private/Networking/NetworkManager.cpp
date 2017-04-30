@@ -6,6 +6,7 @@
 #include "Misc/ErrorHandling.h"
 #include "Misc/Logging.h"
 #include "Misc/Parse.h"
+#include "Misc/Remotery.h"
 
 using namespace yojimbo;
 
@@ -86,6 +87,8 @@ namespace MAD
 
 	void UNetworkManager::PreTick()
 	{
+		rmt_ScopedCPUSample(Net_PreTick, 0);
+
 		double gameTime = gEngine->GetGameTimeDouble();
 
 		if (m_server)
@@ -101,6 +104,8 @@ namespace MAD
 
 	void UNetworkManager::PostTick()
 	{
+		rmt_ScopedCPUSample(Net_PostTick, 0);
+
 		if (m_server)
 		{
 			m_server->PostTick();

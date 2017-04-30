@@ -16,6 +16,7 @@
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/InputLayoutCache.h"
+#include "Misc/Remotery.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -217,12 +218,16 @@ namespace MAD
 			SetPixelSamplerState(m_samplers[i], i);
 		}
 
+		rmt_BindD3D11(g_d3dDevice.Get(), g_d3dDeviceContext.Get());
+
 		LOG(LogGraphicsDevice, Log, "Graphics driver initialization successful\n");
 		return true;
 	}
 
 	void UGraphicsDriver::Shutdown()
 	{
+		rmt_UnbindD3D11();
+
 		if (g_d3dDeviceContext)
 		{
 			g_d3dDeviceContext->ClearState();
@@ -1071,25 +1076,21 @@ namespace MAD
 		return g_d3dDeviceContext;
 	}
 
+#ifdef _DEBUG
 	void UGraphicsDriver::StartEventGroup(const eastl::wstring& inName)
 	{
-#ifdef _DEBUG
 		if (g_d3dEvent)
 		{
 			g_d3dEvent->BeginEvent(inName.c_str());
 		}
-#else
-		(void)inName;
-#endif
 	}
 
 	void UGraphicsDriver::EndEventGroup()
 	{
-#ifdef _DEBUG
 		if (g_d3dEvent)
 		{
 			g_d3dEvent->EndEvent();
 		}
-#endif
 	}
+#endif
 }

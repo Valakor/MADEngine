@@ -5,6 +5,7 @@
 #include "Rendering/RenderContext.h"
 #include "Rendering/VertexDataTypes.h"
 #include "Rendering/InputLayoutCache.h"
+#include "Misc/Remotery.h"
 
 namespace MAD
 {
@@ -75,6 +76,8 @@ namespace MAD
 			return;
 		}
 
+		rmt_ScopedCPUSample(UTextBatchRenderer_FlushBatch, 0);
+
 		size_t totalVertexCount = 0;
 
 		// Reserve enough vertices for the entire batch upfront
@@ -106,7 +109,7 @@ namespace MAD
 		auto& graphicsDriver = gEngine->GetRenderer().GetGraphicsDriver();
 		memset(&updatedPerDrawContants, 0, sizeof(updatedPerDrawContants));
 
-		graphicsDriver.StartEventGroup(L"Drawing Text Batch");
+		GPU_EVENT_START(&graphicsDriver, Text_Batch);
 
 		graphicsDriver.SetInputLayout(UInputLayoutCache::GetInputLayout(EInputLayoutSemantic::Position | EInputLayoutSemantic::UV));
 		graphicsDriver.SetPrimitiveTopology(EPrimitiveTopology::TriangleList);
@@ -127,7 +130,7 @@ namespace MAD
 		// Unbind the font map as a shader resource (just in case, there is another use for the texture slot)
 		graphicsDriver.SetPixelShaderResource(nullptr, ETextureSlot::DiffuseMap);
 
-		graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&graphicsDriver);
 	}
 
 	void UTextBatchRenderer::UpdateCPUTextData(const STextInstance& inTextInstance)

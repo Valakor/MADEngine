@@ -13,6 +13,35 @@ using Microsoft::WRL::ComPtr;
 
 namespace MAD
 {
+#ifdef _DEBUG
+	// NOTE: name must be valid C++ variable name syntax (no spaces, etc.) since
+	// Remotery uses it internally as a static variable a couple macros deep
+#define GPU_EVENT_START(graphics, name)				\
+	do												\
+	{												\
+		(graphics)->StartEventGroup(L#name);		\
+		rmt_BeginD3D11Sample(name);					\
+	} while (0)
+
+#define GPU_EVENT_START_STR(graphics, name, str)	\
+	do												\
+	{												\
+		(graphics)->StartEventGroup(str);			\
+		rmt_BeginD3D11Sample(name);					\
+	} while (0)
+
+#define GPU_EVENT_END(graphics)						\
+	do												\
+	{												\
+		(graphics)->EndEventGroup();				\
+		rmt_EndD3D11Sample();						\
+	} while (0)
+#else
+#define GPU_EVENT_START(...) (void)0
+#define GPU_EVENT_START_STR(...) (void)0
+#define GPU_EVENT_END(...) (void)0
+#endif
+
 	class UGraphicsDriver
 	{
 	public:
@@ -84,10 +113,10 @@ namespace MAD
 
 #ifdef _DEBUG
 		void SetDebugName_RenderTarget(RenderTargetPtr_t inRenderTarget, const eastl::string& inName) const;
-#endif
 
 		void StartEventGroup(const eastl::wstring& inName);
 		void EndEventGroup();
+#endif
 
 		void DrawSubscreenQuad(const Vector4& inNDCQuadMin, const Vector4& inNDCQuadMax);
 		void DrawFullscreenQuad();

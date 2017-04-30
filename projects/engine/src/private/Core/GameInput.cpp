@@ -3,6 +3,7 @@
 #include "Core/GameEngine.h"
 #include "Core/GameWindow.h"
 #include "Misc/Logging.h"
+#include "Misc/Remotery.h"
 
 using eastl::string;
 
@@ -291,6 +292,8 @@ namespace MAD
 
 	void UGameInput::Tick()
 	{
+		rmt_ScopedCPUSample(Input_Tick, 0);
+
 		if (bIgnoreInput)
 		{
 			return;

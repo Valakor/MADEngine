@@ -11,6 +11,7 @@
 #include "Core/PhysicsWorld.h"
 #include "Misc/AssetCache.h"
 #include "Misc/Parse.h"
+#include "Misc/Remotery.h"
 #include "Rendering/Renderer.h"
 
 #include "Core/Character.h"
@@ -45,6 +46,8 @@ namespace MAD
 	string SCmdLine::mCmdLine;
 
 	DECLARE_LOG_CATEGORY(LogBaseEngine);
+
+	static Remotery * g_pRemotery;
 
 	namespace
 	{
@@ -132,6 +135,12 @@ namespace MAD
 		, m_frameTime(0.0)
 		, m_frameAccumulator(0.0) { }
 
+		UBaseEngine::~UBaseEngine()
+		{
+			if (g_pRemotery) rmt_DestroyGlobalInstance(g_pRemotery);
+		}
+
+
 	bool UBaseEngine::Init(eastl::shared_ptr<UGameWindow> inGameWindow)
 	{
 		srand(time(nullptr));
@@ -150,6 +159,14 @@ namespace MAD
 
 		// Set global engine pointer
 		gEngine = this;
+
+		// Start our Remotery session
+		g_pRemotery = nullptr;
+		if (!SParse::Find(SCmdLine::Get(), "-NoRmt") && rmt_CreateGlobalInstance(&g_pRemotery) != RMT_ERROR_NONE)
+		{
+			LOG(LogBaseEngine, Error, "Failed to create Remotery instance");
+			return false;
+		}
 
 		if (!Init_Internal(inGameWindow))
 		{
@@ -311,6 +328,8 @@ namespace MAD
 
 	void UBaseEngine::Tick()
 	{
+		rmt_ScopedCPUSample(Engine_Tick, 0);
+
 		auto now = m_frameTimer->TimeSinceStart();
 
 		m_frameTime = now - m_gameTime;
@@ -320,11 +339,16 @@ namespace MAD
 
 		int steps = eastl::min(static_cast<int>(m_frameAccumulator / TARGET_DELTA_TIME), MAX_SIMULATION_STEPS);
 		m_frameAccumulator -= steps * TARGET_DELTA_TIME;
-
-		PreTick_Internal(m_frameTime);
 		
+		{
+			rmt_ScopedCPUSample(Engine_PreTick, 0);
+			PreTick_Internal(m_frameTime);
+		}
+
 		while (steps > 0)
 		{
+			rmt_ScopedCPUSample(Engine_TickStep, 0);
+
 			// Update current game tick
 			m_gameTick++;
 			MAD_ASSERT_DESC(m_gameTick != 0, "Game tick overflow detected");
@@ -351,10 +375,10 @@ namespace MAD
 				currentWorld->UpdatePrePhysics(TARGET_DELTA_TIME);
 			}
 
-			//// Update the physics world
+			// Update the physics world
 			m_physicsWorld->SimulatePhysics();
 
-			//// Tick the post-physics components of all Worlds
+			// Tick the post-physics components of all Worlds
 			for (auto& currentWorld : m_worlds)
 			{
 				currentWorld->UpdatePostPhysics(TARGET_DELTA_TIME);
@@ -380,6 +404,9 @@ namespace MAD
 		// Tick renderer
 		m_renderer->Frame(framePercent, m_frameTime);
 
-		PostTick_Internal(m_frameTime);
+		{
+			rmt_ScopedCPUSample(Engine_PostTick, 0);
+			PostTick_Internal(m_frameTime);
+		}
 	}
 }

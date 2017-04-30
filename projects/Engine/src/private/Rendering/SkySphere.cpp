@@ -8,6 +8,7 @@
 #include "Rendering/Mesh.h"
 
 #include "Misc/Assert.h"
+#include "Misc/Remotery.h"
 
 namespace MAD
 {
@@ -24,7 +25,7 @@ namespace MAD
 		const auto& gBufferPassDesc = URenderContext::Get().GetRenderer().GetGBufferPassDescriptor();
 		SPerDrawConstants skyboxDrawConstants;
 
-		graphicsDriver.StartEventGroup(L"Drawing Sky Sphere");
+		GPU_EVENT_START(&graphicsDriver, Sky_Sphere);
 
 		// Bind the program
 		m_skyboxShader->SetProgramActive(graphicsDriver, 0);
@@ -55,7 +56,7 @@ namespace MAD
 
 		graphicsDriver.DrawIndexed(static_cast<UINT>(m_skyboxMesh->m_indexBuffer.size()), 0, 0);
 
-		graphicsDriver.EndEventGroup();
+		GPU_EVENT_END(&graphicsDriver);
 	}
 
 	bool USkySphere::InitializeSkybox(const eastl::string& inShaderPath, const eastl::string& inCubemapPath)

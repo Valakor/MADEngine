@@ -3,6 +3,7 @@
 #include "Core/GameEngine.h"
 #include "Core/Entity.h"
 #include "Misc/Logging.h"
+#include "Misc/Remotery.h"
 
 namespace MAD
 {
@@ -47,6 +48,8 @@ namespace MAD
 
 	void OGameWorld::CleanupEntities()
 	{
+		rmt_ScopedCPUSample(World_CleanupEntities, 0);
+
 		//LOG(LogDefault, Log, "Cleaning up entites from %s\n", m_worldName.c_str());
 
 		// Cleans up the entities that are pending for kill
@@ -58,11 +61,13 @@ namespace MAD
 
 	void OGameWorld::UpdatePrePhysics(float inDeltaTime)
 	{
+		rmt_ScopedCPUSample(World_UpdatePrePhysics, 0);
 		m_componentUpdater.UpdatePrePhysicsComponents(inDeltaTime);
 	}
 
 	void OGameWorld::UpdatePostPhysics(float inDeltaTime)
 	{
+		rmt_ScopedCPUSample(World_UpdatePostPhysics, 0);
 		m_componentUpdater.UpdatePostPhysicsComponents(inDeltaTime);
 	}
 }

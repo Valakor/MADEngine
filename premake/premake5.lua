@@ -154,10 +154,12 @@ project "Engine"
 	pchheader "stdafx.h"
 	pchsource "../projects/Engine/src/private/stdafx.cpp"
 	forceincludes { "stdafx.h" }
+	defines { "RMT_ENABLED=1", "RMT_USE_D3D11=1" }
 	commonSetup()
 
 function useEngine()
 	includedirs "../projects/Engine/src/include"
+	defines { "RMT_ENABLED=1", "RMT_USE_D3D11=1" }
 	links "Engine"
 end
 

@@ -205,7 +205,7 @@ namespace MAD
 					}
 					else
 					{
-						LOG(LogProgramPermutor, Error, "Error: Invalid or unsupported shader usage meta flag (%s, %s)\n", currentUsageDescription.ShaderEntryName, currentUsageDescription.ShaderModelName);
+						LOG(LogProgramPermutor, Error, "Error: Invalid or unsupported shader usage meta flag (%s, %s)\n", currentUsageDescription.ShaderEntryName.c_str(), currentUsageDescription.ShaderModelName.c_str());
 					}
 				}
 			}

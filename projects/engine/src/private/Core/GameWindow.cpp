@@ -5,6 +5,7 @@
 #include "Misc/Logging.h"
 #include "Misc/utf8conv.h"
 #include "Rendering/Renderer.h"
+#include "Misc/Remotery.h"
 
 using eastl::string;
 
@@ -54,6 +55,8 @@ namespace MAD
 
 	void UGameWindow::PumpMessageQueue()
 	{
+		rmt_ScopedCPUSample(Window_PumpMsgQueue, 0);
+
 		MSG msg = { 0 };
 
 		// Gather any messages (probably input) since last frame
